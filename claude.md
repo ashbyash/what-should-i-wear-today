@@ -30,22 +30,23 @@ Location-based weather + air quality check → Outing score + Outfit recommendat
 ## Outing Score Logic (100 points max)
 | Factor | Weight | Score |
 |--------|--------|-------|
-| Temperature | 30% | 18~25℃(30) / 10~17℃, 26~30℃(20) / 5~9℃, 31~35℃(10) / else(0) |
-| Fine dust | 30% | Good(30) / Moderate(20) / Bad(10) / Very bad(0) |
+| Temperature | 30% | 20~26℃(30) / 12~19℃, 27~32℃(20) / 5~11℃, 33~36℃(10) / else(0) |
+| Fine dust (PM2.5) | 30% | Good 0~15(30) / Moderate 16~35(20) / Bad 36~75(10) / Very bad 76↑(0) |
 | Weather | 25% | Clear(25) / Cloudy(18) / Overcast(10) / Rain·Snow(0) |
-| UV | 15% | Low(15) / Moderate(12) / High(6) / Very high(0) |
+| UV Index | 15% | Low 0~2(15) / Moderate 3~5(10) / High 6~7(6) / Very high 8~10(3) / Danger 11↑(0) |
 
 ## Outfit Recommendation Logic
-| Temperature | Recommendation |
-|-------------|----------------|
-| 28℃↑ | Sleeveless, t-shirt, shorts |
-| 23~27℃ | T-shirt, thin shirt |
-| 17~22℃ | Cardigan, sweatshirt |
-| 12~16℃ | Jacket, knit |
-| 6~11℃ | Coat, leather jacket |
-| 5℃↓ | Padded jacket, heavy coat |
+| Temperature | Recommendation (Korean) |
+|-------------|-------------------------|
+| 30℃↑ | 민소매, 반팔, 반바지, 린넨 |
+| 26~29℃ | 반팔, 얇은 셔츠, 면바지 |
+| 20~25℃ | 얇은 가디건, 맨투맨, 긴팔티 |
+| 12~19℃ | 자켓, 가디건, 니트, 청바지 |
+| 5~11℃ | 코트, 가죽자켓, 히트텍 |
+| 4℃↓ | 패딩, 두꺼운 코트, 목도리 |
 
-+) Daily temperature range ≥ 10℃ → Add "Bring a jacket"
++) Daily temperature range ≥ 10℃ → Add "겉옷 챙기세요"
++) PM2.5 ≥ 36 → Add "마스크 착용 권장"
 
 ## Folder Structure
 ```
