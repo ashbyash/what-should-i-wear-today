@@ -18,10 +18,10 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
   const { categories, alerts } = outfit;
 
   return (
-    <div className="card bg-base-200 shadow-sm">
+    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
       <div className="card-body p-4">
-        <h3 className="card-title text-base justify-center">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h3 className="card-title text-heading-2 justify-center text-glass-secondary">
+          <svg className="w-5 h-5 text-glass-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -32,32 +32,28 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
           오늘의 옷차림
         </h3>
 
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 space-y-2">
           {CATEGORY_ORDER.map((key) => {
             const items = categories[key];
             if (!items || items.length === 0) return null;
 
             return (
-              <div key={key} className="flex items-start gap-2">
-                <span className="text-xs text-base-content/50 w-16 shrink-0 pt-1">
+              <div key={key} className="flex items-baseline gap-3">
+                <span className="text-caption text-glass-muted w-14 shrink-0">
                   {CATEGORY_LABELS[key]}
                 </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {items.map((item) => (
-                    <span key={item} className="badge badge-outline badge-sm">
-                      {item}
-                    </span>
-                  ))}
-                </div>
+                <span className="text-body text-glass-secondary">
+                  {items.join(', ')}
+                </span>
               </div>
             );
           })}
         </div>
 
         {alerts.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-base-300 space-y-1">
+          <div className="mt-3 pt-3 border-t border-white/20 space-y-1">
             {alerts.map((alert) => (
-              <div key={alert} className="flex items-center justify-center gap-1 text-warning">
+              <div key={alert} className="flex items-center justify-center gap-1 text-amber-300">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -65,7 +61,7 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-sm">{alert}</span>
+                <span className="text-body">{alert}</span>
               </div>
             ))}
           </div>

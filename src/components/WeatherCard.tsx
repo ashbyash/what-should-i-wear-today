@@ -57,15 +57,16 @@ export default function WeatherCard({ weather }: WeatherCardProps) {
   const label = getWeatherLabel(weather.weatherMain);
 
   return (
-    <div className="card bg-base-200 shadow-sm">
+    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
       <div className="card-body p-4 items-center text-center">
-        <div className="text-5xl mb-2">{emoji}</div>
-        <div className="text-4xl font-bold">{weather.temperature}°</div>
-        <div className="text-base-content/70">{label}</div>
-        <div className="text-sm text-base-content/50 mt-1">
+        <div className="text-5xl">{emoji}</div>
+        <h4 className="text-label text-glass-muted">날씨</h4>
+        <div className="text-display text-glass-primary">{weather.temperature}°</div>
+        <div className="text-body text-glass-secondary">{label}</div>
+        <div className="text-caption text-glass-muted mt-1">
           최저 {weather.tempMin}° / 최고 {weather.tempMax}°
         </div>
-        <div className="text-xs text-base-content/40 mt-1">
+        <div className="text-caption text-glass-muted mt-1">
           체감 {weather.feelsLike}° · 습도 {weather.humidity}%
         </div>
       </div>

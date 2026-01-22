@@ -5,10 +5,18 @@ import type { Coordinates } from './geolocation';
 import type { KmaWeatherData, UVIndexData } from './kma-api';
 import type { AirKoreaData } from './airkorea-api';
 
+export interface LocationData {
+  address: string;
+  region1: string;
+  region2: string;
+  region3: string;
+}
+
 export interface WeatherDataState {
   weather: KmaWeatherData | null;
   airQuality: AirKoreaData | null;
   uv: UVIndexData | null;
+  location: LocationData | null;
   loading: boolean;
   error: string | null;
 }
@@ -18,6 +26,7 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
     weather: null,
     airQuality: null,
     uv: null,
+    location: null,
     loading: true,
     error: null,
   });
@@ -34,11 +43,12 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
       try {
         const { lat, lon } = coordinates;
 
-        // 3개 API 병렬 호출
-        const [weatherRes, airRes, uvRes] = await Promise.all([
+        // 4개 API 병렬 호출
+        const [weatherRes, airRes, uvRes, locationRes] = await Promise.all([
           fetch(`/api/weather?lat=${lat}&lon=${lon}`),
           fetch(`/api/air-quality?lat=${lat}&lon=${lon}`),
           fetch(`/api/uv?lat=${lat}&lon=${lon}`),
+          fetch(`/api/location?lat=${lat}&lon=${lon}`),
         ]);
 
         // 에러 체크
@@ -48,9 +58,10 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
 
         const weather: KmaWeatherData = await weatherRes.json();
 
-        // 대기질과 UV는 실패해도 계속 진행 (optional)
+        // 대기질, UV, 위치는 실패해도 계속 진행 (optional)
         let airQuality: AirKoreaData | null = null;
         let uv: UVIndexData | null = null;
+        let location: LocationData | null = null;
 
         if (airRes.ok) {
           airQuality = await airRes.json();
@@ -60,10 +71,15 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
           uv = await uvRes.json();
         }
 
+        if (locationRes.ok) {
+          location = await locationRes.json();
+        }
+
         setState({
           weather,
           airQuality,
           uv,
+          location,
           loading: false,
           error: null,
         });

@@ -53,6 +53,7 @@ interface AirQualityItem {
 
 export interface AirKoreaData {
   stationName: string;
+  stationAddr: string;
   pm10: number;
   pm25: number;
   pm10Grade: 'good' | 'moderate' | 'bad' | 'very_bad';
@@ -84,6 +85,11 @@ function getPM10Grade(value: number): AirGrade {
   return 'very_bad';
 }
 
+interface NearestStation {
+  name: string;
+  addr: string;
+}
+
 /**
  * 가까운 측정소 찾기
  */
@@ -91,7 +97,7 @@ async function findNearestStation(
   tmX: number,
   tmY: number,
   apiKey: string
-): Promise<string> {
+): Promise<NearestStation> {
   const params = new URLSearchParams({
     serviceKey: apiKey,
     returnType: 'json',
@@ -119,7 +125,10 @@ async function findNearestStation(
   }
 
   // 가장 가까운 측정소 반환
-  return items[0].stationName;
+  return {
+    name: items[0].stationName,
+    addr: items[0].addr,
+  };
 }
 
 /**
@@ -171,17 +180,18 @@ export async function fetchAirKorea(
   const { tmX, tmY } = toTMCoordinate(lat, lon);
 
   // 가까운 측정소 찾기
-  const stationName = await findNearestStation(tmX, tmY, apiKey);
+  const station = await findNearestStation(tmX, tmY, apiKey);
 
   // 측정소 대기질 조회
-  const airData = await fetchStationAirQuality(stationName, apiKey);
+  const airData = await fetchStationAirQuality(station.name, apiKey);
 
   // 값이 '-' 이거나 없으면 0으로 처리
   const pm10 = parseInt(airData.pm10Value, 10) || 0;
   const pm25 = parseInt(airData.pm25Value, 10) || 0;
 
   return {
-    stationName,
+    stationName: station.name,
+    stationAddr: station.addr,
     pm10,
     pm25,
     pm10Grade: getPM10Grade(pm10),
