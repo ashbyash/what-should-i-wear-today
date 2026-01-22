@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
 import OutfitCard from '@/components/OutfitCard';
@@ -17,30 +18,87 @@ interface WeatherTheme {
   isLight: boolean;
 }
 
-function getWeatherTheme(weatherMain: string): WeatherTheme {
+type TimeOfDay = 'night' | 'dawn' | 'morning' | 'day' | 'evening';
+type WeatherType = 'clear' | 'clouds' | 'rain' | 'snow' | 'mist';
+
+function getTimeOfDay(hour: number): TimeOfDay {
+  if (hour >= 5 && hour < 7) return 'dawn';
+  if (hour >= 7 && hour < 9) return 'morning';
+  if (hour >= 9 && hour < 17) return 'day';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night'; // 21-5시
+}
+
+function getWeatherType(weatherMain: string): WeatherType {
   const weather = weatherMain.toLowerCase();
-  switch (weather) {
-    case 'clear':
-      return { bgClass: 'bg-gradient-to-b from-sky-400 to-blue-500', isLight: false };
-    case 'clouds':
-      return { bgClass: 'bg-gradient-to-b from-slate-400 to-slate-500', isLight: false };
-    case 'rain':
-    case 'drizzle':
-      return { bgClass: 'bg-gradient-to-b from-slate-500 to-blue-600', isLight: false };
-    case 'thunderstorm':
-      return { bgClass: 'bg-gradient-to-b from-slate-600 to-gray-700', isLight: false };
-    case 'snow':
-      return { bgClass: 'bg-gradient-to-b from-slate-300 to-blue-400', isLight: true };
-    case 'mist':
-    case 'fog':
-    case 'haze':
-      return { bgClass: 'bg-gradient-to-b from-gray-400 to-slate-500', isLight: false };
-    default:
-      return { bgClass: 'bg-gradient-to-b from-sky-400 to-blue-500', isLight: false };
-  }
+  if (weather === 'clear') return 'clear';
+  if (weather === 'clouds') return 'clouds';
+  if (['rain', 'drizzle', 'thunderstorm'].includes(weather)) return 'rain';
+  if (weather === 'snow') return 'snow';
+  return 'mist';
+}
+
+// 시간대 + 날씨 조합 테마
+const themeMap: Record<TimeOfDay, Record<WeatherType, WeatherTheme>> = {
+  night: {
+    clear: { bgClass: 'bg-gradient-to-b from-indigo-900 to-slate-900', isLight: false },
+    clouds: { bgClass: 'bg-gradient-to-b from-slate-700 to-slate-800', isLight: false },
+    rain: { bgClass: 'bg-gradient-to-b from-slate-800 to-gray-900', isLight: false },
+    snow: { bgClass: 'bg-gradient-to-b from-slate-600 to-indigo-800', isLight: false },
+    mist: { bgClass: 'bg-gradient-to-b from-slate-700 to-gray-800', isLight: false },
+  },
+  dawn: {
+    clear: { bgClass: 'bg-gradient-to-b from-indigo-800 to-orange-300', isLight: false },
+    clouds: { bgClass: 'bg-gradient-to-b from-slate-600 to-rose-300', isLight: false },
+    rain: { bgClass: 'bg-gradient-to-b from-slate-700 to-slate-500', isLight: false },
+    snow: { bgClass: 'bg-gradient-to-b from-slate-500 to-blue-300', isLight: false },
+    mist: { bgClass: 'bg-gradient-to-b from-slate-600 to-gray-400', isLight: false },
+  },
+  morning: {
+    clear: { bgClass: 'bg-gradient-to-b from-orange-300 to-sky-400', isLight: true },
+    clouds: { bgClass: 'bg-gradient-to-b from-rose-200 to-slate-400', isLight: true },
+    rain: { bgClass: 'bg-gradient-to-b from-slate-400 to-blue-500', isLight: false },
+    snow: { bgClass: 'bg-gradient-to-b from-slate-200 to-blue-300', isLight: true },
+    mist: { bgClass: 'bg-gradient-to-b from-gray-300 to-slate-400', isLight: true },
+  },
+  day: {
+    clear: { bgClass: 'bg-gradient-to-b from-sky-400 to-blue-500', isLight: false },
+    clouds: { bgClass: 'bg-gradient-to-b from-slate-400 to-slate-500', isLight: false },
+    rain: { bgClass: 'bg-gradient-to-b from-slate-500 to-blue-600', isLight: false },
+    snow: { bgClass: 'bg-gradient-to-b from-slate-300 to-blue-400', isLight: true },
+    mist: { bgClass: 'bg-gradient-to-b from-gray-400 to-slate-500', isLight: false },
+  },
+  evening: {
+    clear: { bgClass: 'bg-gradient-to-b from-orange-400 to-purple-600', isLight: false },
+    clouds: { bgClass: 'bg-gradient-to-b from-rose-400 to-slate-600', isLight: false },
+    rain: { bgClass: 'bg-gradient-to-b from-purple-500 to-slate-700', isLight: false },
+    snow: { bgClass: 'bg-gradient-to-b from-rose-300 to-indigo-500', isLight: false },
+    mist: { bgClass: 'bg-gradient-to-b from-gray-400 to-purple-600', isLight: false },
+  },
+};
+
+function getWeatherTheme(weatherMain: string, overrideHour?: number): WeatherTheme {
+  const hour = overrideHour ?? new Date().getHours();
+  const timeOfDay = getTimeOfDay(hour);
+  const weatherType = getWeatherType(weatherMain);
+
+  return themeMap[timeOfDay][weatherType];
 }
 
 export default function Home() {
+  const [devHour, setDevHour] = useState<number | undefined>(undefined);
+
+  // 개발 환경에서 콘솔로 시간 테스트 가능
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      (window as typeof window & { setHour: (h: number | undefined) => void }).setHour = (h) => {
+        setDevHour(h);
+        console.log(`시간 설정: ${h ?? '현재 시간'} (${h !== undefined ? getTimeOfDay(h) : getTimeOfDay(new Date().getHours())})`);
+      };
+      console.log('🕐 시간 테스트: setHour(19) / setHour() 로 리셋');
+    }
+  }, []);
+
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
   const { weather, airQuality, uv, location, loading: dataLoading, error: dataError } = useWeatherData(coordinates);
 
@@ -58,14 +116,53 @@ export default function Home() {
 
   // 위치 에러
   if (geoError) {
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = typeof navigator !== 'undefined' && /Android/.test(navigator.userAgent);
+    const isMobile = isIOS || isAndroid;
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky-400 to-blue-500 flex items-center justify-center">
-        <div className="text-center px-4">
-          <div className="text-4xl mb-4">📍</div>
-          <p className="text-white font-medium">{geoError}</p>
-          <p className="mt-2 text-white/70 text-sm font-light">
-            위치 권한을 허용해주세요.
-          </p>
+        <div className="text-center px-6 max-w-sm">
+          <div className="text-5xl mb-4">📍</div>
+          <p className="text-white font-semibold text-lg mb-4">{geoError}</p>
+
+          <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 text-left">
+            <p className="text-white/90 font-medium text-sm mb-3">
+              위치 권한 허용 방법
+            </p>
+
+            {isMobile ? (
+              isIOS ? (
+                <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
+                  <li>iPhone <span className="font-semibold">설정</span> 앱 열기</li>
+                  <li><span className="font-semibold">Safari</span> → <span className="font-semibold">위치</span></li>
+                  <li><span className="font-semibold">허용</span> 선택</li>
+                  <li>이 페이지 새로고침</li>
+                </ol>
+              ) : (
+                <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
+                  <li>주소창 왼쪽 <span className="font-semibold">자물쇠</span> 아이콘 탭</li>
+                  <li><span className="font-semibold">권한</span> → <span className="font-semibold">위치</span></li>
+                  <li><span className="font-semibold">허용</span> 선택</li>
+                  <li>이 페이지 새로고침</li>
+                </ol>
+              )
+            ) : (
+              <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
+                <li>주소창 왼쪽 <span className="font-semibold">자물쇠</span> 아이콘 클릭</li>
+                <li><span className="font-semibold">사이트 설정</span> 또는 <span className="font-semibold">권한</span></li>
+                <li>위치를 <span className="font-semibold">허용</span>으로 변경</li>
+                <li>이 페이지 새로고침</li>
+              </ol>
+            )}
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm font-medium transition-colors"
+          >
+            새로고침
+          </button>
         </div>
       </div>
     );
@@ -157,7 +254,7 @@ export default function Home() {
     weatherMain: weatherData.weatherMain,
   });
 
-  const { bgClass, isLight } = getWeatherTheme(weatherData.weatherMain);
+  const { bgClass, isLight } = getWeatherTheme(weatherData.weatherMain, devHour);
 
   return (
     <div

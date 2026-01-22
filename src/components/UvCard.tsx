@@ -18,6 +18,22 @@ function getUvColor(uvIndex: number): string {
   return 'text-rose-400';
 }
 
+function getUvDescription(uvIndex: number): string {
+  if (uvIndex <= 2) return '자외선 걱정 없어요';
+  if (uvIndex <= 5) return '외출 시 선크림 권장';
+  if (uvIndex <= 7) return '선크림 필수, 모자 권장';
+  if (uvIndex <= 10) return '한낮 외출 자제, 선크림 필수';
+  return '외출 자제, 피부 노출 최소화';
+}
+
+function getUvRange(uvIndex: number): string {
+  if (uvIndex <= 2) return '0~2';
+  if (uvIndex <= 5) return '3~5';
+  if (uvIndex <= 7) return '6~7';
+  if (uvIndex <= 10) return '8~10';
+  return '11↑';
+}
+
 export default function UvCard({ uvIndex }: UvCardProps) {
   return (
     <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
@@ -30,6 +46,12 @@ export default function UvCard({ uvIndex }: UvCardProps) {
               {getUvLabel(uvIndex)}
             </div>
             <div className="text-caption text-glass-muted">지수: {uvIndex}</div>
+            <div className="text-xs text-glass-muted/70 mt-1">
+              {getUvDescription(uvIndex)}
+            </div>
+            <div className="text-xs text-glass-muted/50 mt-0.5">
+              ({getUvLabel(uvIndex)} 기준: {getUvRange(uvIndex)})
+            </div>
           </>
         ) : (
           <div className="text-body text-glass-muted">정보 없음</div>
