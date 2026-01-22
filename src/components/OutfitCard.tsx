@@ -4,7 +4,19 @@ interface OutfitCardProps {
   outfit: OutfitRecommendation;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  outer: '아우터',
+  top: '상의',
+  bottom: '하의',
+  shoes: '신발',
+  accessory: '악세서리',
+};
+
+const CATEGORY_ORDER = ['outer', 'top', 'bottom', 'shoes', 'accessory'] as const;
+
 export default function OutfitCard({ outfit }: OutfitCardProps) {
+  const { categories, alerts } = outfit;
+
   return (
     <div className="card bg-base-200 shadow-sm">
       <div className="card-body p-4">
@@ -19,16 +31,32 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
           </svg>
           오늘의 옷차림
         </h3>
-        <div className="flex flex-wrap justify-center gap-2 mt-2">
-          {outfit.clothes.map((item) => (
-            <span key={item} className="badge badge-outline badge-lg">
-              {item}
-            </span>
-          ))}
+
+        <div className="mt-3 space-y-3">
+          {CATEGORY_ORDER.map((key) => {
+            const items = categories[key];
+            if (!items || items.length === 0) return null;
+
+            return (
+              <div key={key} className="flex items-start gap-2">
+                <span className="text-xs text-base-content/50 w-16 shrink-0 pt-1">
+                  {CATEGORY_LABELS[key]}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {items.map((item) => (
+                    <span key={item} className="badge badge-outline badge-sm">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        {outfit.alerts.length > 0 && (
-          <div className="mt-3 space-y-1">
-            {outfit.alerts.map((alert) => (
+
+        {alerts.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-base-300 space-y-1">
+            {alerts.map((alert) => (
               <div key={alert} className="flex items-center justify-center gap-1 text-warning">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path

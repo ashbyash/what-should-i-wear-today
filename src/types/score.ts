@@ -1,9 +1,9 @@
 // 각 요소별 점수
 export interface ScoreBreakdown {
-  temperature: number; // 0-30
-  fineDust: number; // 0-30
-  weather: number; // 0-25
-  uv: number; // 0-15
+  temperature: number; // 0-60
+  weather: number; // 0-20
+  fineDust: number; // 0-15
+  uv: number; // 0-5
 }
 
 // 외출 점수 레벨
@@ -17,9 +17,18 @@ export interface OutingScore {
   message: string;
 }
 
+// 카테고리별 옷차림
+export interface OutfitByCategory {
+  outer?: string[];      // 아우터
+  top?: string[];        // 상의
+  bottom?: string[];     // 하의
+  shoes?: string[];      // 신발
+  accessory?: string[];  // 악세서리 (방한용품 등)
+}
+
 // 옷차림 추천 결과
 export interface OutfitRecommendation {
-  clothes: string[];
+  categories: OutfitByCategory;
   alerts: string[];
 }
 
@@ -37,4 +46,5 @@ export interface OutfitInput {
   tempMin: number;
   tempMax: number;
   pm25: number;
+  weatherMain: string;
 }

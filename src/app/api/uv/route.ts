@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchKmaWeather } from '@/lib/kma-api';
+import { fetchUVIndex } from '@/lib/kma-api';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -23,17 +23,17 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const weatherData = await fetchKmaWeather(
+    const uvData = await fetchUVIndex(
       parseFloat(lat),
       parseFloat(lon),
       apiKey
     );
 
-    return NextResponse.json(weatherData);
+    return NextResponse.json(uvData);
   } catch (error) {
-    console.error('Weather API error:', error);
+    console.error('UV Index API error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch weather data' },
+      { error: 'Failed to fetch UV index data' },
       { status: 500 }
     );
   }
