@@ -6,8 +6,8 @@ export interface ScoreBreakdown {
   uv: number; // 0-5
 }
 
-// 외출 점수 레벨
-export type OutingLevel = 'excellent' | 'good' | 'moderate' | 'poor';
+// 외출 점수 레벨 (7단계)
+export type OutingLevel = 'perfect' | 'excellent' | 'good' | 'fair' | 'moderate' | 'poor' | 'bad';
 
 // 외출 점수 결과
 export interface OutingScore {
@@ -15,6 +15,7 @@ export interface OutingScore {
   breakdown: ScoreBreakdown;
   level: OutingLevel;
   message: string;
+  tips: string[]; // 상황별 팁 메시지
 }
 
 // 카테고리별 옷차림
@@ -35,6 +36,8 @@ export interface OutfitRecommendation {
 // 점수 계산에 필요한 입력값
 export interface ScoreInput {
   temperature: number;
+  tempMin: number;
+  tempMax: number;
   pm25: number;
   weatherMain: string;
   uvIndex?: number;

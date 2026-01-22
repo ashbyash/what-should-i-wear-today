@@ -240,6 +240,8 @@ export default function Home() {
   // 점수 계산
   const score = calculateOutingScore({
     temperature: weatherData.temperature,
+    tempMin: weatherData.tempMin,
+    tempMax: weatherData.tempMax,
     pm25: airQualityData.pm25,
     weatherMain: weatherData.weatherMain,
     uvIndex: uv?.uvIndex,
