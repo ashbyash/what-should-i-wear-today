@@ -5,18 +5,19 @@ import "./globals.css";
 const GA_ID = "G-SVJ6ZNVQYV";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ootd-by-weather.vercel.app"),
   title: "기온별 옷차림 | 오늘 뭐 입지?",
-  description: "날씨 기반 외출 점수 & 옷차림 추천",
+  description: "날씨로 알아보는 오늘의 OOTD",
   openGraph: {
     title: "기온별 옷차림 | 오늘 뭐 입지?",
-    description: "날씨 기반 외출 점수 & 옷차림 추천",
+    description: "날씨로 알아보는 오늘의 OOTD",
     type: "website",
     locale: "ko_KR",
   },
   twitter: {
     card: "summary_large_image",
     title: "기온별 옷차림 | 오늘 뭐 입지?",
-    description: "날씨 기반 외출 점수 & 옷차림 추천",
+    description: "날씨로 알아보는 오늘의 OOTD",
   },
 };
 
