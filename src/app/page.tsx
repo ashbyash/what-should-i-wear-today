@@ -82,8 +82,8 @@ export default function Home() {
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
   const { weather, airQuality, uv, location, loading: dataLoading, error: dataError, lastUpdated } = useWeatherData(coordinates);
 
-  // 기본 그라데이션 (로딩/에러 상태용)
-  const defaultGradient = TIME_GRADIENTS[getTimeOfDay()];
+  // 기본 그라데이션 (로딩/에러 상태용) - clientHour 기반
+  const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour)];
   const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
 
   // 위치 로딩 중
