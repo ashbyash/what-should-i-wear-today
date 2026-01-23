@@ -19,6 +19,7 @@ export interface WeatherDataState {
   location: LocationData | null;
   loading: boolean;
   error: string | null;
+  lastUpdated: Date | null;
 }
 
 export function useWeatherData(coordinates: Coordinates | null): WeatherDataState {
@@ -29,6 +30,7 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
     location: null,
     loading: true,
     error: null,
+    lastUpdated: null,
   });
 
   useEffect(() => {
@@ -82,6 +84,7 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
           location,
           loading: false,
           error: null,
+          lastUpdated: new Date(),
         });
       } catch (err) {
         setState((prev) => ({

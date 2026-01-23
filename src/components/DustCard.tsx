@@ -1,3 +1,6 @@
+'use client';
+
+import { motion } from 'framer-motion';
 import type { AirQualityData } from '@/types/weather';
 
 interface DustCardProps {
@@ -20,13 +23,26 @@ function getAqiLabel(level: AirQualityData['aqiLevel']): string {
 function getAqiColor(level: AirQualityData['aqiLevel']): string {
   switch (level) {
     case 'good':
-      return 'text-emerald-400';
+      return 'text-white';
     case 'moderate':
-      return 'text-sky-300';
+      return 'text-white';
     case 'bad':
-      return 'text-amber-400';
+      return 'text-amber-300';
     case 'very_bad':
-      return 'text-rose-400';
+      return 'text-rose-300';
+  }
+}
+
+function getAqiIcon(level: AirQualityData['aqiLevel']): string {
+  switch (level) {
+    case 'good':
+      return '😊';
+    case 'moderate':
+      return '😐';
+    case 'bad':
+      return '😷';
+    case 'very_bad':
+      return '🚫';
   }
 }
 
@@ -56,26 +72,70 @@ function getPm25Range(level: AirQualityData['aqiLevel']): string {
   }
 }
 
+function getAqiLevel(level: AirQualityData['aqiLevel']): number {
+  switch (level) {
+    case 'good':
+      return 0;
+    case 'moderate':
+      return 1;
+    case 'bad':
+      return 2;
+    case 'very_bad':
+      return 3;
+  }
+}
+
+const AQI_LEVELS = [
+  { label: '좋음', color: 'bg-emerald-400' },
+  { label: '보통', color: 'bg-sky-300' },
+  { label: '나쁨', color: 'bg-amber-400' },
+  { label: '매우나쁨', color: 'bg-rose-400' },
+];
+
 export default function DustCard({ airQuality }: DustCardProps) {
   const aqiLabel = getAqiLabel(airQuality.aqiLevel);
   const aqiColor = getAqiColor(airQuality.aqiLevel);
+  const aqiIcon = getAqiIcon(airQuality.aqiLevel);
   const description = getAqiDescription(airQuality.aqiLevel);
   const pm25Range = getPm25Range(airQuality.aqiLevel);
+  const currentLevel = getAqiLevel(airQuality.aqiLevel);
 
   return (
-    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
+    <div
+      className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full"
+      role="region"
+      aria-label={`미세먼지 ${aqiLabel}. PM2.5 ${airQuality.pm25}. ${description}`}
+    >
       <div className="card-body p-4 items-center text-center">
-        <div className="text-5xl">💨</div>
+        <div className="text-5xl" aria-hidden="true">💨</div>
         <h4 className="text-label text-glass-muted">미세먼지</h4>
-        <div className={`text-heading-1 ${aqiColor}`}>{aqiLabel}</div>
-        <div className="text-caption text-glass-muted">
+        <div className={`text-heading-1 ${aqiColor} flex items-center gap-1`}>
+          <span aria-hidden="true">{aqiIcon}</span>
+          <span>{aqiLabel}</span>
+        </div>
+        <div className="text-caption text-glass-secondary">
           PM2.5: {airQuality.pm25} · PM10: {airQuality.pm10}
         </div>
-        <div className="text-xs text-glass-muted/70 mt-1">
+        <div className="text-xs text-glass-muted mt-1">
           {description}
         </div>
-        <div className="text-xs text-glass-muted/50 mt-0.5">
+        <div className="text-xs text-glass-muted mt-0.5">
           ({aqiLabel} 기준: PM2.5 {pm25Range}㎍/㎥)
+        </div>
+
+        {/* 등급 인디케이터 */}
+        <div className="flex gap-1.5 mt-2" aria-hidden="true">
+          {AQI_LEVELS.map((level, i) => (
+            <motion.div
+              key={level.label}
+              className={`w-2 h-2 rounded-full ${
+                i <= currentLevel ? level.color : 'bg-white/20'
+              }`}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: i * 0.1, type: 'spring', stiffness: 500 }}
+            />
+          ))}
         </div>
       </div>
     </div>

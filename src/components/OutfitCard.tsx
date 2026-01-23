@@ -1,15 +1,17 @@
+'use client';
+
 import type { OutfitRecommendation } from '@/types/score';
 
 interface OutfitCardProps {
   outfit: OutfitRecommendation;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  outer: '아우터',
-  top: '상의',
-  bottom: '하의',
-  shoes: '신발',
-  accessory: '악세서리',
+const CATEGORY_CONFIG: Record<string, { label: string; emoji: string }> = {
+  outer: { label: '아우터', emoji: '🧥' },
+  top: { label: '상의', emoji: '👕' },
+  bottom: { label: '하의', emoji: '👖' },
+  shoes: { label: '신발', emoji: '👟' },
+  accessory: { label: '악세서리', emoji: '🧣' },
 };
 
 const CATEGORY_ORDER = ['outer', 'top', 'bottom', 'shoes', 'accessory'] as const;
@@ -17,11 +19,21 @@ const CATEGORY_ORDER = ['outer', 'top', 'bottom', 'shoes', 'accessory'] as const
 export default function OutfitCard({ outfit }: OutfitCardProps) {
   const { categories, alerts } = outfit;
 
+  // 접근성을 위한 옷차림 요약 생성
+  const outfitSummary = CATEGORY_ORDER
+    .filter((key) => categories[key] && categories[key]!.length > 0)
+    .map((key) => `${CATEGORY_CONFIG[key].label}: ${categories[key]!.join(', ')}`)
+    .join('. ');
+
   return (
-    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
+    <div
+      className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full"
+      role="region"
+      aria-label={`오늘의 옷차림 추천. ${outfitSummary}${alerts.length > 0 ? `. 주의사항: ${alerts.join(', ')}` : ''}`}
+    >
       <div className="card-body p-4">
         <h3 className="card-title text-heading-2 justify-center text-glass-secondary">
-          <svg className="w-5 h-5 text-glass-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-glass-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -37,10 +49,13 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
             const items = categories[key];
             if (!items || items.length === 0) return null;
 
+            const { label, emoji } = CATEGORY_CONFIG[key];
+
             return (
-              <div key={key} className="flex items-baseline gap-3">
-                <span className="text-caption text-glass-muted w-14 shrink-0">
-                  {CATEGORY_LABELS[key]}
+              <div key={key} className="flex items-center gap-2">
+                <span className="text-base" aria-hidden="true">{emoji}</span>
+                <span className="text-caption text-glass-muted w-12 shrink-0">
+                  {label}
                 </span>
                 <span className="text-body text-glass-secondary">
                   {items.join(', ')}
@@ -51,17 +66,11 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
         </div>
 
         {alerts.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-white/20 space-y-1">
+          <div className="mt-3 pt-3 border-t border-white/20 space-y-1" role="alert">
             {alerts.map((alert) => (
-              <div key={alert} className="flex items-center justify-center gap-1 text-amber-300">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-body">{alert}</span>
+              <div key={alert} className="flex items-center justify-center gap-1.5 text-white">
+                <span className="text-amber-300" aria-hidden="true">⚠️</span>
+                <span className="text-body font-medium">{alert}</span>
               </div>
             ))}
           </div>
