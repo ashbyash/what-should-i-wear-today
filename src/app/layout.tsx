@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import Providers from "@/components/Providers";
 import "./globals.css";
 
 const GA_ID = "G-SVJ6ZNVQYV";
@@ -175,7 +176,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="antialiased">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

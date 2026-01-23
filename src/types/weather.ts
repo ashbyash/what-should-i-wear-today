@@ -81,3 +81,11 @@ export interface LocationParams {
   lat: number;
   lon: number;
 }
+
+// Location data from reverse geocoding
+export interface LocationData {
+  address: string;
+  region1: string; // 시/도
+  region2: string; // 구/군
+  region3: string; // 동/읍/면
+}

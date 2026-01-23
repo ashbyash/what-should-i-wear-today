@@ -4,6 +4,8 @@ interface LocationHeaderProps {
   locationName: string;
   isLoading?: boolean;
   lastUpdated?: Date | null;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 function getRelativeTime(date: Date): string {
@@ -18,7 +20,21 @@ function getRelativeTime(date: Date): string {
   return '오래 전';
 }
 
-export default function LocationHeader({ locationName, isLoading, lastUpdated }: LocationHeaderProps) {
+export default function LocationHeader({
+  locationName,
+  isLoading,
+  lastUpdated,
+  onRefresh,
+  isRefreshing,
+}: LocationHeaderProps) {
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
     <header
       className="flex flex-col items-center py-4"
@@ -49,17 +65,19 @@ export default function LocationHeader({ locationName, isLoading, lastUpdated }:
       {/* 업데이트 시간 + 새로고침 */}
       {lastUpdated && !isLoading && (
         <button
-          onClick={() => window.location.reload()}
+          onClick={handleRefresh}
+          disabled={isRefreshing}
           className="flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full
                      hover:bg-glass-muted/10 active:bg-glass-muted/20
+                     disabled:opacity-50 disabled:cursor-not-allowed
                      transition-colors touch-manipulation"
-          aria-label="새로고침"
+          aria-label={isRefreshing ? '새로고침 중' : '새로고침'}
         >
           <span className="text-xs text-glass-muted">
-            {getRelativeTime(lastUpdated)}
+            {isRefreshing ? '업데이트 중...' : getRelativeTime(lastUpdated)}
           </span>
           <svg
-            className="w-3 h-3 text-glass-muted"
+            className={`w-3 h-3 text-glass-muted ${isRefreshing ? 'animate-spin' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

@@ -1,10 +1,31 @@
 import type { ScoreInput, OutingScore, ScoreBreakdown, OutingLevel } from '@/types/score';
+import {
+  SCORE_WEIGHTS,
+  TEMP_SCORE,
+  PM25,
+  UV_INDEX,
+  OUTING_LEVEL,
+  THRESHOLDS,
+  WEATHER_CONDITIONS,
+} from './constants';
 
 // 온도 점수 (60점 만점) - 가장 중요한 요소
 function calcTemperatureScore(temp: number): number {
-  if (temp >= 20 && temp <= 26) return 60;
-  if ((temp >= 12 && temp <= 19) || (temp >= 27 && temp <= 32)) return 40;
-  if ((temp >= 5 && temp <= 11) || (temp >= 33 && temp <= 36)) return 20;
+  if (temp >= TEMP_SCORE.IDEAL_MIN && temp <= TEMP_SCORE.IDEAL_MAX) {
+    return SCORE_WEIGHTS.TEMPERATURE;
+  }
+  if (
+    (temp >= TEMP_SCORE.GOOD_COLD_MIN && temp <= TEMP_SCORE.GOOD_COLD_MAX) ||
+    (temp >= TEMP_SCORE.GOOD_HOT_MIN && temp <= TEMP_SCORE.GOOD_HOT_MAX)
+  ) {
+    return 40;
+  }
+  if (
+    (temp >= TEMP_SCORE.CAUTION_COLD_MIN && temp <= TEMP_SCORE.CAUTION_COLD_MAX) ||
+    (temp >= TEMP_SCORE.CAUTION_HOT_MIN && temp <= TEMP_SCORE.CAUTION_HOT_MAX)
+  ) {
+    return 20;
+  }
   return 0;
 }
 
@@ -12,17 +33,10 @@ function calcTemperatureScore(temp: number): number {
 function calcWeatherScore(weatherMain: string): number {
   const weather = weatherMain.toLowerCase();
 
-  if (weather === 'clear') return 20;
-  if (weather === 'clouds' || weather === 'cloudy') return 14;
-  if (weather === 'overcast' || weather === 'mist' || weather === 'fog' || weather === 'haze') {
-    return 8;
-  }
-  if (
-    weather === 'rain' ||
-    weather === 'drizzle' ||
-    weather === 'snow' ||
-    weather === 'thunderstorm'
-  ) {
+  if (WEATHER_CONDITIONS.CLEAR.some((w) => weather === w)) return SCORE_WEIGHTS.WEATHER;
+  if (WEATHER_CONDITIONS.CLOUDY.some((w) => weather === w)) return 14;
+  if (WEATHER_CONDITIONS.OVERCAST.some((w) => weather === w)) return 8;
+  if (WEATHER_CONDITIONS.RAINY.some((w) => weather === w) || WEATHER_CONDITIONS.SNOWY.some((w) => weather === w)) {
     return 0;
   }
   return 8; // 기타
@@ -30,31 +44,31 @@ function calcWeatherScore(weatherMain: string): number {
 
 // 미세먼지 점수 (15점 만점) - PM2.5 기준
 function calcFineDustScore(pm25: number): number {
-  if (pm25 <= 15) return 15; // 좋음
-  if (pm25 <= 35) return 10; // 보통
-  if (pm25 <= 75) return 5; // 나쁨
-  return 0; // 매우나쁨
+  if (pm25 <= PM25.GOOD) return SCORE_WEIGHTS.FINE_DUST;
+  if (pm25 <= PM25.MODERATE) return 10;
+  if (pm25 <= PM25.BAD) return 5;
+  return 0;
 }
 
 // 자외선 점수 (5점 만점)
 function calcUvScore(uvIndex: number | undefined): number {
   if (uvIndex === undefined) return 3; // UV 정보 없으면 보통으로 처리
 
-  if (uvIndex <= 2) return 5; // 낮음
-  if (uvIndex <= 5) return 3; // 보통
-  if (uvIndex <= 7) return 2; // 높음
-  if (uvIndex <= 10) return 1; // 매우높음
-  return 0; // 위험
+  if (uvIndex <= UV_INDEX.LOW) return SCORE_WEIGHTS.UV;
+  if (uvIndex <= UV_INDEX.MODERATE) return 3;
+  if (uvIndex <= UV_INDEX.HIGH) return 2;
+  if (uvIndex <= UV_INDEX.VERY_HIGH) return 1;
+  return 0;
 }
 
 // 레벨 판정 (7단계)
 function getOutingLevel(total: number): OutingLevel {
-  if (total >= 90) return 'perfect';
-  if (total >= 80) return 'excellent';
-  if (total >= 70) return 'good';
-  if (total >= 60) return 'fair';
-  if (total >= 45) return 'moderate';
-  if (total >= 25) return 'poor';
+  if (total >= OUTING_LEVEL.PERFECT) return 'perfect';
+  if (total >= OUTING_LEVEL.EXCELLENT) return 'excellent';
+  if (total >= OUTING_LEVEL.GOOD) return 'good';
+  if (total >= OUTING_LEVEL.FAIR) return 'fair';
+  if (total >= OUTING_LEVEL.MODERATE) return 'moderate';
+  if (total >= OUTING_LEVEL.POOR) return 'poor';
   return 'bad';
 }
 
@@ -83,27 +97,29 @@ function getTips(input: ScoreInput): string[] {
   const tips: string[] = [];
 
   // 기온 관련
-  if (input.temperature <= 5) {
+  if (input.temperature <= THRESHOLDS.COLD_ALERT) {
     tips.push('방한용품 챙기세요');
   }
-  if (input.temperature >= 33) {
+  if (input.temperature >= THRESHOLDS.HOT_ALERT) {
     tips.push('수분 섭취에 신경 쓰세요');
   }
 
-
   // 미세먼지 관련
-  if (input.pm25 >= 36) {
+  if (input.pm25 >= PM25.MASK_THRESHOLD) {
     tips.push('마스크 챙기세요');
   }
 
   // 자외선 관련
-  if (input.uvIndex !== undefined && input.uvIndex >= 6) {
+  if (input.uvIndex !== undefined && input.uvIndex >= UV_INDEX.SUNSCREEN_THRESHOLD) {
     tips.push('선크림 바르세요');
   }
 
   // 날씨 관련
   const weather = input.weatherMain.toLowerCase();
-  if (weather === 'rain' || weather === 'drizzle' || weather === 'snow' || weather === 'thunderstorm') {
+  if (
+    WEATHER_CONDITIONS.RAINY.some((w) => weather === w) ||
+    WEATHER_CONDITIONS.SNOWY.some((w) => weather === w)
+  ) {
     tips.push('우산 챙기세요');
   }
 
