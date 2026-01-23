@@ -7,14 +7,17 @@
 // 점수 가중치 (100점 만점)
 // ============================================
 export const SCORE_WEIGHTS = {
-  TEMPERATURE: 60,  // 기온 (60%)
+  TEMPERATURE: 60,  // 기온 (60%) - 기존 호환용
+  FEELS_LIKE_TEMP: 55, // 체감온도 (55%)
   WEATHER: 20,      // 날씨 (20%)
   FINE_DUST: 15,    // 미세먼지 (15%)
   UV: 5,            // 자외선 (5%)
+  HUMIDITY: 5,      // 습도 (5%)
+  WIND_PENALTY_MAX: -10, // 풍속 페널티 최대값
 } as const;
 
 // ============================================
-// 기온 점수 기준 (℃)
+// 기온 점수 기준 (℃) - 기존 호환용
 // ============================================
 export const TEMP_SCORE = {
   // 쾌적 구간 (60점)
@@ -32,6 +35,45 @@ export const TEMP_SCORE = {
   CAUTION_HOT_MAX: 36,
   // 그 외 (0점)
 } as const;
+
+// ============================================
+// 계절별 체감온도 점수 기준 (℃) - 55점 만점
+// ============================================
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+
+export const SEASON_TEMP_RANGES = {
+  // 봄/가을 (3-5월, 9-11월)
+  spring: {
+    ideal: { min: 15, max: 23 },      // 쾌적 (55점)
+    good: { coldMin: 10, coldMax: 14, hotMin: 24, hotMax: 27 }, // 양호 (40점)
+    caution: { coldMin: 5, coldMax: 9, hotMin: 28, hotMax: 32 }, // 주의 (20점)
+  },
+  autumn: {
+    ideal: { min: 15, max: 23 },
+    good: { coldMin: 10, coldMax: 14, hotMin: 24, hotMax: 27 },
+    caution: { coldMin: 5, coldMax: 9, hotMin: 28, hotMax: 32 },
+  },
+  // 여름 (6-8월)
+  summer: {
+    ideal: { min: 22, max: 28 },      // 쾌적 (55점)
+    good: { coldMin: 18, coldMax: 21, hotMin: 29, hotMax: 33 }, // 양호 (40점)
+    caution: { coldMin: 15, coldMax: 17, hotMin: 34, hotMax: 36 }, // 주의 (20점)
+  },
+  // 겨울 (12-2월)
+  winter: {
+    ideal: { min: 0, max: 10 },       // 쾌적 (55점)
+    good: { coldMin: -5, coldMax: -1, hotMin: 11, hotMax: 15 }, // 양호 (40점)
+    caution: { coldMin: -10, coldMax: -6, hotMin: 16, hotMax: 20 }, // 주의 (20점)
+  },
+} as const;
+
+// 월 → 계절 매핑
+export const MONTH_TO_SEASON: Record<number, Season> = {
+  1: 'winter', 2: 'winter', 3: 'spring',
+  4: 'spring', 5: 'spring', 6: 'summer',
+  7: 'summer', 8: 'summer', 9: 'autumn',
+  10: 'autumn', 11: 'autumn', 12: 'winter',
+};
 
 // ============================================
 // 기온별 옷차림 기준 (℃)
@@ -69,6 +111,27 @@ export const UV_INDEX = {
 } as const;
 
 // ============================================
+// 시간대별 UV 배율
+// ============================================
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
+
+export const UV_TIME_MULTIPLIERS: Record<TimeOfDay, number> = {
+  morning: 0.3,     // 아침 (6-11시): 30%
+  afternoon: 1.5,   // 낮 (12-17시): 150%
+  evening: 0.2,     // 저녁 (18-20시): 20%
+  night: 0,         // 밤 (21-5시): 0%
+} as const;
+
+// 시간 → 시간대 매핑
+export const HOUR_TO_TIME_OF_DAY: Record<number, TimeOfDay> = {
+  0: 'night', 1: 'night', 2: 'night', 3: 'night', 4: 'night', 5: 'night',
+  6: 'morning', 7: 'morning', 8: 'morning', 9: 'morning', 10: 'morning', 11: 'morning',
+  12: 'afternoon', 13: 'afternoon', 14: 'afternoon', 15: 'afternoon', 16: 'afternoon', 17: 'afternoon',
+  18: 'evening', 19: 'evening', 20: 'evening',
+  21: 'night', 22: 'night', 23: 'night',
+} as const;
+
+// ============================================
 // 외출 점수 레벨 기준
 // ============================================
 export const OUTING_LEVEL = {
@@ -82,12 +145,75 @@ export const OUTING_LEVEL = {
 } as const;
 
 // ============================================
+// 레벨별 메시지 (각 레벨당 3개, 시간 기반 랜덤 선택)
+// ============================================
+import type { OutingLevel } from '@/types/score';
+
+export const LEVEL_MESSAGES: Record<OutingLevel, string[]> = {
+  perfect: [
+    '완벽한 외출 날씨예요!',
+    '나들이 가기 딱 좋은 날이에요!',
+    '이런 날씨는 흔치 않아요, 밖으로 나가세요!',
+  ],
+  excellent: [
+    '외출하기 최고의 날씨예요',
+    '밖에서 시간 보내기 좋은 날이에요',
+    '야외 활동하기 아주 좋아요',
+  ],
+  good: [
+    '외출하기 좋은 날씨예요',
+    '가볍게 산책하기 좋은 날이에요',
+    '외출하기 무난한 날씨예요',
+  ],
+  fair: [
+    '외출하기 괜찮은 날씨예요',
+    '나쁘지 않은 날씨예요',
+    '외출해도 괜찮아요',
+  ],
+  moderate: [
+    '외출 시 주의가 필요해요',
+    '컨디션 보고 외출 결정하세요',
+    '짧은 외출은 괜찮아요',
+  ],
+  poor: [
+    '가급적 실내 활동을 추천해요',
+    '꼭 필요한 외출만 하세요',
+    '외출은 자제하는 게 좋겠어요',
+  ],
+  bad: [
+    '외출을 피하는 게 좋겠어요',
+    '오늘은 집에서 쉬세요',
+    '외출하기 힘든 날씨예요',
+  ],
+} as const;
+
+// ============================================
 // 기타 임계값
 // ============================================
 export const THRESHOLDS = {
   TEMP_RANGE_ALERT: 10,   // 일교차 경고 기준 (℃)
   COLD_ALERT: 5,          // 방한용품 권장 기준 (℃)
   HOT_ALERT: 33,          // 수분 섭취 권장 기준 (℃)
+} as const;
+
+// ============================================
+// 습도 점수 기준 (%) - 5점 만점
+// ============================================
+export const HUMIDITY = {
+  IDEAL_MIN: 40,    // 쾌적 구간 시작
+  IDEAL_MAX: 60,    // 쾌적 구간 끝
+  GOOD_MIN: 30,     // 양호 구간 시작
+  GOOD_MAX: 70,     // 양호 구간 끝
+  // 그 외: 불쾌
+} as const;
+
+// ============================================
+// 풍속 페널티 기준 (m/s)
+// ============================================
+export const WIND_SPEED = {
+  STRONG: 8,        // 8m/s 이상: -10점
+  MODERATE: 5,      // 5-7m/s: -5점
+  // 5m/s 미만: 페널티 없음
 } as const;
 
 // ============================================

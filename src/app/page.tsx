@@ -154,6 +154,9 @@ export default function Home() {
     pm25: airQualityData.pm25,
     weatherMain: weatherData.weatherMain,
     uvIndex: uv?.uvIndex,
+    humidity: weatherData.humidity,
+    windSpeed: weatherData.windSpeed,
+    timestamp: Date.now(),
   });
 
   const outfit = getOutfitRecommendation({

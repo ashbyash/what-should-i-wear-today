@@ -1,9 +1,11 @@
 // 각 요소별 점수
 export interface ScoreBreakdown {
-  temperature: number; // 0-60
+  feelsLikeTemp: number; // 0-55 (체감온도 기반)
   weather: number; // 0-20
   fineDust: number; // 0-15
   uv: number; // 0-5
+  humidity: number; // 0-5
+  windPenalty: number; // -10~0 (풍속 페널티)
 }
 
 // 외출 점수 레벨 (7단계)
@@ -41,6 +43,9 @@ export interface ScoreInput {
   pm25: number;
   weatherMain: string;
   uvIndex?: number;
+  humidity?: number; // 습도 (%)
+  windSpeed?: number; // 풍속 (m/s)
+  timestamp?: number; // 계산 시점 (밀리초), 없으면 현재 시간 사용
 }
 
 // 옷차림 추천에 필요한 입력값
