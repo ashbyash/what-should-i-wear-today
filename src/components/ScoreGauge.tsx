@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { OutingScore } from '@/types/score';
 
 interface ScoreGaugeProps {
@@ -86,12 +86,7 @@ function CircularProgress({
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-
-  const spring = useSpring(0, { stiffness: 60, damping: 20 });
-  const strokeDashoffset = useTransform(spring, (v) => circumference - (v / 100) * circumference);
-
-  // 값이 변경되면 애니메이션 시작
-  spring.set(value);
+  const strokeDashoffset = circumference - (value / 100) * circumference;
 
   return (
     <svg
@@ -110,7 +105,7 @@ function CircularProgress({
         strokeWidth={strokeWidth}
       />
       {/* 프로그레스 원 */}
-      <motion.circle
+      <circle
         cx={size / 2}
         cy={size / 2}
         r={radius}
@@ -119,20 +114,14 @@ function CircularProgress({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         style={{ strokeDasharray: circumference, strokeDashoffset }}
-        initial={{ strokeDashoffset: circumference }}
       />
     </svg>
   );
 }
 
-// 숫자 카운트업 컴포넌트
+// 숫자 표시 컴포넌트 (즉시 표시)
 function AnimatedNumber({ value }: { value: number }) {
-  const spring = useSpring(0, { stiffness: 50, damping: 20 });
-  const display = useTransform(spring, (v) => Math.round(v));
-
-  spring.set(value);
-
-  return <motion.span>{display}</motion.span>;
+  return <span>{Math.round(value)}</span>;
 }
 
 // Breakdown 바 컴포넌트
