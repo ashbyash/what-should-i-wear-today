@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "기온별 옷차림 | 오늘 뭐 입지?",
   description: "날씨로 알아보는 오늘의 OOTD",
   keywords: ["날씨", "옷차림", "기온별 옷", "오늘 뭐 입지", "OOTD", "외출 점수", "미세먼지", "자외선"],
+  verification: {
+    google: "zBGvDIS1SeYmg6RNhW8w1tRTSDsFU4QTMUZWaxWR1GQ",
+  },
   openGraph: {
     title: "기온별 옷차림 | 오늘 뭐 입지?",
     description: "날씨로 알아보는 오늘의 OOTD",
