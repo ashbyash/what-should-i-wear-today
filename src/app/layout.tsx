@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   keywords: ["날씨", "옷차림", "기온별 옷", "오늘 뭐 입지", "OOTD", "외출 점수", "미세먼지", "자외선"],
   verification: {
     google: "zBGvDIS1SeYmg6RNhW8w1tRTSDsFU4QTMUZWaxWR1GQ",
+    other: {
+      "naver-site-verification": ["8fec5651cccdcb938128ba67a06342f6844d92db"],
+    },
   },
   openGraph: {
     title: "기온별 옷차림 | 오늘 뭐 입지?",
