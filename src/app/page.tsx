@@ -49,6 +49,13 @@ const cardVariants = {
 
 export default function Home() {
   const [devHour, setDevHour] = useState<number | undefined>(undefined);
+  const [clientHour, setClientHour] = useState<number | null>(null);
+
+  // 클라이언트 시간 설정 (SSR에서는 null, 클라이언트에서 실제 시간)
+  useEffect(() => {
+    const now = new Date();
+    setClientHour(now.getHours() + now.getMinutes() / 60);
+  }, []);
 
   // 개발 환경에서 콘솔로 시간 테스트 가능
   useEffect(() => {
@@ -227,7 +234,8 @@ export default function Home() {
     weatherMain: weatherData.weatherMain,
   });
 
-  const theme = getThemeConfig(weatherData.weatherMain, devHour);
+  // devHour(개발 테스트용) > clientHour(클라이언트 시간) > undefined(기본값)
+  const theme = getThemeConfig(weatherData.weatherMain, devHour ?? clientHour ?? undefined);
   const gradientStyle = getGradientStyle(theme.gradient);
 
   return (
