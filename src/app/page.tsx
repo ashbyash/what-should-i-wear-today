@@ -81,7 +81,12 @@ function useClientHour() {
 export default function Home() {
   const devHour = useDevHour();
   const clientHour = useClientHour();
-  const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
+  const {
+    coordinates,
+    loading: geoLoading,
+    error: geoError,
+    locationChanged,
+  } = useGeolocation();
   const {
     weather,
     weatherLoading,
@@ -94,7 +99,7 @@ export default function Home() {
     lastUpdated,
     refetch,
     isRefetching,
-  } = useWeatherData(coordinates);
+  } = useWeatherData(coordinates, { locationChanged });
 
   // 기본 그라데이션 (로딩/에러 상태용)
   const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour)];
