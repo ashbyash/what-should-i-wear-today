@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { WeatherData } from '@/types/weather';
 
 interface WeatherCardProps {
@@ -109,14 +109,14 @@ export default function WeatherCard({ weather }: WeatherCardProps) {
       <div className="card-body p-4 items-center text-center">
         {/* 상단: 이모지 + 날씨 상태 */}
         <div className="flex items-center gap-2">
-          <motion.span
+          <m.span
             className="text-3xl"
             aria-hidden="true"
             animate={animation.animate}
             transition={animation.transition}
           >
             {emoji}
-          </motion.span>
+          </m.span>
           <span className="text-title text-glass-primary">{label}</span>
         </div>
 

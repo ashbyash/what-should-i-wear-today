@@ -43,7 +43,7 @@ export function createApiHandler<T>(options: ApiHandlerOptions<T>) {
       const data = await fetcher(parseFloat(lat), parseFloat(lon), apiKey);
       return NextResponse.json(data, {
         headers: {
-          'Cache-Control': 'no-store, max-age=0',
+          'Cache-Control': 'public, max-age=600',
         },
       });
     } catch (error) {

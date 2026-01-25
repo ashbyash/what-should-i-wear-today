@@ -10,7 +10,28 @@ import { z } from 'zod';
 // ============================================
 
 /**
- * 기상청 날씨 데이터 (가공됨)
+ * 초단기실황 데이터 (현재 날씨)
+ */
+export const KmaCurrentDataSchema = z.object({
+  temperature: z.number(),
+  humidity: z.number(),
+  windSpeed: z.number(),
+  precipitation: z.string(),
+  precipitationDescription: z.string(),
+});
+
+/**
+ * 단기예보 데이터 (오늘 예보)
+ */
+export const KmaForecastDataSchema = z.object({
+  tempMin: z.number().nullable(),
+  tempMax: z.number().nullable(),
+  sky: z.string(),
+  skyDescription: z.string(),
+});
+
+/**
+ * 기상청 날씨 데이터 통합 (하위 호환)
  */
 export const KmaWeatherDataSchema = z.object({
   temperature: z.number(),
@@ -63,6 +84,8 @@ export const LocationDataSchema = z.object({
 // ============================================
 // 타입 추론
 // ============================================
+export type KmaCurrentData = z.infer<typeof KmaCurrentDataSchema>;
+export type KmaForecastData = z.infer<typeof KmaForecastDataSchema>;
 export type KmaWeatherData = z.infer<typeof KmaWeatherDataSchema>;
 export type AirKoreaData = z.infer<typeof AirKoreaDataSchema>;
 export type UVIndexData = z.infer<typeof UVIndexDataSchema>;
@@ -71,6 +94,16 @@ export type LocationData = z.infer<typeof LocationDataSchema>;
 // ============================================
 // Safe Parse 헬퍼 (검증 실패 시 null 반환)
 // ============================================
+export function safeParseCurrentWeather(data: unknown): KmaCurrentData | null {
+  const result = KmaCurrentDataSchema.safeParse(data);
+  return result.success ? result.data : null;
+}
+
+export function safeParseForecastWeather(data: unknown): KmaForecastData | null {
+  const result = KmaForecastDataSchema.safeParse(data);
+  return result.success ? result.data : null;
+}
+
 export function safeParseWeather(data: unknown): KmaWeatherData | null {
   const result = KmaWeatherDataSchema.safeParse(data);
   return result.success ? result.data : null;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
 import OutfitCard from '@/components/OutfitCard';
@@ -82,7 +82,19 @@ export default function Home() {
   const devHour = useDevHour();
   const clientHour = useClientHour();
   const { coordinates, loading: geoLoading, error: geoError } = useGeolocation();
-  const { weather, airQuality, uv, location, loading: dataLoading, error: dataError, lastUpdated, refetch, isRefetching } = useWeatherData(coordinates);
+  const {
+    weather,
+    weatherLoading,
+    airQuality,
+    airQualityLoading,
+    uv,
+    uvLoading,
+    location,
+    error: dataError,
+    lastUpdated,
+    refetch,
+    isRefetching,
+  } = useWeatherData(coordinates);
 
   // 기본 그라데이션 (로딩/에러 상태용)
   const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour)];
@@ -106,8 +118,8 @@ export default function Home() {
     );
   }
 
-  // 데이터 로딩 중
-  if (dataLoading) {
+  // Weather 로딩 중 (핵심 데이터)
+  if (weatherLoading) {
     return (
       <div className="min-h-screen pt-safe pb-safe" style={defaultGradientStyle}>
         <LoadingState message="날씨 정보를 가져오고 있어요..." />
@@ -178,47 +190,47 @@ export default function Home() {
       data-theme={theme.isLight ? 'light' : 'dark'}
     >
       <div className="max-w-3xl mx-auto px-4 pb-8">
-        <motion.div
+        <m.div
           className="grid grid-cols-2 md:grid-cols-3 gap-3"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
           {/* 위치 헤더 */}
-          <motion.div className="col-span-2 md:col-span-3" variants={cardVariants}>
+          <m.div className="col-span-2 md:col-span-3" variants={cardVariants}>
             <LocationHeader
               locationName={weatherData.locationName}
               lastUpdated={lastUpdated}
               onRefresh={refetch}
               isRefreshing={isRefetching}
             />
-          </motion.div>
+          </m.div>
 
           {/* 외출 점수 */}
-          <motion.div className="col-span-2 md:col-span-1" variants={cardVariants}>
+          <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
             <ScoreGauge score={score} />
-          </motion.div>
+          </m.div>
 
           {/* 옷차림 추천 */}
-          <motion.div className="col-span-2 md:col-span-2" variants={cardVariants}>
+          <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
             <OutfitCard outfit={outfit} />
-          </motion.div>
+          </m.div>
 
           {/* 날씨 */}
-          <motion.div className="col-span-2 md:col-span-1" variants={cardVariants}>
+          <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
             <WeatherCard weather={weatherData} />
-          </motion.div>
+          </m.div>
 
           {/* 미세먼지 */}
-          <motion.div className="col-span-1" variants={cardVariants}>
-            <DustCard airQuality={airQualityData} />
-          </motion.div>
+          <m.div className="col-span-1" variants={cardVariants}>
+            <DustCard airQuality={airQualityData} loading={airQualityLoading} />
+          </m.div>
 
           {/* 자외선 */}
-          <motion.div className="col-span-1" variants={cardVariants}>
-            <UvCard uvIndex={uv?.uvIndex} />
-          </motion.div>
-        </motion.div>
+          <m.div className="col-span-1" variants={cardVariants}>
+            <UvCard uvIndex={uv?.uvIndex} loading={uvLoading} />
+          </m.div>
+        </m.div>
       </div>
     </div>
   );

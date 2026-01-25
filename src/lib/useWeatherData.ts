@@ -7,10 +7,13 @@ import type { AirKoreaData } from './airkorea-api';
 import type { LocationData } from '@/types/weather';
 import { CACHE } from './constants';
 import {
-  safeParseWeather,
+  safeParseCurrentWeather,
+  safeParseForecastWeather,
   safeParseAirKorea,
   safeParseUVIndex,
   safeParseLocation,
+  type KmaCurrentData,
+  type KmaForecastData,
 } from './schemas';
 
 interface CacheEntry {
@@ -19,7 +22,8 @@ interface CacheEntry {
 }
 
 interface CachedData {
-  weather: KmaWeatherData;
+  weatherCurrent: KmaCurrentData | null;
+  weatherForecast: KmaForecastData | null;
   airQuality: AirKoreaData | null;
   uv: UVIndexData | null;
   location: LocationData | null;
@@ -33,11 +37,48 @@ function getCacheKey(lat: number, lon: number): string {
 // 메모리 캐시
 const cache = new Map<string, CacheEntry>();
 
+// weatherCurrent + weatherForecast → KmaWeatherData 통합
+function combineWeatherData(
+  current: KmaCurrentData | null,
+  forecast: KmaForecastData | null
+): KmaWeatherData | null {
+  if (!current) return null;
+
+  // 강수형태가 있으면 하늘상태 대신 강수형태 사용
+  const hasRain = current.precipitation !== '';
+
+  return {
+    temperature: current.temperature,
+    humidity: current.humidity,
+    windSpeed: current.windSpeed,
+    precipitation: current.precipitation,
+    precipitationDescription: current.precipitationDescription,
+    sky: hasRain ? current.precipitation : (forecast?.sky ?? 'Clear'),
+    skyDescription: hasRain
+      ? current.precipitationDescription
+      : (forecast?.skyDescription ?? '맑음'),
+    tempMin: forecast?.tempMin ?? null,
+    tempMax: forecast?.tempMax ?? null,
+  };
+}
+
 export interface WeatherDataState {
+  // 분리된 날씨 데이터 (점진적 렌더링용)
+  weatherCurrent: KmaCurrentData | null;
+  weatherCurrentLoading: boolean;
+  weatherForecast: KmaForecastData | null;
+  weatherForecastLoading: boolean;
+  // 통합 날씨 데이터 (하위 호환)
   weather: KmaWeatherData | null;
+  weatherLoading: boolean;
+  // 기타 데이터
   airQuality: AirKoreaData | null;
+  airQualityLoading: boolean;
   uv: UVIndexData | null;
+  uvLoading: boolean;
   location: LocationData | null;
+  locationLoading: boolean;
+  // 상태
   loading: boolean;
   error: string | null;
   lastUpdated: Date | null;
@@ -47,10 +88,18 @@ export interface WeatherDataState {
 
 export function useWeatherData(coordinates: Coordinates | null): WeatherDataState {
   const [state, setState] = useState<Omit<WeatherDataState, 'refetch' | 'isRefetching'>>({
+    weatherCurrent: null,
+    weatherCurrentLoading: true,
+    weatherForecast: null,
+    weatherForecastLoading: true,
     weather: null,
+    weatherLoading: true,
     airQuality: null,
+    airQualityLoading: true,
     uv: null,
+    uvLoading: true,
     location: null,
+    locationLoading: true,
     loading: true,
     error: null,
     lastUpdated: null,
@@ -65,8 +114,16 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
     if (!skipCache) {
       const cached = cache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < CACHE.TTL) {
+        const weather = combineWeatherData(cached.data.weatherCurrent, cached.data.weatherForecast);
         setState({
           ...cached.data,
+          weather,
+          weatherCurrentLoading: false,
+          weatherForecastLoading: false,
+          weatherLoading: false,
+          airQualityLoading: false,
+          uvLoading: false,
+          locationLoading: false,
           loading: false,
           error: null,
           lastUpdated: new Date(cached.timestamp),
@@ -75,63 +132,152 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
       }
     }
 
-    try {
-      // 4개 API 병렬 호출
-      const [weatherRes, airRes, uvRes, locationRes] = await Promise.all([
-        fetch(`/api/weather?lat=${lat}&lon=${lon}`),
-        fetch(`/api/air-quality?lat=${lat}&lon=${lon}`),
-        fetch(`/api/uv?lat=${lat}&lon=${lon}`),
-        fetch(`/api/location?lat=${lat}&lon=${lon}`),
-      ]);
+    // 결과 저장용 변수
+    let currentResult: KmaCurrentData | null = null;
+    let forecastResult: KmaForecastData | null = null;
+    let airQualityResult: AirKoreaData | null = null;
+    let uvResult: UVIndexData | null = null;
+    let locationResult: LocationData | null = null;
+    let hasError = false;
 
-      if (!weatherRes.ok) {
-        throw new Error('날씨 정보를 가져올 수 없습니다.');
-      }
+    // Weather Current API (초단기실황) - 완료 즉시 표시
+    const currentPromise = fetch(`/api/weather-current?lat=${lat}&lon=${lon}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('현재 날씨 정보를 가져올 수 없습니다.');
+        const json = await res.json();
+        const current = safeParseCurrentWeather(json);
+        if (!current) throw new Error('현재 날씨 데이터 형식이 올바르지 않습니다.');
+        currentResult = current;
+        setState((prev) => {
+          const weather = combineWeatherData(current, prev.weatherForecast);
+          return {
+            ...prev,
+            weatherCurrent: current,
+            weatherCurrentLoading: false,
+            weather,
+            weatherLoading: !weather,
+          };
+        });
+        return current;
+      })
+      .catch((err) => {
+        hasError = true;
+        setState((prev) => ({
+          ...prev,
+          weatherCurrentLoading: false,
+          weatherLoading: false,
+          loading: false,
+          error: err instanceof Error ? err.message : '현재 날씨 정보를 가져올 수 없습니다.',
+        }));
+        throw err;
+      });
 
-      const weatherJson = await weatherRes.json();
-      const weather = safeParseWeather(weatherJson);
+    // Weather Forecast API (단기예보) - 완료 즉시 표시
+    const forecastPromise = fetch(`/api/weather-forecast?lat=${lat}&lon=${lon}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('날씨 예보 정보를 가져올 수 없습니다.');
+        const json = await res.json();
+        const forecast = safeParseForecastWeather(json);
+        if (!forecast) throw new Error('날씨 예보 데이터 형식이 올바르지 않습니다.');
+        forecastResult = forecast;
+        setState((prev) => {
+          const weather = combineWeatherData(prev.weatherCurrent, forecast);
+          return {
+            ...prev,
+            weatherForecast: forecast,
+            weatherForecastLoading: false,
+            weather: weather ?? prev.weather,
+            weatherLoading: !weather && prev.weatherLoading,
+          };
+        });
+        return forecast;
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, weatherForecastLoading: false }));
+        return null;
+      });
 
-      if (!weather) {
-        throw new Error('날씨 데이터 형식이 올바르지 않습니다.');
-      }
+    // Location API - 완료 즉시 표시
+    const locationPromise = fetch(`/api/location?lat=${lat}&lon=${lon}`)
+      .then(async (res) => {
+        if (res.ok) {
+          const location = safeParseLocation(await res.json());
+          locationResult = location;
+          setState((prev) => ({ ...prev, location, locationLoading: false }));
+          return location;
+        }
+        setState((prev) => ({ ...prev, locationLoading: false }));
+        return null;
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, locationLoading: false }));
+        return null;
+      });
 
-      // 대기질, UV, 위치는 실패해도 계속 진행 (optional)
-      let airQuality: AirKoreaData | null = null;
-      let uv: UVIndexData | null = null;
-      let location: LocationData | null = null;
+    // AirQuality API - nearest-station 먼저 호출 후 air-quality 호출
+    const airQualityPromise = fetch(`/api/nearest-station?lat=${lat}&lon=${lon}`)
+      .then(async (stationRes) => {
+        if (!stationRes.ok) throw new Error('측정소 검색 실패');
+        const station = await stationRes.json();
 
-      if (airRes.ok) {
-        airQuality = safeParseAirKorea(await airRes.json());
-      }
-      if (uvRes.ok) {
-        uv = safeParseUVIndex(await uvRes.json());
-      }
-      if (locationRes.ok) {
-        location = safeParseLocation(await locationRes.json());
-      }
+        const airRes = await fetch(
+          `/api/air-quality?stationName=${encodeURIComponent(station.stationName)}&stationAddr=${encodeURIComponent(station.stationAddr)}`
+        );
+        if (!airRes.ok) throw new Error('대기질 조회 실패');
 
+        const airQuality = safeParseAirKorea(await airRes.json());
+        airQualityResult = airQuality;
+        setState((prev) => ({ ...prev, airQuality, airQualityLoading: false }));
+        return airQuality;
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, airQualityLoading: false }));
+        return null;
+      });
+
+    // UV API - 완료 즉시 표시
+    const uvPromise = fetch(`/api/uv?lat=${lat}&lon=${lon}`)
+      .then(async (res) => {
+        if (res.ok) {
+          const uv = safeParseUVIndex(await res.json());
+          uvResult = uv;
+          setState((prev) => ({ ...prev, uv, uvLoading: false }));
+          return uv;
+        }
+        setState((prev) => ({ ...prev, uvLoading: false }));
+        return null;
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, uvLoading: false }));
+        return null;
+      });
+
+    // 모든 API 병렬 실행, 완료 대기
+    await Promise.allSettled([
+      currentPromise,
+      forecastPromise,
+      locationPromise,
+      airQualityPromise,
+      uvPromise,
+    ]);
+
+    // Current 성공 시에만 캐시 저장 및 완료 처리
+    if (!hasError && currentResult) {
       const now = Date.now();
-
-      // 캐시 저장
       cache.set(cacheKey, {
-        data: { weather, airQuality, uv, location },
+        data: {
+          weatherCurrent: currentResult,
+          weatherForecast: forecastResult,
+          airQuality: airQualityResult,
+          uv: uvResult,
+          location: locationResult,
+        },
         timestamp: now,
       });
-
-      setState({
-        weather,
-        airQuality,
-        uv,
-        location,
-        loading: false,
-        error: null,
-        lastUpdated: new Date(now),
-      });
-    } catch (err) {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: err instanceof Error ? err.message : '데이터를 가져올 수 없습니다.',
+        lastUpdated: new Date(now),
       }));
     }
   }, []);
@@ -139,11 +285,30 @@ export function useWeatherData(coordinates: Coordinates | null): WeatherDataStat
   // 초기 로드
   useEffect(() => {
     if (!coordinates) {
-      setState((prev) => ({ ...prev, loading: false }));
+      setState((prev) => ({
+        ...prev,
+        weatherCurrentLoading: false,
+        weatherForecastLoading: false,
+        weatherLoading: false,
+        airQualityLoading: false,
+        uvLoading: false,
+        locationLoading: false,
+        loading: false,
+      }));
       return;
     }
 
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({
+      ...prev,
+      weatherCurrentLoading: true,
+      weatherForecastLoading: true,
+      weatherLoading: true,
+      airQualityLoading: true,
+      uvLoading: true,
+      locationLoading: true,
+      loading: true,
+      error: null,
+    }));
     fetchAllData(coordinates);
   }, [coordinates, fetchAllData]);
 

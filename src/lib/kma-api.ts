@@ -6,8 +6,16 @@
 
 import { toGridCoordinate } from './coordinates';
 
-const KMA_FORECAST_URL = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0';
-const KMA_LIVING_URL = 'http://apis.data.go.kr/1360000/LivingWthrIdxServiceV4';
+const KMA_FORECAST_URL = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0';
+const KMA_LIVING_URL = 'https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4';
+
+// 서버 캐시 (격자 좌표 기반, TTL 10분)
+const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10분
+const weatherCache = new Map<string, { data: KmaWeatherData; timestamp: number }>();
+
+function getCacheKey(nx: number, ny: number): string {
+  return `${nx},${ny}`;
+}
 
 // 기상청 API 응답 타입
 interface KmaApiResponse {
@@ -74,6 +82,24 @@ const PTY_DESC_MAP: Record<PtyCode, string> = {
   '7': '눈날림',
 };
 
+// 초단기실황 데이터 (현재 날씨)
+export interface KmaCurrentData {
+  temperature: number; // 현재 기온
+  humidity: number; // 습도
+  windSpeed: number; // 풍속
+  precipitation: string; // 강수형태 (Rain, Snow 등)
+  precipitationDescription: string; // 강수형태 한글
+}
+
+// 단기예보 데이터 (오늘 예보)
+export interface KmaForecastData {
+  tempMin: number | null; // 최저기온
+  tempMax: number | null; // 최고기온
+  sky: string; // 하늘상태 (Clear, Cloudy, Overcast)
+  skyDescription: string; // 하늘상태 한글
+}
+
+// 통합 데이터 (하위 호환)
 export interface KmaWeatherData {
   temperature: number; // 현재 기온
   humidity: number; // 습도
@@ -198,6 +224,55 @@ async function fetchUltraSrtNcst(
 }
 
 /**
+ * 초단기실황 파싱
+ */
+function parseCurrentData(items: KmaItem[]): KmaCurrentData {
+  let temperature = 0;
+  let humidity = 0;
+  let windSpeed = 0;
+  let ptyCode: PtyCode = '0';
+
+  for (const item of items) {
+    const value = item.obsrValue ?? '0';
+    switch (item.category) {
+      case 'T1H':
+        temperature = parseFloat(value);
+        break;
+      case 'REH':
+        humidity = parseInt(value, 10);
+        break;
+      case 'WSD':
+        windSpeed = parseFloat(value);
+        break;
+      case 'PTY':
+        ptyCode = value as PtyCode;
+        break;
+    }
+  }
+
+  return {
+    temperature: Math.round(temperature),
+    humidity,
+    windSpeed,
+    precipitation: PTY_MAP[ptyCode] || '',
+    precipitationDescription: PTY_DESC_MAP[ptyCode] || '',
+  };
+}
+
+/**
+ * 초단기실황 조회 (외부용)
+ */
+export async function fetchKmaCurrentWeather(
+  lat: number,
+  lon: number,
+  apiKey: string
+): Promise<KmaCurrentData> {
+  const { nx, ny } = toGridCoordinate(lat, lon);
+  const items = await fetchUltraSrtNcst(nx, ny, apiKey);
+  return parseCurrentData(items);
+}
+
+/**
  * 단기예보 조회 (최고/최저 기온, 하늘상태)
  */
 async function fetchVilageFcst(
@@ -209,7 +284,7 @@ async function fetchVilageFcst(
 
   const params = new URLSearchParams({
     serviceKey: apiKey,
-    numOfRows: '300',
+    numOfRows: '60', // 오늘 데이터만 필요 (TMN, TMX, SKY 등)
     pageNo: '1',
     dataType: 'JSON',
     base_date: baseDate,
@@ -235,6 +310,57 @@ async function fetchVilageFcst(
 }
 
 /**
+ * 단기예보 파싱
+ */
+function parseForecastData(items: KmaItem[]): KmaForecastData {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+
+  let tempMin: number | null = null;
+  let tempMax: number | null = null;
+  let skyCode: SkyCode = '1';
+
+  for (const item of items) {
+    if (item.fcstDate !== todayStr) continue;
+
+    const value = item.fcstValue ?? '0';
+    switch (item.category) {
+      case 'TMN':
+        tempMin = parseFloat(value);
+        break;
+      case 'TMX':
+        tempMax = parseFloat(value);
+        break;
+      case 'SKY':
+        if (skyCode === '1') {
+          skyCode = value as SkyCode;
+        }
+        break;
+    }
+  }
+
+  return {
+    tempMin,
+    tempMax,
+    sky: SKY_MAP[skyCode] || 'Clear',
+    skyDescription: SKY_DESC_MAP[skyCode] || '맑음',
+  };
+}
+
+/**
+ * 단기예보 조회 (외부용)
+ */
+export async function fetchKmaForecastWeather(
+  lat: number,
+  lon: number,
+  apiKey: string
+): Promise<KmaForecastData> {
+  const { nx, ny } = toGridCoordinate(lat, lon);
+  const items = await fetchVilageFcst(nx, ny, apiKey);
+  return parseForecastData(items);
+}
+
+/**
  * 기상청 날씨 데이터 조회 (통합)
  */
 export async function fetchKmaWeather(
@@ -243,6 +369,13 @@ export async function fetchKmaWeather(
   apiKey: string
 ): Promise<KmaWeatherData> {
   const { nx, ny } = toGridCoordinate(lat, lon);
+  const cacheKey = getCacheKey(nx, ny);
+
+  // 캐시 확인
+  const cached = weatherCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < WEATHER_CACHE_TTL) {
+    return cached.data;
+  }
 
   // 초단기실황 + 단기예보 병렬 호출
   const [ncstItems, fcstItems] = await Promise.all([
@@ -304,7 +437,7 @@ export async function fetchKmaWeather(
   // 강수형태가 있으면 하늘상태 대신 강수형태 사용
   const hasRain = ptyCode !== '0';
 
-  return {
+  const result: KmaWeatherData = {
     temperature: Math.round(temperature),
     humidity,
     windSpeed,
@@ -317,6 +450,11 @@ export async function fetchKmaWeather(
     tempMin,
     tempMax,
   };
+
+  // 캐시 저장
+  weatherCache.set(cacheKey, { data: result, timestamp: Date.now() });
+
+  return result;
 }
 
 // ============================================

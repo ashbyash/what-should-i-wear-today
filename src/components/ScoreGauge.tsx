@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import type { OutingScore } from '@/types/score';
 
 interface ScoreGaugeProps {
@@ -141,7 +141,7 @@ function BreakdownBar({
   const percentage = (value / max) * 100;
 
   return (
-    <motion.div
+    <m.div
       className="flex items-center gap-2"
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
@@ -150,7 +150,7 @@ function BreakdownBar({
       <span className="text-sm" aria-hidden="true">{icon}</span>
       <span className="text-caption text-glass-muted w-16 shrink-0">{label}</span>
       <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
+        <m.div
           className="h-full rounded-full"
           style={{
             background: percentage >= 70
@@ -167,7 +167,7 @@ function BreakdownBar({
       <span className="text-caption text-glass-secondary w-12 text-right">
         {value ?? 0}/{max}
       </span>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -221,7 +221,7 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
         </p>
 
         {/* 확장/축소 힌트 */}
-        <motion.div
+        <m.div
           className="flex items-center gap-1 mt-2 text-glass-muted"
           animate={{ rotate: isExpanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -229,12 +229,12 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-        </motion.div>
+        </m.div>
 
         {/* Breakdown 확장 영역 */}
         <AnimatePresence>
           {isExpanded && (
-            <motion.div
+            <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -255,7 +255,7 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
                 ))}
 
                 {score.tips.length > 0 && (
-                  <motion.div
+                  <m.div
                     className="pt-3 mt-3 border-t border-white/10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -264,10 +264,10 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
                     <p className="text-caption text-glass-muted text-center">
                       💡 {score.tips.join(' · ')}
                     </p>
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

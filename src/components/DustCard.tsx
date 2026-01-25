@@ -1,10 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { AirQualityData } from '@/types/weather';
 
 interface DustCardProps {
   airQuality: AirQualityData;
+  loading?: boolean;
 }
 
 function getAqiLabel(level: AirQualityData['aqiLevel']): string {
@@ -92,13 +93,33 @@ const AQI_LEVELS = [
   { label: '매우나쁨', color: 'bg-rose-400' },
 ];
 
-export default function DustCard({ airQuality }: DustCardProps) {
+export default function DustCard({ airQuality, loading }: DustCardProps) {
   const aqiLabel = getAqiLabel(airQuality.aqiLevel);
   const aqiColor = getAqiColor(airQuality.aqiLevel);
   const aqiIcon = getAqiIcon(airQuality.aqiLevel);
   const description = getAqiDescription(airQuality.aqiLevel);
   const pm25Range = getPm25Range(airQuality.aqiLevel);
   const currentLevel = getAqiLevel(airQuality.aqiLevel);
+
+  // 스켈레톤 로딩 상태
+  if (loading) {
+    return (
+      <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
+        <div className="card-body p-4 items-center text-center animate-pulse">
+          <div className="w-12 h-12 bg-white/20 rounded-full" />
+          <div className="w-16 h-3 bg-white/20 rounded mt-2" />
+          <div className="w-20 h-6 bg-white/20 rounded mt-2" />
+          <div className="w-28 h-3 bg-white/20 rounded mt-2" />
+          <div className="w-32 h-3 bg-white/20 rounded mt-1" />
+          <div className="flex gap-1.5 mt-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-2 h-2 rounded-full bg-white/20" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -126,7 +147,7 @@ export default function DustCard({ airQuality }: DustCardProps) {
         {/* 등급 인디케이터 */}
         <div className="flex gap-1.5 mt-2" aria-hidden="true">
           {AQI_LEVELS.map((level, i) => (
-            <motion.div
+            <m.div
               key={level.label}
               className={`w-2 h-2 rounded-full ${
                 i <= currentLevel ? level.color : 'bg-white/20'

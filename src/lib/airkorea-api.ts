@@ -6,8 +6,8 @@
 
 import { toTMCoordinate } from './coordinates';
 
-const AIRKOREA_STATION_URL = 'http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc';
-const AIRKOREA_AIRQUALITY_URL = 'http://apis.data.go.kr/B552584/ArpltnInforInqireSvc';
+const AIRKOREA_STATION_URL = 'https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc';
+const AIRKOREA_AIRQUALITY_URL = 'https://apis.data.go.kr/B552584/ArpltnInforInqireSvc';
 
 // 측정소 정보 API 응답 타입
 interface StationResponse {
@@ -85,19 +85,40 @@ function getPM10Grade(value: number): AirGrade {
   return 'very_bad';
 }
 
-interface NearestStation {
+export interface NearestStation {
   name: string;
   addr: string;
 }
 
+// 측정소 캐시 (TM좌표 → 측정소 정보)
+const stationCache = new Map<string, { station: NearestStation; timestamp: number }>();
+const STATION_CACHE_TTL = 60 * 60 * 1000; // 1시간
+
+// 대기질 캐시 (측정소명 → 대기질 정보)
+const airQualityCache = new Map<string, { data: AirKoreaData; timestamp: number }>();
+const AIRQUALITY_CACHE_TTL = 10 * 60 * 1000; // 10분
+
+// TM좌표 기반 캐시 키 (소수점 1자리)
+function getStationCacheKey(tmX: number, tmY: number): string {
+  return `${tmX.toFixed(1)}_${tmY.toFixed(1)}`;
+}
+
 /**
- * 가까운 측정소 찾기
+ * 가까운 측정소 찾기 (캐시 적용)
  */
-async function findNearestStation(
+export async function findNearestStation(
   tmX: number,
   tmY: number,
   apiKey: string
 ): Promise<NearestStation> {
+  const cacheKey = getStationCacheKey(tmX, tmY);
+
+  // 캐시 확인
+  const cached = stationCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < STATION_CACHE_TTL) {
+    return cached.station;
+  }
+
   const params = new URLSearchParams({
     serviceKey: apiKey,
     returnType: 'json',
@@ -124,15 +145,19 @@ async function findNearestStation(
     throw new Error('근처 측정소를 찾을 수 없습니다.');
   }
 
-  // 가장 가까운 측정소 반환
-  return {
+  const station: NearestStation = {
     name: items[0].stationName,
     addr: items[0].addr,
   };
+
+  // 캐시 저장
+  stationCache.set(cacheKey, { station, timestamp: Date.now() });
+
+  return station;
 }
 
 /**
- * 측정소별 실시간 대기오염 정보 조회
+ * 측정소별 실시간 대기오염 정보 조회 (내부용)
  */
 async function fetchStationAirQuality(
   stationName: string,
@@ -182,6 +207,12 @@ export async function fetchAirKorea(
   // 가까운 측정소 찾기
   const station = await findNearestStation(tmX, tmY, apiKey);
 
+  // 캐시 확인
+  const cached = airQualityCache.get(station.name);
+  if (cached && Date.now() - cached.timestamp < AIRQUALITY_CACHE_TTL) {
+    return cached.data;
+  }
+
   // 측정소 대기질 조회
   const airData = await fetchStationAirQuality(station.name, apiKey);
 
@@ -189,9 +220,38 @@ export async function fetchAirKorea(
   const pm10 = parseInt(airData.pm10Value, 10) || 0;
   const pm25 = parseInt(airData.pm25Value, 10) || 0;
 
-  return {
+  const result: AirKoreaData = {
     stationName: station.name,
     stationAddr: station.addr,
+    pm10,
+    pm25,
+    pm10Grade: getPM10Grade(pm10),
+    pm25Grade: getPM25Grade(pm25),
+    dataTime: airData.dataTime,
+  };
+
+  // 캐시 저장
+  airQualityCache.set(station.name, { data: result, timestamp: Date.now() });
+
+  return result;
+}
+
+/**
+ * 측정소명으로 직접 대기질 조회 (측정소 검색 스킵)
+ */
+export async function fetchAirQualityByStation(
+  stationName: string,
+  stationAddr: string,
+  apiKey: string
+): Promise<AirKoreaData> {
+  const airData = await fetchStationAirQuality(stationName, apiKey);
+
+  const pm10 = parseInt(airData.pm10Value, 10) || 0;
+  const pm25 = parseInt(airData.pm25Value, 10) || 0;
+
+  return {
+    stationName,
+    stationAddr,
     pm10,
     pm25,
     pm10Grade: getPM10Grade(pm10),

@@ -1,11 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 // 기본 스켈레톤 컴포넌트
 function SkeletonBox({ className = '' }: { className?: string }) {
   return (
-    <motion.div
+    <m.div
       className={`bg-white/20 rounded-lg ${className}`}
       animate={{ opacity: [0.5, 0.8, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -22,7 +22,7 @@ function SkeletonCircle({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   };
 
   return (
-    <motion.div
+    <m.div
       className={`bg-white/20 rounded-full ${sizeClasses[size]}`}
       animate={{ opacity: [0.5, 0.8, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -60,7 +60,7 @@ function SkeletonScoreGauge() {
     <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
       <div className="card-body p-4 flex flex-col items-center justify-center">
         <SkeletonBox className="h-5 w-32 mb-3" />
-        <motion.div
+        <m.div
           className="w-40 h-40 rounded-full bg-white/10 border-8 border-white/20"
           animate={{ opacity: [0.5, 0.8, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
