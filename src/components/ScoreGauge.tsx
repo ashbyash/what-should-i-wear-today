@@ -165,7 +165,7 @@ function BreakdownBar({
         />
       </div>
       <span className="text-caption text-glass-secondary w-12 text-right">
-        {value}/{max}
+        {value ?? 0}/{max}
       </span>
     </motion.div>
   );

@@ -60,7 +60,7 @@ export default function AirQualityCard({ airQuality, uvIndex }: AirQualityCardPr
           <h4 className="text-sm text-base-content/60">미세먼지</h4>
           <div className={`text-lg font-bold ${aqiColor}`}>{aqiLabel}</div>
           <div className="text-xs text-base-content/50">
-            PM2.5: {airQuality.pm25} · PM10: {airQuality.pm10}
+            초미세: {airQuality.pm25} · 미세: {airQuality.pm10}
           </div>
         </div>
       </div>

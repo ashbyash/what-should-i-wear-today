@@ -74,6 +74,7 @@ function getWeatherLabel(weatherMain: string): string {
     case 'clear':
       return '맑음';
     case 'clouds':
+    case 'overcast':
       return '흐림';
     case 'rain':
       return '비';
@@ -106,22 +107,34 @@ export default function WeatherCard({ weather }: WeatherCardProps) {
       aria-label={`현재 날씨 ${label}, 기온 ${weather.temperature}도, 최저 ${weather.tempMin}도, 최고 ${weather.tempMax}도`}
     >
       <div className="card-body p-4 items-center text-center">
-        <motion.div
-          className="text-5xl"
-          aria-hidden="true"
-          animate={animation.animate}
-          transition={animation.transition}
-        >
-          {emoji}
-        </motion.div>
-        <h4 className="text-label text-glass-muted">날씨</h4>
-        <div className="text-display text-glass-primary">{weather.temperature}°</div>
-        <div className="text-body text-glass-secondary">{label}</div>
-        <div className="text-caption text-glass-muted mt-1">
-          최저 {weather.tempMin}° / 최고 {weather.tempMax}°
+        {/* 상단: 이모지 + 날씨 상태 */}
+        <div className="flex items-center gap-2">
+          <motion.span
+            className="text-3xl"
+            aria-hidden="true"
+            animate={animation.animate}
+            transition={animation.transition}
+          >
+            {emoji}
+          </motion.span>
+          <span className="text-title text-glass-primary">{label}</span>
         </div>
-        <div className="text-caption text-glass-muted mt-1">
-          체감 {weather.feelsLike}° · 습도 {weather.humidity}%
+
+        {/* 중앙: 현재 기온 / 체감 기온 2열 */}
+        <div className="flex justify-center gap-8 mt-3">
+          <div className="text-center">
+            <div className="text-caption text-glass-muted">현재</div>
+            <div className="text-display text-glass-primary">{weather.temperature}°</div>
+          </div>
+          <div className="text-center">
+            <div className="text-caption text-glass-muted">체감</div>
+            <div className="text-display text-glass-primary">{weather.feelsLike}°</div>
+          </div>
+        </div>
+
+        {/* 하단: 최저/최고/습도 한 줄 */}
+        <div className="text-caption text-glass-muted mt-3">
+          최저 {weather.tempMin}° · 최고 {weather.tempMax}° · 습도 {weather.humidity}%
         </div>
       </div>
     </div>

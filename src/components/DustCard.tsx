@@ -104,7 +104,7 @@ export default function DustCard({ airQuality }: DustCardProps) {
     <div
       className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full"
       role="region"
-      aria-label={`미세먼지 ${aqiLabel}. PM2.5 ${airQuality.pm25}. ${description}`}
+      aria-label={`미세먼지 ${aqiLabel}. 초미세먼지 ${airQuality.pm25}. ${description}`}
     >
       <div className="card-body p-4 items-center text-center">
         <div className="text-5xl" aria-hidden="true">💨</div>
@@ -114,13 +114,13 @@ export default function DustCard({ airQuality }: DustCardProps) {
           <span>{aqiLabel}</span>
         </div>
         <div className="text-caption text-glass-secondary">
-          PM2.5: {airQuality.pm25} · PM10: {airQuality.pm10}
+          초미세: {airQuality.pm25} · 미세: {airQuality.pm10}
         </div>
         <div className="text-xs text-glass-muted mt-1">
           {description}
         </div>
         <div className="text-xs text-glass-muted mt-0.5">
-          ({aqiLabel} 기준: PM2.5 {pm25Range}㎍/㎥)
+          ({aqiLabel} 기준: 초미세 {pm25Range}㎍/㎥)
         </div>
 
         {/* 등급 인디케이터 */}
