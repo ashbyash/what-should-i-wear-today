@@ -101,8 +101,8 @@ export default function Home() {
     isRefetching,
   } = useWeatherData(coordinates, { locationChanged });
 
-  // 기본 그라데이션 (로딩/에러 상태용)
-  const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour)];
+  // 기본 그라데이션 (로딩/에러 상태용) - 좌표 기반 일출/일몰 사용
+  const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates ?? undefined)];
   const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
 
   // 위치 로딩 중
@@ -184,8 +184,8 @@ export default function Home() {
     weatherMain: weatherData.weatherMain,
   });
 
-  // 테마 계산
-  const theme = getThemeConfig(weatherData.weatherMain, devHour ?? clientHour);
+  // 테마 계산 - 좌표 기반 일출/일몰 사용
+  const theme = getThemeConfig(weatherData.weatherMain, devHour ?? clientHour, coordinates ?? undefined);
   const gradientStyle = getGradientStyle(theme.gradient);
 
   return (

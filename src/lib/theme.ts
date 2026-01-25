@@ -1,27 +1,14 @@
 // 시간대별/계절별 컬러 팔레트 시스템
+import SunCalc from 'suncalc';
 
 export type TimeOfDay = 'dawn' | 'morning' | 'day' | 'evening' | 'night';
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type WeatherType = 'clear' | 'clouds' | 'rain' | 'snow' | 'mist';
 
-// 서울 기준 월별 일출/일몰 시간 (시:분을 소수점 시간으로 변환)
-// 예: 5:30 = 5.5, 19:15 = 19.25
-const MONTHLY_SUN_TIMES: Record<number, { sunrise: number; sunset: number }> = {
-  1: { sunrise: 7.75, sunset: 17.5 },   // 1월: 7:45, 17:30
-  2: { sunrise: 7.33, sunset: 18.08 },  // 2월: 7:20, 18:05
-  3: { sunrise: 6.67, sunset: 18.58 },  // 3월: 6:40, 18:35
-  4: { sunrise: 5.92, sunset: 19.08 },  // 4월: 5:55, 19:05
-  5: { sunrise: 5.33, sunset: 19.58 },  // 5월: 5:20, 19:35
-  6: { sunrise: 5.17, sunset: 19.92 },  // 6월: 5:10, 19:55
-  7: { sunrise: 5.33, sunset: 19.83 },  // 7월: 5:20, 19:50
-  8: { sunrise: 5.75, sunset: 19.33 },  // 8월: 5:45, 19:20
-  9: { sunrise: 6.17, sunset: 18.58 },  // 9월: 6:10, 18:35
-  10: { sunrise: 6.67, sunset: 17.83 }, // 10월: 6:40, 17:50
-  11: { sunrise: 7.17, sunset: 17.33 }, // 11월: 7:10, 17:20
-  12: { sunrise: 7.67, sunset: 17.25 }, // 12월: 7:40, 17:15
-};
+// 서울 기본 좌표 (좌표 없을 때 fallback)
+const DEFAULT_COORDS = { lat: 37.5665, lon: 126.978 };
 
-// 시간대별 그라데이션 (사용자 정의 팔레트)
+// 시간대별 그라데이션
 export const TIME_GRADIENTS: Record<TimeOfDay, { from: string; to: string }> = {
   dawn: { from: '#a1c4fd', to: '#ffecd2' },
   morning: { from: '#fcb69f', to: '#ffecd2' },
@@ -57,33 +44,58 @@ export const WEATHER_OVERLAYS: Record<WeatherType, string> = {
 };
 
 /**
- * 현재 시간으로 시간대 판별 (계절별 일출/일몰 반영)
+ * suncalc을 사용하여 좌표 기반 일출/일몰 시간 계산
+ */
+export function getSunTimes(
+  lat: number = DEFAULT_COORDS.lat,
+  lon: number = DEFAULT_COORDS.lon,
+  date: Date = new Date()
+): { sunrise: number; sunset: number; dawn: number; dusk: number } {
+  const times = SunCalc.getTimes(date, lat, lon);
+
+  // Date를 소수점 시간으로 변환 (예: 7:30 → 7.5)
+  const toDecimalHour = (d: Date) => d.getHours() + d.getMinutes() / 60;
+
+  return {
+    sunrise: toDecimalHour(times.sunrise),
+    sunset: toDecimalHour(times.sunset),
+    dawn: toDecimalHour(times.dawn), // 시민 박명 시작
+    dusk: toDecimalHour(times.dusk), // 시민 박명 끝
+  };
+}
+
+/**
+ * 현재 시간으로 시간대 판별 (좌표 기반 일출/일몰 사용)
  *
  * 시간대 분류:
- * - dawn (새벽): 일출 1시간 전 ~ 일출 1시간 후
- * - morning (아침): 일출 1시간 후 ~ 일출 3시간 후
- * - day (낮): 일출 3시간 후 ~ 일몰 2시간 전
- * - evening (저녁): 일몰 2시간 전 ~ 일몰 1.5시간 후
+ * - dawn (새벽): 시민 박명 시작 ~ 일출 후 30분
+ * - morning (아침): 일출 후 30분 ~ 일출 후 2시간
+ * - day (낮): 일출 후 2시간 ~ 일몰 전 1시간
+ * - evening (저녁): 일몰 전 1시간 ~ 시민 박명 끝
  * - night (밤): 그 외
  */
-export function getTimeOfDay(hour?: number, month?: number): TimeOfDay {
+export function getTimeOfDay(
+  hour?: number,
+  coords?: { lat: number; lon: number }
+): TimeOfDay {
   const now = new Date();
-  const h = hour ?? now.getHours() + now.getMinutes() / 60; // 소수점 시간
-  const m = month ?? now.getMonth() + 1;
+  const h = hour ?? now.getHours() + now.getMinutes() / 60;
 
-  const { sunrise, sunset } = MONTHLY_SUN_TIMES[m] || MONTHLY_SUN_TIMES[6];
+  const { sunrise, sunset, dawn, dusk } = getSunTimes(
+    coords?.lat,
+    coords?.lon,
+    now
+  );
 
   // 시간대 경계 계산
-  const dawnStart = sunrise - 1;
-  const dawnEnd = sunrise + 1;
-  const morningEnd = sunrise + 3;
-  const eveningStart = sunset - 2;
-  const eveningEnd = sunset + 1.5;
+  const dawnEnd = sunrise + 0.5; // 일출 후 30분
+  const morningEnd = sunrise + 2; // 일출 후 2시간
+  const eveningStart = sunset - 1; // 일몰 전 1시간
 
-  if (h >= dawnStart && h < dawnEnd) return 'dawn';
+  if (h >= dawn && h < dawnEnd) return 'dawn';
   if (h >= dawnEnd && h < morningEnd) return 'morning';
   if (h >= morningEnd && h < eveningStart) return 'day';
-  if (h >= eveningStart && h < eveningEnd) return 'evening';
+  if (h >= eveningStart && h < dusk) return 'evening';
   return 'night';
 }
 
@@ -125,10 +137,10 @@ export interface ThemeConfig {
 export function getThemeConfig(
   weatherMain: string,
   overrideHour?: number,
-  overrideMonth?: number
+  coords?: { lat: number; lon: number }
 ): ThemeConfig {
-  const timeOfDay = getTimeOfDay(overrideHour);
-  const season = getSeason(overrideMonth);
+  const timeOfDay = getTimeOfDay(overrideHour, coords);
+  const season = getSeason();
   const weatherType = getWeatherType(weatherMain);
 
   return {
