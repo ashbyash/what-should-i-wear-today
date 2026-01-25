@@ -45,6 +45,7 @@ export const WEATHER_OVERLAYS: Record<WeatherType, string> = {
 
 /**
  * suncalc을 사용하여 좌표 기반 일출/일몰 시간 계산
+ * 주의: 서버(UTC)와 클라이언트(KST) 시간대 차이를 고려하여 UTC 기준으로 계산
  */
 export function getSunTimes(
   lat: number = DEFAULT_COORDS.lat,
@@ -53,15 +54,28 @@ export function getSunTimes(
 ): { sunrise: number; sunset: number; dawn: number; dusk: number } {
   const times = SunCalc.getTimes(date, lat, lon);
 
-  // Date를 소수점 시간으로 변환 (예: 7:30 → 7.5)
-  const toDecimalHour = (d: Date) => d.getHours() + d.getMinutes() / 60;
+  // Date를 KST 기준 소수점 시간으로 변환 (서버/클라이언트 환경 무관)
+  const toKstDecimalHour = (d: Date) => {
+    const utcHours = d.getUTCHours() + d.getUTCMinutes() / 60;
+    const kstHours = (utcHours + 9) % 24; // UTC+9
+    return kstHours;
+  };
 
   return {
-    sunrise: toDecimalHour(times.sunrise),
-    sunset: toDecimalHour(times.sunset),
-    dawn: toDecimalHour(times.dawn), // 시민 박명 시작
-    dusk: toDecimalHour(times.dusk), // 시민 박명 끝
+    sunrise: toKstDecimalHour(times.sunrise),
+    sunset: toKstDecimalHour(times.sunset),
+    dawn: toKstDecimalHour(times.dawn), // 시민 박명 시작
+    dusk: toKstDecimalHour(times.dusk), // 시민 박명 끝
   };
+}
+
+/**
+ * KST 기준 현재 시간 (소수점)
+ */
+function getKstHour(): number {
+  const now = new Date();
+  const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60;
+  return (utcHours + 9) % 24; // UTC+9
 }
 
 /**
@@ -79,7 +93,8 @@ export function getTimeOfDay(
   coords?: { lat: number; lon: number }
 ): TimeOfDay {
   const now = new Date();
-  const h = hour ?? now.getHours() + now.getMinutes() / 60;
+  // hour가 제공되면 그대로 사용, 아니면 KST 기준 현재 시간 사용
+  const h = hour ?? getKstHour();
 
   const { sunrise, sunset, dawn, dusk } = getSunTimes(
     coords?.lat,
