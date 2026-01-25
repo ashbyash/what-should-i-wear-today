@@ -103,7 +103,7 @@ export const TEMP_ZONE_LABELS: Record<string, string> = {
 
 // 온도 구간별 대표 겉옷
 export const TEMP_ZONE_OUTER: Record<string, string> = {
-  HOT: '민소매',
+  HOT: '반팔',
   WARM: '얇은 가디건',
   MILD: '바람막이',
   COOL: '자켓',

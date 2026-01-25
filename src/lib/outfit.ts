@@ -2,6 +2,12 @@ import type { OutfitInput, OutfitRecommendation, OutfitByCategory } from '@/type
 import { OUTFIT_TEMP, PM25, THRESHOLDS, WEATHER_CONDITIONS, TEMP_ZONE_OUTER } from './constants';
 import { getFeelsLikeTemp } from './score';
 
+// 마지막 글자 받침 여부 확인
+function hasEndConsonant(word: string): boolean {
+  const lastChar = word.charCodeAt(word.length - 1);
+  return (lastChar - 0xac00) % 28 !== 0;
+}
+
 // 온도 → 구간 키 반환
 function getTempZoneKey(temp: number): string {
   if (temp >= OUTFIT_TEMP.HOT) return 'HOT';
@@ -114,15 +120,30 @@ function checkTempRange(tempMin: number, tempMax: number): string | null {
   const minZone = getTempZoneKey(tempMin);
   const maxZone = getTempZoneKey(tempMax);
 
-  // 구간이 다르면 시간대별 알림
-  if (minZone !== maxZone) {
-    const minOuter = TEMP_ZONE_OUTER[minZone];
-    const maxOuter = TEMP_ZONE_OUTER[maxZone];
-    return `아침엔 ${minOuter}, 낮엔 ${maxOuter}이면 충분해요`;
+  // 아침(최저)과 낮(최고)의 대표 겉옷 확인
+  const minOuter = TEMP_ZONE_OUTER[minZone];
+  const maxOuter = TEMP_ZONE_OUTER[maxZone];
+
+  // 겉옷이 다르면 시간대별 알림
+  if (minOuter !== maxOuter) {
+    const suffix = hasEndConsonant(maxOuter) ? '이면' : '면';
+    return `아침엔 ${minOuter}, 낮엔 ${maxOuter}${suffix} 충분해요`;
   }
 
-  // 구간이 같으면 기존 메시지
-  return '일교차가 커요, 겉옷 챙기세요';
+  // 겉옷이 같으면 극한 날씨 체크
+  const coldZones = ['BITTER', 'EXTREME'];
+  const hotZones = ['HOT'];
+
+  if (coldZones.includes(minZone) && coldZones.includes(maxZone)) {
+    return '종일 강추위예요, 방한에 신경 쓰세요';
+  }
+  if (hotZones.includes(minZone) && hotZones.includes(maxZone)) {
+    return '종일 더워요, 시원하게 입으세요';
+  }
+
+  // 그 외 겉옷이 같은 경우
+  const suffix = hasEndConsonant(minOuter) ? '이' : '';
+  return `하루 종일 ${minOuter}${suffix} 필요해요`;
 }
 
 // 미세먼지 체크
