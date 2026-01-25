@@ -23,8 +23,8 @@ const MONTHLY_SUN_TIMES: Record<number, { sunrise: number; sunset: number }> = {
 
 // 시간대별 그라데이션 (사용자 정의 팔레트)
 export const TIME_GRADIENTS: Record<TimeOfDay, { from: string; to: string }> = {
-  dawn: { from: '#1e3a5f', to: '#f4a261' },
-  morning: { from: '#ffecd2', to: '#fcb69f' },
+  dawn: { from: '#a1c4fd', to: '#ffecd2' },
+  morning: { from: '#fcb69f', to: '#ffecd2' },
   day: { from: '#56ccf2', to: '#2f80ed' },
   evening: { from: '#ee9ca7', to: '#ffdde1' },
   night: { from: '#0f0c29', to: '#302b63' },
@@ -40,7 +40,7 @@ export const SEASON_ACCENTS: Record<Season, string> = {
 
 // 시간대별 텍스트 색상 (밝은 배경 vs 어두운 배경)
 export const TIME_TEXT_COLORS: Record<TimeOfDay, { isLight: boolean }> = {
-  dawn: { isLight: false },
+  dawn: { isLight: true },
   morning: { isLight: true },
   day: { isLight: false },
   evening: { isLight: true },

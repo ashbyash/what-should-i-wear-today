@@ -11,11 +11,11 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Glass UI 색상 토큰
+        // Glass UI 색상 토큰 (CSS 변수로 동적 색상 지원)
         glass: {
-          primary: "rgba(255, 255, 255, 1)",      // 주요 수치, 점수
-          secondary: "rgba(255, 255, 255, 0.9)",  // 본문, 제목
-          muted: "rgba(255, 255, 255, 0.7)",      // 라벨, 캡션 (최소값)
+          primary: "var(--glass-primary)",
+          secondary: "var(--glass-secondary)",
+          muted: "var(--glass-muted)",
         },
       },
       fontFamily: {

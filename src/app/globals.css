@@ -7,6 +7,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Glass UI 색상 변수 (어두운 배경용 - 기본값) */
+  --glass-primary: rgba(255, 255, 255, 1);
+  --glass-secondary: rgba(255, 255, 255, 0.9);
+  --glass-muted: rgba(255, 255, 255, 0.7);
   /* Safe area insets for iOS notch/home indicator */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
@@ -59,6 +63,17 @@ body {
     padding-bottom: var(--safe-area-inset-bottom);
     padding-left: var(--safe-area-inset-left);
   }
+}
+
+/* 밝은 배경 시간대 (morning, evening) - 흰색 텍스트 + text-shadow로 가독성 확보 */
+[data-theme="light"] {
+  --glass-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .text-glass-primary,
+[data-theme="light"] .text-glass-secondary,
+[data-theme="light"] .text-glass-muted {
+  text-shadow: var(--glass-text-shadow);
 }
 
 /* 밝은 배경에서 카드 대비 강화 */
