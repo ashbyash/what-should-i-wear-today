@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "기온별 옷차림 | 오늘 뭐 입지?",
   description: "날씨로 알아보는 오늘의 OOTD",
   keywords: ["날씨", "옷차림", "기온별 옷", "오늘 뭐 입지", "OOTD", "외출 점수", "미세먼지", "자외선"],
+  alternates: {
+    canonical: "/",
+  },
   verification: {
     google: "zBGvDIS1SeYmg6RNhW8w1tRTSDsFU4QTMUZWaxWR1GQ",
     other: {
@@ -28,11 +31,21 @@ export const metadata: Metadata = {
     description: "날씨로 알아보는 오늘의 OOTD",
     type: "website",
     locale: "ko_KR",
+    url: "https://ootd-by-weather.vercel.app",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "기온별 옷차림 | 오늘 뭐 입지?",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "기온별 옷차림 | 오늘 뭐 입지?",
     description: "날씨로 알아보는 오늘의 OOTD",
+    images: ["/opengraph-image"],
   },
 };
 
