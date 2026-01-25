@@ -182,6 +182,8 @@ export default function Home() {
     tempMax: weatherData.tempMax,
     pm25: airQualityData.pm25,
     weatherMain: weatherData.weatherMain,
+    windSpeed: weatherData.windSpeed,
+    humidity: weatherData.humidity,
   });
 
   // 테마 계산 - 좌표 기반 일출/일몰 사용

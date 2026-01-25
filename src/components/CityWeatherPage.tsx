@@ -143,6 +143,8 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
     tempMax: weatherData.tempMax,
     pm25: airQualityData.pm25,
     weatherMain: weatherData.weatherMain,
+    windSpeed: weatherData.windSpeed,
+    humidity: weatherData.humidity,
   });
 
   // 테마 계산

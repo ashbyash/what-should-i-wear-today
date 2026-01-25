@@ -55,4 +55,6 @@ export interface OutfitInput {
   tempMax: number;
   pm25: number;
   weatherMain: string;
+  windSpeed?: number;  // 풍속 (m/s) - 체감온도 계산용
+  humidity?: number;   // 습도 (%) - 체감온도 계산용
 }

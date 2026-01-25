@@ -1,5 +1,18 @@
 import type { OutfitInput, OutfitRecommendation, OutfitByCategory } from '@/types/score';
-import { OUTFIT_TEMP, PM25, THRESHOLDS, WEATHER_CONDITIONS } from './constants';
+import { OUTFIT_TEMP, PM25, THRESHOLDS, WEATHER_CONDITIONS, TEMP_ZONE_OUTER } from './constants';
+import { getFeelsLikeTemp } from './score';
+
+// 온도 → 구간 키 반환
+function getTempZoneKey(temp: number): string {
+  if (temp >= OUTFIT_TEMP.HOT) return 'HOT';
+  if (temp >= OUTFIT_TEMP.WARM) return 'WARM';
+  if (temp >= OUTFIT_TEMP.MILD) return 'MILD';
+  if (temp >= OUTFIT_TEMP.COOL) return 'COOL';
+  if (temp >= OUTFIT_TEMP.COLD) return 'COLD';
+  if (temp >= OUTFIT_TEMP.FREEZING) return 'FREEZING';
+  if (temp >= OUTFIT_TEMP.BITTER) return 'BITTER';
+  return 'EXTREME';
+}
 
 // 온도별 옷차림 추천 (카테고리별)
 function getClothesForTemp(temp: number): OutfitByCategory {
@@ -48,13 +61,33 @@ function getClothesForTemp(temp: number): OutfitByCategory {
       accessory: ['목도리'],
     };
   }
-  // 5℃ 이하 (한겨울)
+  // 0~5℃ (겨울)
+  if (temp >= OUTFIT_TEMP.FREEZING) {
+    return {
+      outer: ['다운 패딩', '울 코트'],
+      top: ['기모 맨투맨', '울 니트', '히트텍'],
+      bottom: ['기모 바지', '코듀로이 팬츠'],
+      shoes: ['부츠', '가죽 스니커즈'],
+      accessory: ['목도리', '장갑'],
+    };
+  }
+  // -5~-1℃ (한겨울)
+  if (temp >= OUTFIT_TEMP.BITTER) {
+    return {
+      outer: ['다운 롱패딩', '헤비 울 코트'],
+      top: ['기모 맨투맨', '울 니트', '히트텍'],
+      bottom: ['기모 바지', '두꺼운 코듀로이'],
+      shoes: ['방한 부츠', '부츠'],
+      accessory: ['두꺼운 목도리', '장갑', '비니'],
+    };
+  }
+  // -6℃ 이하 (혹한)
   return {
-    outer: ['다운 롱패딩', '울 코트'],
-    top: ['기모 맨투맨', '울 니트', '기모 셔츠'],
-    bottom: ['기모 바지', '코듀로이 팬츠'],
-    shoes: ['부츠', '방한 부츠'],
-    accessory: ['목도리', '장갑', '비니'],
+    outer: ['다운 롱패딩', '헤비 다운'],
+    top: ['히트텍', '기모 맨투맨', '울 니트'],
+    bottom: ['기모 바지', '방한 팬츠'],
+    shoes: ['방한 부츠'],
+    accessory: ['두꺼운 목도리', '방한 장갑', '비니', '귀마개'],
   };
 }
 
@@ -70,13 +103,26 @@ function getRainGear(weatherMain: string): Partial<OutfitByCategory> {
   return {};
 }
 
-// 일교차 체크
+// 일교차 체크 (시간대별 추천 포함)
 function checkTempRange(tempMin: number, tempMax: number): string | null {
   const range = tempMax - tempMin;
-  if (range >= THRESHOLDS.TEMP_RANGE_ALERT) {
-    return '일교차가 커요, 겉옷 챙기세요';
+  if (range < THRESHOLDS.TEMP_RANGE_ALERT) {
+    return null;
   }
-  return null;
+
+  // 아침(최저)과 낮(최고) 온도 구간 확인
+  const minZone = getTempZoneKey(tempMin);
+  const maxZone = getTempZoneKey(tempMax);
+
+  // 구간이 다르면 시간대별 알림
+  if (minZone !== maxZone) {
+    const minOuter = TEMP_ZONE_OUTER[minZone];
+    const maxOuter = TEMP_ZONE_OUTER[maxZone];
+    return `아침엔 ${minOuter}, 낮엔 ${maxOuter}이면 충분해요`;
+  }
+
+  // 구간이 같으면 기존 메시지
+  return '일교차가 커요, 겉옷 챙기세요';
 }
 
 // 미세먼지 체크
@@ -101,14 +147,43 @@ function mergeCategories(base: OutfitByCategory, additional: Partial<OutfitByCat
   return result;
 }
 
+// 체감온도 알림 체크
+function checkFeelsLikeTemp(
+  temperature: number,
+  feelsLike: number,
+  windSpeed?: number
+): string | null {
+  const diff = temperature - feelsLike;
+
+  // 체감온도가 5도 이상 낮을 때 (바람으로 인한 경우)
+  if (diff >= 5 && windSpeed && windSpeed >= 3) {
+    return '바람이 강해서 체감온도가 낮아요';
+  }
+  // 체감온도가 3도 이상 높을 때 (습도로 인한 경우)
+  if (diff <= -3) {
+    return '습도가 높아서 더 덥게 느껴져요';
+  }
+  return null;
+}
+
 // 옷차림 추천 메인 함수
 export function getOutfitRecommendation(input: OutfitInput): OutfitRecommendation {
-  const baseClothes = getClothesForTemp(input.temperature);
+  // 체감온도 계산
+  const feelsLike = getFeelsLikeTemp(input.temperature, input.windSpeed, input.humidity);
+
+  // 체감온도 기반으로 옷차림 추천
+  const baseClothes = getClothesForTemp(feelsLike);
   const rainGear = getRainGear(input.weatherMain);
 
   const categories = mergeCategories(baseClothes, rainGear);
 
   const alerts: string[] = [];
+
+  // 체감온도 알림 (가장 먼저 표시)
+  const feelsLikeAlert = checkFeelsLikeTemp(input.temperature, feelsLike, input.windSpeed);
+  if (feelsLikeAlert) {
+    alerts.push(feelsLikeAlert);
+  }
 
   const tempAlert = checkTempRange(input.tempMin, input.tempMax);
   if (tempAlert) {

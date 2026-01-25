@@ -79,12 +79,38 @@ export const MONTH_TO_SEASON: Record<number, Season> = {
 // 기온별 옷차림 기준 (℃)
 // ============================================
 export const OUTFIT_TEMP = {
-  HOT: 28,          // 28℃↑: 한여름
-  WARM: 23,         // 23~27℃: 초여름/초가을
-  MILD: 17,         // 17~22℃: 봄/가을
-  COOL: 12,         // 12~16℃: 환절기
-  COLD: 6,          // 6~11℃: 초겨울
-  // 5℃↓: 한겨울
+  HOT: 28,          // 28℃↑: 무더움
+  WARM: 23,         // 23~27℃: 따뜻함
+  MILD: 17,         // 17~22℃: 선선함
+  COOL: 12,         // 12~16℃: 쌀쌀함
+  COLD: 6,          // 6~11℃: 추움
+  FREEZING: 0,      // 0~5℃: 매우 추움
+  BITTER: -5,       // -5~-1℃: 강추위
+  // -6℃↓: 혹한
+} as const;
+
+// 온도 구간 레이블 (체감 기반)
+export const TEMP_ZONE_LABELS: Record<string, string> = {
+  HOT: '무더움',
+  WARM: '따뜻함',
+  MILD: '선선함',
+  COOL: '쌀쌀함',
+  COLD: '추움',
+  FREEZING: '매우 추움',
+  BITTER: '강추위',
+  EXTREME: '혹한',
+} as const;
+
+// 온도 구간별 대표 겉옷
+export const TEMP_ZONE_OUTER: Record<string, string> = {
+  HOT: '민소매',
+  WARM: '얇은 가디건',
+  MILD: '바람막이',
+  COOL: '자켓',
+  COLD: '코트',
+  FREEZING: '패딩',
+  BITTER: '롱패딩',
+  EXTREME: '롱패딩',
 } as const;
 
 // ============================================

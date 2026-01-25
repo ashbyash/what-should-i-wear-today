@@ -69,7 +69,7 @@ function calcHeatIndex(temp: number, humidity: number): number {
 }
 
 // 체감온도 계산 (Wind Chill + Heat Index 조합)
-function getFeelsLikeTemp(temp: number, windSpeed?: number, humidity?: number): number {
+export function getFeelsLikeTemp(temp: number, windSpeed?: number, humidity?: number): number {
   const wind = windSpeed ?? 0;
   const hum = humidity ?? 50;
 
