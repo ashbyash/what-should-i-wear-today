@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
@@ -81,6 +81,7 @@ function useClientHour() {
 }
 
 function HomeContent() {
+  const router = useRouter();
   const devHour = useDevHour();
   const clientHour = useClientHour();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -237,6 +238,8 @@ function HomeContent() {
               isFromCache={isFromCache}
               cacheReason={cacheReason}
               onSearchClick={() => setIsSearchModalOpen(true)}
+              isViewingOtherLocation={!!queryCoordinates}
+              onReturnToCurrentLocation={() => router.push('/')}
             />
           </m.div>
 

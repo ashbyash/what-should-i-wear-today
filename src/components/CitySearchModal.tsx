@@ -93,11 +93,6 @@ export default function CitySearchModal({
     background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})`,
   };
 
-  // 하단 영역 그라데이션 스타일
-  const bottomGradientStyle = {
-    background: `linear-gradient(to top, ${gradient.to}, ${gradient.to}E6, transparent)`,
-  };
-
   // 테마별 색상 클래스
   const colors = {
     primary: isLight ? 'text-slate-900' : 'text-glass-primary',
@@ -222,8 +217,50 @@ export default function CitySearchModal({
             </div>
           </m.div>
 
+          {/* 내 현재 위치 사용 버튼 (검색창 바로 아래 고정) */}
+          <m.div
+            className={`relative z-10 px-4 pb-3 border-b ${colors.border}`}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.18 }}
+          >
+            <button
+              onClick={handleGoToCurrentLocation}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                         ${colors.bgStrong} border ${colors.borderStrong}
+                         ${colors.hoverBg} ${colors.activeBg}
+                         transition-colors text-left`}
+            >
+              <svg
+                className={`w-5 h-5 ${colors.primary}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <p className={`flex-1 ${colors.primary} font-medium`}>내 현재 위치 사용</p>
+              <svg
+                className={`w-5 h-5 ${colors.muted}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </m.div>
+
           {/* 컨텐츠 영역 */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-4 pb-24">
+          <div className="relative z-10 flex-1 overflow-y-auto px-4 pb-4">
             {/* 빠른 선택 (검색어 없을 때만) */}
             {!searchQuery && (
               <m.section
@@ -314,36 +351,6 @@ export default function CitySearchModal({
             </m.section>
           </div>
 
-          {/* 하단 고정 버튼 */}
-          <m.div
-            className="fixed bottom-0 left-0 right-0 z-10 p-4"
-            style={bottomGradientStyle}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <button
-              onClick={handleGoToCurrentLocation}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl
-                         ${colors.bgStrong} border ${colors.borderStrong}
-                         ${colors.primary} font-medium
-                         ${colors.hoverBg} ${colors.activeBg}
-                         transition-colors`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              현재 위치로 돌아가기
-            </button>
-          </m.div>
         </m.div>
       )}
     </AnimatePresence>

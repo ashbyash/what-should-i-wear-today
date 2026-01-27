@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
@@ -60,6 +61,7 @@ interface CityWeatherPageProps {
 }
 
 export default function CityWeatherPage({ city }: CityWeatherPageProps) {
+  const router = useRouter();
   const clientHour = useClientHour();
   const coordinates = { lat: city.lat, lon: city.lon };
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -174,6 +176,8 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
               onRefresh={refetch}
               isRefreshing={isRefetching}
               onSearchClick={() => setIsSearchModalOpen(true)}
+              isViewingOtherLocation={true}
+              onReturnToCurrentLocation={() => router.push('/')}
             />
           </m.div>
 
