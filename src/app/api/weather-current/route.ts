@@ -6,4 +6,5 @@ export const GET = createApiHandler({
   envErrorMessage: 'KMA API key not configured',
   fetcher: fetchKmaCurrentWeather,
   errorMessage: 'Failed to fetch current weather data',
+  secondaryEnvKey: 'KMA_APIHUB_AUTH_KEY',
 });

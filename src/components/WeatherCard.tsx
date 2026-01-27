@@ -132,9 +132,10 @@ export default function WeatherCard({ weather }: WeatherCardProps) {
           </div>
         </div>
 
-        {/* 하단: 최저/최고/습도 한 줄 */}
-        <div className="text-caption text-glass-muted mt-3">
-          최저 {weather.tempMin}° · 최고 {weather.tempMax}° · 습도 {weather.humidity}%
+        {/* 하단: 최저/최고 + 바람/습도 두 줄 */}
+        <div className="text-caption text-glass-muted mt-3 space-y-1">
+          <div>최저 {weather.tempMin}° · 최고 {weather.tempMax}°</div>
+          <div>바람 {weather.windSpeed}m/s · 습도 {weather.humidity}%</div>
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ import ErrorState from '@/components/ErrorState';
 import PermissionGuide from '@/components/PermissionGuide';
 import { useGeolocation } from '@/lib/geolocation';
 import { useWeatherData } from '@/lib/useWeatherData';
-import { calculateOutingScore } from '@/lib/score';
+import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
 import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
@@ -146,7 +146,7 @@ export default function Home() {
   // API 데이터 → 컴포넌트 데이터 변환
   const weatherData: WeatherData = {
     temperature: weather.temperature,
-    feelsLike: weather.temperature,
+    feelsLike: Math.round(getFeelsLikeTemp(weather.temperature, weather.windSpeed, weather.humidity)),
     tempMin: weather.tempMin ?? weather.temperature - 5,
     tempMax: weather.tempMax ?? weather.temperature + 5,
     humidity: weather.humidity,

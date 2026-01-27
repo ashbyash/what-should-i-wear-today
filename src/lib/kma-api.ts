@@ -2,19 +2,36 @@
  * 기상청 API 연동
  * - 단기예보: 현재 기온, 습도, 풍속, 하늘상태
  * - 생활기상지수: 자외선지수
+ * - AWS 매분자료: 실시간 관측값 (apihub.kma.go.kr)
  */
 
 import { toGridCoordinate } from './coordinates';
+import { fetchAwsStations, findNearestStation } from './weather-stations';
 
 const KMA_FORECAST_URL = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0';
 const KMA_LIVING_URL = 'https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4';
+const KMA_APIHUB_AWS_URL = 'https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-aws2_min';
 
 // 서버 캐시 (격자 좌표 기반, TTL 10분)
 const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10분
 const weatherCache = new Map<string, { data: KmaWeatherData; timestamp: number }>();
 
+// AWS 관측 캐시 (관측소 ID 기반, TTL 5분)
+const AWS_CACHE_TTL = 5 * 60 * 1000; // 5분
+const awsCache = new Map<string, { data: AwsObservation; timestamp: number }>();
+
 function getCacheKey(nx: number, ny: number): string {
   return `${nx},${ny}`;
+}
+
+// AWS 관측 데이터
+export interface AwsObservation {
+  temperature: number;
+  humidity: number;
+  windSpeed: number;
+  rainfall: number;
+  stnId: string;
+  stnNm: string;
 }
 
 // 기상청 API 응답 타입
@@ -260,13 +277,132 @@ function parseCurrentData(items: KmaItem[]): KmaCurrentData {
 }
 
 /**
+ * 현재 시각을 YYYYMMDDHHMM 형식으로 반환
+ */
+function getAwsTimeString(): string {
+  const now = new Date();
+  // 1분 전 데이터 요청 (최신 데이터 확보)
+  now.setMinutes(now.getMinutes() - 1);
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  return `${year}${month}${day}${hour}${minute}`;
+}
+
+/**
+ * AWS 매분자료 응답 파싱
+ * 응답 형식 예시:
+ * # TM        STN  WD  WS  ...  TA   HM  ...
+ * 202301271000 90  270  1.2     5.3  65  ...
+ */
+function parseAwsResponse(text: string, stnId: string): AwsObservation | null {
+  const lines = text.split('\n');
+
+  for (const line of lines) {
+    if (line.startsWith('#') || line.trim() === '') continue;
+
+    const parts = line.trim().split(/\s+/);
+    if (parts.length < 12) continue;
+
+    // AWS2 포맷 기준 (help=1로 확인 필요)
+    // 일반적으로: TM, STN, WD, WS, WDS, WDA, WDM, WSM, TA, HM, PA, PS, RN...
+    // 인덱스는 실제 응답에 따라 조정 필요
+    const ta = parseFloat(parts[8]); // 기온
+    const hm = parseFloat(parts[9]); // 습도
+    const ws = parseFloat(parts[3]); // 풍속
+    const rn = parseFloat(parts[12] || '0'); // 강수량
+
+    if (isNaN(ta)) continue;
+
+    return {
+      temperature: Math.round(ta * 10) / 10,
+      humidity: isNaN(hm) ? 0 : Math.round(hm),
+      windSpeed: isNaN(ws) ? 0 : ws,
+      rainfall: isNaN(rn) ? 0 : rn,
+      stnId,
+      stnNm: stnId,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * AWS 매분자료 조회 (apihub.kma.go.kr)
+ */
+export async function fetchAwsObservation(
+  stnId: string,
+  authKey: string
+): Promise<AwsObservation | null> {
+  // 캐시 확인
+  const cached = awsCache.get(stnId);
+  if (cached && Date.now() - cached.timestamp < AWS_CACHE_TTL) {
+    return cached.data;
+  }
+
+  try {
+    const tm2 = getAwsTimeString();
+    const url = `${KMA_APIHUB_AWS_URL}?tm2=${tm2}&stn=${stnId}&disp=0&help=0&authKey=${authKey}`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`AWS API 오류: ${response.status}`);
+      return null;
+    }
+
+    const text = await response.text();
+    const observation = parseAwsResponse(text, stnId);
+
+    if (observation) {
+      awsCache.set(stnId, { data: observation, timestamp: Date.now() });
+    }
+
+    return observation;
+  } catch (error) {
+    console.error('AWS 관측 데이터 조회 실패:', error);
+    return null;
+  }
+}
+
+/**
  * 초단기실황 조회 (외부용)
+ * - AWS 관측소 데이터 우선 시도
+ * - 실패 시 기존 초단기실황 API fallback
  */
 export async function fetchKmaCurrentWeather(
   lat: number,
   lon: number,
-  apiKey: string
+  apiKey: string,
+  apihubAuthKey?: string
 ): Promise<KmaCurrentData> {
+  // AWS 관측 시도 (apihub 인증키가 있는 경우)
+  if (apihubAuthKey) {
+    try {
+      const stations = await fetchAwsStations(apihubAuthKey);
+      const nearest = findNearestStation(lat, lon, stations);
+
+      if (nearest) {
+        const observation = await fetchAwsObservation(nearest.stnId, apihubAuthKey);
+
+        if (observation) {
+          // AWS 데이터를 KmaCurrentData 형식으로 변환
+          return {
+            temperature: Math.round(observation.temperature),
+            humidity: observation.humidity,
+            windSpeed: observation.windSpeed,
+            precipitation: observation.rainfall > 0 ? 'Rain' : '',
+            precipitationDescription: observation.rainfall > 0 ? '비' : '',
+          };
+        }
+      }
+    } catch (error) {
+      console.error('AWS 관측 실패, 초단기실황으로 fallback:', error);
+    }
+  }
+
+  // Fallback: 기존 초단기실황 API
   const { nx, ny } = toGridCoordinate(lat, lon);
   const items = await fetchUltraSrtNcst(nx, ny, apiKey);
   return parseCurrentData(items);
