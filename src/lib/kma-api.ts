@@ -164,6 +164,16 @@ function getUltraSrtBaseTime(): { baseDate: string; baseTime: string } {
 }
 
 /**
+ * 날짜를 YYYYMMDD 형식으로 변환
+ */
+function formatDateStr(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+/**
  * 발표 시간 계산 (단기예보)
  * - 02, 05, 08, 11, 14, 17, 20, 23시 발표
  * - 발표 후 약 10분 후 API 제공
@@ -188,18 +198,39 @@ function getVilageFcstBaseTime(): { baseDate: string; baseTime: string } {
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     return {
-      baseDate: `${yesterday.getFullYear()}${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}`,
+      baseDate: formatDateStr(yesterday),
       baseTime: '2300',
     };
   }
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  return {
+    baseDate: formatDateStr(now),
+    baseTime: `${String(baseHour).padStart(2, '0')}00`,
+  };
+}
+
+/**
+ * 05시 발표 시간 계산 (TMN 조회용)
+ * - 05시 10분 이전이면 전날 05시 발표 사용
+ */
+function get0500BaseTime(): { baseDate: string; baseTime: string } {
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+
+  // 05시 10분 이전이면 전날 05시 발표 사용
+  if (hour < 5 || (hour === 5 && minute < 10)) {
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return {
+      baseDate: formatDateStr(yesterday),
+      baseTime: '0500',
+    };
+  }
 
   return {
-    baseDate: `${year}${month}${day}`,
-    baseTime: `${String(baseHour).padStart(2, '0')}00`,
+    baseDate: formatDateStr(now),
+    baseTime: '0500',
   };
 }
 
@@ -410,13 +441,15 @@ export async function fetchKmaCurrentWeather(
 
 /**
  * 단기예보 조회 (최고/최저 기온, 하늘상태)
+ * @param overrideBaseTime - 특정 발표 시간 지정 (optional)
  */
 async function fetchVilageFcst(
   nx: number,
   ny: number,
-  apiKey: string
+  apiKey: string,
+  overrideBaseTime?: { baseDate: string; baseTime: string }
 ): Promise<KmaItem[]> {
-  const { baseDate, baseTime } = getVilageFcstBaseTime();
+  const { baseDate, baseTime } = overrideBaseTime ?? getVilageFcstBaseTime();
 
   const params = new URLSearchParams({
     serviceKey: apiKey,
@@ -446,11 +479,14 @@ async function fetchVilageFcst(
 }
 
 /**
- * 단기예보 파싱
+ * 단기예보 파싱 (TMN, TMX, SKY 추출)
  */
-function parseForecastData(items: KmaItem[]): KmaForecastData {
+function parseForecastData(
+  items: KmaItem[],
+  targetDate?: string
+): { tempMin: number | null; tempMax: number | null; skyCode: SkyCode } {
   const today = new Date();
-  const todayStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+  const todayStr = targetDate ?? formatDateStr(today);
 
   let tempMin: number | null = null;
   let tempMax: number | null = null;
@@ -475,16 +511,14 @@ function parseForecastData(items: KmaItem[]): KmaForecastData {
     }
   }
 
-  return {
-    tempMin,
-    tempMax,
-    sky: SKY_MAP[skyCode] || 'Clear',
-    skyDescription: SKY_DESC_MAP[skyCode] || '맑음',
-  };
+  return { tempMin, tempMax, skyCode };
 }
 
 /**
  * 단기예보 조회 (외부용)
+ * - TMN: 05시 발표에서 고정 조회 (가장 정확)
+ * - TMX: 최신 발표 우선, 없으면 05시 발표에서 조회
+ * - SKY: 최신 발표에서 조회
  */
 export async function fetchKmaForecastWeather(
   lat: number,
@@ -492,12 +526,47 @@ export async function fetchKmaForecastWeather(
   apiKey: string
 ): Promise<KmaForecastData> {
   const { nx, ny } = toGridCoordinate(lat, lon);
-  const items = await fetchVilageFcst(nx, ny, apiKey);
-  return parseForecastData(items);
+  const base0500 = get0500BaseTime();
+  const baseLatest = getVilageFcstBaseTime();
+
+  // 05시 발표와 최신 발표가 같으면 1회만 호출
+  const isSameBase = base0500.baseDate === baseLatest.baseDate && base0500.baseTime === baseLatest.baseTime;
+
+  if (isSameBase) {
+    const items = await fetchVilageFcst(nx, ny, apiKey, base0500);
+    const { tempMin, tempMax, skyCode } = parseForecastData(items);
+    return {
+      tempMin,
+      tempMax,
+      sky: SKY_MAP[skyCode] || 'Clear',
+      skyDescription: SKY_DESC_MAP[skyCode] || '맑음',
+    };
+  }
+
+  // 05시 발표 + 최신 발표 병렬 조회
+  const [items0500, itemsLatest] = await Promise.all([
+    fetchVilageFcst(nx, ny, apiKey, base0500),
+    fetchVilageFcst(nx, ny, apiKey, baseLatest),
+  ]);
+
+  const data0500 = parseForecastData(items0500);
+  const dataLatest = parseForecastData(itemsLatest);
+
+  // TMN: 05시 발표에서 (가장 정확)
+  // TMX: 최신 발표 우선, 없으면 05시 발표
+  // SKY: 최신 발표에서
+  return {
+    tempMin: data0500.tempMin,
+    tempMax: dataLatest.tempMax ?? data0500.tempMax,
+    sky: SKY_MAP[dataLatest.skyCode] || 'Clear',
+    skyDescription: SKY_DESC_MAP[dataLatest.skyCode] || '맑음',
+  };
 }
 
 /**
  * 기상청 날씨 데이터 조회 (통합)
+ * - TMN: 05시 발표에서 고정 조회
+ * - TMX: 최신 발표 우선, 없으면 05시 발표
  */
 export async function fetchKmaWeather(
   lat: number,
@@ -513,10 +582,15 @@ export async function fetchKmaWeather(
     return cached.data;
   }
 
-  // 초단기실황 + 단기예보 병렬 호출
-  const [ncstItems, fcstItems] = await Promise.all([
+  const base0500 = get0500BaseTime();
+  const baseLatest = getVilageFcstBaseTime();
+  const isSameBase = base0500.baseDate === baseLatest.baseDate && base0500.baseTime === baseLatest.baseTime;
+
+  // 초단기실황 + 단기예보(05시 + 최신) 병렬 호출
+  const [ncstItems, fcst0500Items, fcstLatestItems] = await Promise.all([
     fetchUltraSrtNcst(nx, ny, apiKey),
-    fetchVilageFcst(nx, ny, apiKey),
+    fetchVilageFcst(nx, ny, apiKey, base0500),
+    isSameBase ? Promise.resolve([]) : fetchVilageFcst(nx, ny, apiKey, baseLatest),
   ]);
 
   // 초단기실황 파싱
@@ -528,47 +602,29 @@ export async function fetchKmaWeather(
   for (const item of ncstItems) {
     const value = item.obsrValue ?? '0';
     switch (item.category) {
-      case 'T1H': // 기온
+      case 'T1H':
         temperature = parseFloat(value);
         break;
-      case 'REH': // 습도
+      case 'REH':
         humidity = parseInt(value, 10);
         break;
-      case 'WSD': // 풍속
+      case 'WSD':
         windSpeed = parseFloat(value);
         break;
-      case 'PTY': // 강수형태
+      case 'PTY':
         ptyCode = value as PtyCode;
         break;
     }
   }
 
-  // 단기예보 파싱 (오늘 날짜 기준)
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+  // 단기예보 파싱 (05시 + 최신)
+  const data0500 = parseForecastData(fcst0500Items);
+  const dataLatest = isSameBase ? data0500 : parseForecastData(fcstLatestItems);
 
-  let tempMin: number | null = null;
-  let tempMax: number | null = null;
-  let skyCode: SkyCode = '1';
-
-  for (const item of fcstItems) {
-    if (item.fcstDate !== todayStr) continue;
-
-    const value = item.fcstValue ?? '0';
-    switch (item.category) {
-      case 'TMN': // 최저기온
-        tempMin = parseFloat(value);
-        break;
-      case 'TMX': // 최고기온
-        tempMax = parseFloat(value);
-        break;
-      case 'SKY': // 하늘상태 (가장 가까운 시간)
-        if (!skyCode || skyCode === '1') {
-          skyCode = value as SkyCode;
-        }
-        break;
-    }
-  }
+  // TMN: 05시 발표, TMX: 최신 우선 05시 fallback, SKY: 최신
+  const tempMin = data0500.tempMin;
+  const tempMax = dataLatest.tempMax ?? data0500.tempMax;
+  const skyCode = dataLatest.skyCode;
 
   // 강수형태가 있으면 하늘상태 대신 강수형태 사용
   const hasRain = ptyCode !== '0';
