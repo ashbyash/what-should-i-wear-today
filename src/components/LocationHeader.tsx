@@ -10,6 +10,8 @@ interface LocationHeaderProps {
   isFromCache?: boolean;
   /** 캐시 사용 이유 (GPS 실패 메시지) */
   cacheReason?: string | null;
+  /** 도시 검색 모달 열기 */
+  onSearchClick?: () => void;
 }
 
 function getRelativeTime(date: Date): string {
@@ -32,6 +34,7 @@ export default function LocationHeader({
   isRefreshing,
   isFromCache,
   cacheReason,
+  onSearchClick,
 }: LocationHeaderProps) {
   const handleRefresh = () => {
     if (onRefresh) {
@@ -90,6 +93,43 @@ export default function LocationHeader({
       {/* 위치 - 메인 */}
       {isLoading ? (
         <span className="loading loading-dots loading-sm text-glass-primary" aria-hidden="true"></span>
+      ) : onSearchClick ? (
+        <button
+          onClick={onSearchClick}
+          className="flex items-center gap-1.5 text-xl font-semibold text-glass-primary
+                     hover:bg-white/5 active:bg-white/10 px-3 py-1.5 -mx-3 rounded-xl
+                     transition-colors"
+          aria-label="다른 도시 검색"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {locationName}
+          {/* 변경 가능 힌트 */}
+          <svg
+            className="w-4 h-4 text-glass-muted ml-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
       ) : (
         <h1 className="flex items-center gap-1.5 text-xl font-semibold text-glass-primary">
           <svg

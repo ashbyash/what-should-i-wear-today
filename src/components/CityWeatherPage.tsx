@@ -10,6 +10,7 @@ import DustCard from '@/components/DustCard';
 import UvCard from '@/components/UvCard';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
+import CitySearchModal from '@/components/CitySearchModal';
 import { useWeatherData } from '@/lib/useWeatherData';
 import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
@@ -61,6 +62,7 @@ interface CityWeatherPageProps {
 export default function CityWeatherPage({ city }: CityWeatherPageProps) {
   const clientHour = useClientHour();
   const coordinates = { lat: city.lat, lon: city.lon };
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const {
     weather,
@@ -171,6 +173,7 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
               lastUpdated={lastUpdated}
               onRefresh={refetch}
               isRefreshing={isRefetching}
+              onSearchClick={() => setIsSearchModalOpen(true)}
             />
           </m.div>
 
@@ -200,6 +203,12 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
           </m.div>
         </m.div>
       </div>
+
+      {/* 도시 검색 모달 */}
+      <CitySearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </div>
   );
 }

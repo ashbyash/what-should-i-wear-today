@@ -11,6 +11,7 @@ import UvCard from '@/components/UvCard';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 import PermissionGuide from '@/components/PermissionGuide';
+import CitySearchModal from '@/components/CitySearchModal';
 import { useGeolocation } from '@/lib/geolocation';
 import { useWeatherData } from '@/lib/useWeatherData';
 import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
@@ -81,6 +82,7 @@ function useClientHour() {
 export default function Home() {
   const devHour = useDevHour();
   const clientHour = useClientHour();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const {
     coordinates,
     loading: geoLoading,
@@ -214,6 +216,7 @@ export default function Home() {
               isRefreshing={isRefetching}
               isFromCache={isFromCache}
               cacheReason={cacheReason}
+              onSearchClick={() => setIsSearchModalOpen(true)}
             />
           </m.div>
 
@@ -243,6 +246,12 @@ export default function Home() {
           </m.div>
         </m.div>
       </div>
+
+      {/* 도시 검색 모달 */}
+      <CitySearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </div>
   );
 }
