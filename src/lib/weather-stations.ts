@@ -8,6 +8,9 @@ import { calculateDistance } from './location-cache';
 
 const KMA_APIHUB_URL = 'https://apihub.kma.go.kr/api/typ01/url/stn_inf.php';
 
+// AWS API 타임아웃 (2초)
+const AWS_FETCH_TIMEOUT = 2000;
+
 // 관측소 캐시 (24시간)
 const STATION_CACHE_TTL = 24 * 60 * 60 * 1000;
 let stationCache: { stations: AwsStation[]; timestamp: number } | null = null;
@@ -46,19 +49,32 @@ export async function fetchAwsStations(authKey: string): Promise<AwsStation[]> {
   const tm = getCurrentTimeString();
   const url = `${KMA_APIHUB_URL}?inf=AWS&tm=${tm}&help=0&authKey=${authKey}`;
 
-  const response = await fetch(url);
+  // 2초 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), AWS_FETCH_TIMEOUT);
 
-  if (!response.ok) {
-    throw new Error(`AWS 관측소 목록 API 오류: ${response.status}`);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`AWS 관측소 목록 API 오류: ${response.status}`);
+    }
+
+    const text = await response.text();
+    const stations = parseStationResponse(text);
+
+    // 캐시 저장
+    stationCache = { stations, timestamp: Date.now() };
+
+    return stations;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('AWS 관측소 목록 API 타임아웃 (2초)');
+    }
+    throw error;
   }
-
-  const text = await response.text();
-  const stations = parseStationResponse(text);
-
-  // 캐시 저장
-  stationCache = { stations, timestamp: Date.now() };
-
-  return stations;
 }
 
 /**

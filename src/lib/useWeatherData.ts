@@ -136,27 +136,14 @@ export function useWeatherData(
   );
   const location = locationRaw ? safeParseLocation(locationRaw) : null;
 
-  // Nearest Station + Air Quality API (체이닝)
-  const {
-    data: stationData,
-    isLoading: stationLoading,
-    isValidating: stationValidating,
-    mutate: mutateStation,
-  } = useSWR(
-    lat && lon ? getCacheKey(lat, lon, '/api/nearest-station') : null,
-    fetcher,
-    swrOptions
-  );
-
+  // Air Quality API (lat/lon으로 직접 호출 - 측정소 검색 + 대기질 조회 통합)
   const {
     data: airQualityRaw,
     isLoading: airQualityLoading,
     isValidating: airQualityValidating,
     mutate: mutateAirQuality,
   } = useSWR(
-    stationData
-      ? `/api/air-quality?stationName=${encodeURIComponent(stationData.stationName)}&stationAddr=${encodeURIComponent(stationData.stationAddr)}`
-      : null,
+    lat && lon ? getCacheKey(lat, lon, '/api/air-quality') : null,
     fetcher,
     swrOptions
   );
@@ -199,7 +186,6 @@ export function useWeatherData(
       mutateCurrent();
       mutateForecast();
       mutateLocation();
-      mutateStation();
       mutateAirQuality();
       mutateUV();
     }
@@ -210,7 +196,6 @@ export function useWeatherData(
     mutateCurrent,
     mutateForecast,
     mutateLocation,
-    mutateStation,
     mutateAirQuality,
     mutateUV,
   ]);
@@ -220,25 +205,21 @@ export function useWeatherData(
     mutateCurrent();
     mutateForecast();
     mutateLocation();
-    mutateStation();
     mutateAirQuality();
     mutateUV();
   }, [
     mutateCurrent,
     mutateForecast,
     mutateLocation,
-    mutateStation,
     mutateAirQuality,
     mutateUV,
   ]);
 
   // 로딩 상태 계산
-  const isAirQualityActuallyLoading = stationLoading || airQualityLoading;
   const isRefetching =
     currentValidating ||
     forecastValidating ||
     locationValidating ||
-    stationValidating ||
     airQualityValidating ||
     uvValidating;
 
@@ -247,7 +228,7 @@ export function useWeatherData(
     currentLoading ||
     forecastLoading ||
     locationLoading ||
-    isAirQualityActuallyLoading ||
+    airQualityLoading ||
     uvLoading;
 
   // lastUpdated 계산 (데이터가 있을 때만)
@@ -261,7 +242,7 @@ export function useWeatherData(
     weather,
     weatherLoading: currentLoading || forecastLoading,
     airQuality,
-    airQualityLoading: isAirQualityActuallyLoading,
+    airQualityLoading,
     uv,
     uvLoading,
     location,

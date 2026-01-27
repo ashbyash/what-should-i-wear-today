@@ -20,6 +20,13 @@ const weatherCache = new Map<string, { data: KmaWeatherData; timestamp: number }
 const AWS_CACHE_TTL = 5 * 60 * 1000; // 5분
 const awsCache = new Map<string, { data: AwsObservation; timestamp: number }>();
 
+// AWS API 타임아웃 (2초)
+const AWS_FETCH_TIMEOUT = 2000;
+
+// UV 인덱스 캐시 (시도 코드 기반, TTL 1시간)
+const UV_CACHE_TTL = 60 * 60 * 1000; // 1시간
+const uvCache = new Map<string, { data: UVIndexData; timestamp: number }>();
+
 function getCacheKey(nx: number, ny: number): string {
   return `${nx},${ny}`;
 }
@@ -373,11 +380,17 @@ export async function fetchAwsObservation(
     return cached.data;
   }
 
+  // 2초 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), AWS_FETCH_TIMEOUT);
+
   try {
     const tm2 = getAwsTimeString();
     const url = `${KMA_APIHUB_AWS_URL}?tm2=${tm2}&stn=${stnId}&disp=0&help=0&authKey=${authKey}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
       console.error(`AWS API 오류: ${response.status}`);
       return null;
@@ -392,7 +405,12 @@ export async function fetchAwsObservation(
 
     return observation;
   } catch (error) {
-    console.error('AWS 관측 데이터 조회 실패:', error);
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('AWS 관측 데이터 타임아웃 (2초)');
+    } else {
+      console.error('AWS 관측 데이터 조회 실패:', error);
+    }
     return null;
   }
 }
@@ -762,7 +780,7 @@ function getUVDescription(level: UVIndexData['uvLevel']): string {
 }
 
 /**
- * 자외선지수 조회
+ * 자외선지수 조회 (시도 코드 기반 캐시)
  */
 export async function fetchUVIndex(
   lat: number,
@@ -770,6 +788,13 @@ export async function fetchUVIndex(
   apiKey: string
 ): Promise<UVIndexData> {
   const areaNo = getAreaCodeFromCoords(lat, lon);
+
+  // 캐시 확인
+  const cached = uvCache.get(areaNo);
+  if (cached && Date.now() - cached.timestamp < UV_CACHE_TTL) {
+    return cached.data;
+  }
+
   const now = new Date();
   const time = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}`;
 
@@ -807,9 +832,14 @@ export async function fetchUVIndex(
 
   const uvLevel = getUVLevel(uvIndex);
 
-  return {
+  const result: UVIndexData = {
     uvIndex,
     uvLevel,
     uvDescription: getUVDescription(uvLevel),
   };
+
+  // 캐시 저장
+  uvCache.set(areaNo, { data: result, timestamp: Date.now() });
+
+  return result;
 }
