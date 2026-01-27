@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
@@ -79,18 +80,37 @@ function useClientHour() {
   return clientHour;
 }
 
-export default function Home() {
+function HomeContent() {
   const devHour = useDevHour();
   const clientHour = useClientHour();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // URL 쿼리 파라미터 (카카오 검색 결과용)
+  const searchParams = useSearchParams();
+  const queryCoordinates = useMemo(() => {
+    const lat = searchParams?.get('lat');
+    const lon = searchParams?.get('lon');
+    if (lat && lon) {
+      const parsedLat = parseFloat(lat);
+      const parsedLon = parseFloat(lon);
+      if (!isNaN(parsedLat) && !isNaN(parsedLon)) {
+        return { lat: parsedLat, lon: parsedLon };
+      }
+    }
+    return null;
+  }, [searchParams]);
+
   const {
-    coordinates,
+    coordinates: geoCoordinates,
     loading: geoLoading,
     error: geoError,
     locationChanged,
     isFromCache,
     cacheReason,
   } = useGeolocation();
+
+  // 쿼리 파라미터 우선, 없으면 geolocation 사용
+  const coordinates = queryCoordinates || geoCoordinates;
   const {
     weather,
     weatherLoading,
@@ -109,8 +129,8 @@ export default function Home() {
   const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates ?? undefined)];
   const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
 
-  // 위치 로딩 중
-  if (geoLoading) {
+  // 위치 로딩 중 (쿼리 파라미터 없을 때만)
+  if (!queryCoordinates && geoLoading) {
     return (
       <div className="min-h-screen pt-safe pb-safe" style={defaultGradientStyle}>
         <LoadingState message="위치를 확인하고 있어요..." />
@@ -118,8 +138,8 @@ export default function Home() {
     );
   }
 
-  // 위치 에러
-  if (geoError) {
+  // 위치 에러 (쿼리 파라미터 없을 때만)
+  if (!queryCoordinates && geoError) {
     return (
       <div className="min-h-screen pt-safe pb-safe flex items-center justify-center" style={defaultGradientStyle}>
         <PermissionGuide error={geoError} />
@@ -254,5 +274,13 @@ export default function Home() {
         theme={theme}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingState message="로딩 중..." />}>
+      <HomeContent />
+    </Suspense>
   );
 }

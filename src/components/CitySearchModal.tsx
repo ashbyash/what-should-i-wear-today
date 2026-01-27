@@ -4,7 +4,9 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, m } from 'framer-motion';
 import { CITIES } from '@/lib/cities';
+import { useLocationSearch } from '@/lib/useLocationSearch';
 import { TIME_GRADIENTS, type ThemeConfig } from '@/lib/theme';
+import type { SearchResult } from '@/types/location';
 
 // theme 없을 때 기본값 (night)
 const DEFAULT_GRADIENT = TIME_GRADIENTS.night;
@@ -33,18 +35,24 @@ export default function CitySearchModal({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 검색 필터링
-  const filteredCities = useMemo(() => {
-    if (!searchQuery.trim()) return CITIES;
+  // 통합 검색 훅
+  const { results, isLoading, isEmpty } = useLocationSearch(searchQuery);
 
-    const query = searchQuery.toLowerCase().trim();
-    return CITIES.filter(
-      (city) =>
-        city.name.toLowerCase().includes(query) ||
-        city.nameEn.toLowerCase().includes(query) ||
-        city.slug.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+  // 검색어 없을 때 전체 도시 표시
+  const displayResults = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return CITIES.map((city) => ({
+        type: 'predefined' as const,
+        name: city.name,
+        nameEn: city.nameEn,
+        description: city.description,
+        lat: city.lat,
+        lon: city.lon,
+        slug: city.slug,
+      }));
+    }
+    return results;
+  }, [searchQuery, results]);
 
   // 빠른 선택용 도시 데이터
   const featuredCities = useMemo(() => {
@@ -52,6 +60,16 @@ export default function CitySearchModal({
       CITIES.find((city) => city.slug === slug)
     ).filter(Boolean);
   }, []);
+
+  // 검색 결과 선택 핸들러
+  const handleSelect = (result: SearchResult) => {
+    onClose();
+    if (result.type === 'predefined' && result.slug) {
+      router.push(`/${result.slug}`);
+    } else {
+      router.push(`/?lat=${result.lat}&lon=${result.lon}`);
+    }
+  };
 
   const handleCitySelect = (slug: string) => {
     onClose();
@@ -165,34 +183,42 @@ export default function CitySearchModal({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="도시 검색..."
-                className={`w-full pl-10 pr-4 py-3 rounded-xl ${colors.bg} border ${colors.borderStrong}
-                           ${colors.primary} placeholder:${colors.muted}
+                placeholder="도시, 동네 검색..."
+                className={`w-full pl-10 pr-12 py-3 rounded-xl ${colors.bg} border ${colors.borderStrong}
+                           ${colors.primary}
+                           ${isLight ? 'placeholder:text-slate-500' : 'placeholder:text-white/60'}
                            focus:outline-none focus:ring-2 ${colors.focusRing} focus:border-transparent
                            transition-all`}
                 autoFocus
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full ${colors.hoverBg}`}
-                  aria-label="검색어 지우기"
-                >
-                  <svg
-                    className={`w-4 h-4 ${colors.muted}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {/* 로딩 스피너 */}
+                {isLoading && (
+                  <span className="loading loading-spinner loading-xs opacity-70"></span>
+                )}
+                {/* 검색어 지우기 버튼 */}
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={`p-1 rounded-full ${colors.hoverBg}`}
+                    aria-label="검색어 지우기"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
+                    <svg
+                      className={`w-4 h-4 ${colors.muted}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </m.div>
 
@@ -226,38 +252,40 @@ export default function CitySearchModal({
               </m.section>
             )}
 
-            {/* 도시 리스트 */}
+            {/* 검색 결과 리스트 */}
             <m.section
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.25 }}
             >
               <h3 className={`text-sm font-medium ${colors.muted} mb-3`}>
-                {searchQuery ? `검색 결과 (${filteredCities.length})` : '전체 도시'}
+                {searchQuery ? `검색 결과 (${displayResults.length})` : '전체 도시'}
               </h3>
               <div className="space-y-1">
-                {filteredCities.length > 0 ? (
-                  filteredCities.map((city) => (
+                {displayResults.length > 0 ? (
+                  displayResults.map((result, index) => (
                     <button
-                      key={city.slug}
-                      onClick={() => handleCitySelect(city.slug)}
+                      key={`${result.type}-${result.name}-${index}`}
+                      onClick={() => handleSelect(result)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
                                  ${colors.hoverBg} ${colors.activeBg}
                                  transition-colors text-left`}
                     >
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className={`${colors.primary} font-medium`}>
-                          {city.name}
-                          <span className={`ml-2 text-sm ${colors.muted}`}>
-                            {city.nameEn}
-                          </span>
+                          {result.name}
+                          {result.type === 'predefined' && result.nameEn && (
+                            <span className={`ml-2 text-sm ${colors.muted}`}>
+                              {result.nameEn}
+                            </span>
+                          )}
                         </p>
-                        <p className={`text-sm ${colors.muted} mt-0.5`}>
-                          {city.description}
+                        <p className={`text-sm ${colors.muted} mt-0.5 truncate`}>
+                          {result.description}
                         </p>
                       </div>
                       <svg
-                        className={`w-5 h-5 ${colors.muted}`}
+                        className={`w-5 h-5 ${colors.muted} flex-shrink-0`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -271,11 +299,17 @@ export default function CitySearchModal({
                       </svg>
                     </button>
                   ))
-                ) : (
-                  <p className={`text-center ${colors.muted} py-8`}>
-                    검색 결과가 없습니다
-                  </p>
-                )}
+                ) : isEmpty ? (
+                  <div className="text-center py-12">
+                    <div className="text-4xl mb-4">🔍</div>
+                    <p className={`${colors.muted} font-medium`}>
+                      &apos;{searchQuery}&apos; 검색 결과가 없습니다
+                    </p>
+                    <p className={`${colors.muted} text-sm mt-2`}>
+                      다른 키워드로 검색해보세요
+                    </p>
+                  </div>
+                ) : null}
               </div>
             </m.section>
           </div>
