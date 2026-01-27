@@ -16,6 +16,8 @@ export interface GeolocationState {
   locationChanged: boolean;
   /** 현재 좌표가 캐시에서 온 것인지 여부 */
   isFromCache: boolean;
+  /** GPS 실패로 캐시 사용 중일 때 원인 메시지 */
+  cacheReason: string | null;
 }
 
 export function useGeolocation(): GeolocationState {
@@ -28,6 +30,7 @@ export function useGeolocation(): GeolocationState {
     error: null,
     locationChanged: false,
     isFromCache: false,
+    cacheReason: null,
   });
 
   useEffect(() => {
@@ -35,7 +38,7 @@ export function useGeolocation(): GeolocationState {
     const cached = getLastLocation();
     cachedLocationRef.current = cached;
 
-    // 캐시된 위치가 있으면 즉시 적용
+    // 캐시된 위치가 있으면 즉시 적용 (GPS 결과 대기 중)
     if (cached) {
       setState({
         coordinates: { lat: cached.lat, lon: cached.lon },
@@ -43,6 +46,7 @@ export function useGeolocation(): GeolocationState {
         error: null,
         locationChanged: false,
         isFromCache: true,
+        cacheReason: null, // GPS 결과 대기 중이므로 아직 null
       });
     }
 
@@ -72,6 +76,7 @@ export function useGeolocation(): GeolocationState {
           error: null,
           locationChanged: changed,
           isFromCache: false,
+          cacheReason: null,
         });
       },
       (error) => {
@@ -89,12 +94,13 @@ export function useGeolocation(): GeolocationState {
             break;
         }
 
-        // 캐시된 위치가 있으면 에러 무시하고 캐시 사용
+        // 캐시된 위치가 있으면 에러 무시하고 캐시 사용 (사유 기록)
         setState((prev) => ({
           ...prev,
           loading: false,
           error: prev.coordinates ? null : errorMessage,
           isFromCache: !!prev.coordinates,
+          cacheReason: prev.coordinates ? errorMessage : null,
         }));
       },
       {

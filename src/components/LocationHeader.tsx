@@ -6,6 +6,10 @@ interface LocationHeaderProps {
   lastUpdated?: Date | null;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  /** 캐시된 위치 사용 중인지 여부 */
+  isFromCache?: boolean;
+  /** 캐시 사용 이유 (GPS 실패 메시지) */
+  cacheReason?: string | null;
 }
 
 function getRelativeTime(date: Date): string {
@@ -26,6 +30,8 @@ export default function LocationHeader({
   lastUpdated,
   onRefresh,
   isRefreshing,
+  isFromCache,
+  cacheReason,
 }: LocationHeaderProps) {
   const handleRefresh = () => {
     if (onRefresh) {
@@ -35,12 +41,52 @@ export default function LocationHeader({
     }
   };
 
+  const handleLocationReset = () => {
+    // 캐시 삭제 후 새로고침
+    try {
+      localStorage.removeItem('last_location');
+    } catch {
+      // localStorage 사용 불가
+    }
+    window.location.reload();
+  };
+
   return (
     <header
       className="flex flex-col items-center py-4"
       role="banner"
       aria-label={isLoading ? '위치 확인 중' : `현재 위치: ${locationName}`}
     >
+      {/* 캐시 사용 알림 배너 */}
+      {isFromCache && cacheReason && !isLoading && (
+        <div className="flex items-center gap-2 mb-3 px-4 py-2 rounded-lg bg-amber-500/20 border border-amber-500/30">
+          <svg
+            className="w-4 h-4 text-amber-300 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <span className="text-xs text-amber-200">
+            이전 위치 표시 중 ({cacheReason})
+          </span>
+          <button
+            onClick={handleLocationReset}
+            className="ml-1 px-2 py-0.5 text-xs text-amber-100 bg-amber-500/30
+                       hover:bg-amber-500/50 rounded transition-colors"
+          >
+            위치 재설정
+          </button>
+        </div>
+      )}
+
       {/* 위치 - 메인 */}
       {isLoading ? (
         <span className="loading loading-dots loading-sm text-glass-primary" aria-hidden="true"></span>

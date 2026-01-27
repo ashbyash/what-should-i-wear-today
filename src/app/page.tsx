@@ -86,6 +86,8 @@ export default function Home() {
     loading: geoLoading,
     error: geoError,
     locationChanged,
+    isFromCache,
+    cacheReason,
   } = useGeolocation();
   const {
     weather,
@@ -210,6 +212,8 @@ export default function Home() {
               lastUpdated={lastUpdated}
               onRefresh={refetch}
               isRefreshing={isRefetching}
+              isFromCache={isFromCache}
+              cacheReason={cacheReason}
             />
           </m.div>
 
