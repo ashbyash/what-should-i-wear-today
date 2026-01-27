@@ -208,6 +208,7 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
       <CitySearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
+        theme={theme}
       />
     </div>
   );

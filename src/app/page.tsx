@@ -251,6 +251,7 @@ export default function Home() {
       <CitySearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
+        theme={theme}
       />
     </div>
   );
