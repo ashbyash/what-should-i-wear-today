@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation';
 import Script from 'next/script';
 import CityWeatherPage from '@/components/CityWeatherPage';
 import { getCityBySlug, getAllCitySlugs } from '@/lib/cities';
+import { fetchInitialWeatherData } from '@/lib/server-weather';
+
+// ISR: 10분마다 백그라운드 재생성
+export const revalidate = 600;
 
 interface PageProps {
   params: Promise<{ city: string }>;
@@ -106,6 +110,9 @@ export default async function CityPage({ params }: PageProps) {
     notFound();
   }
 
+  // ISR 시점에 서버에서 날씨 데이터 fetch
+  const initialData = await fetchInitialWeatherData(city.lat, city.lon);
+
   const jsonLd = generateJsonLd(city);
 
   return (
@@ -117,7 +124,7 @@ export default async function CityPage({ params }: PageProps) {
       >
         {JSON.stringify(jsonLd)}
       </Script>
-      <CityWeatherPage city={city} />
+      <CityWeatherPage city={city} initialData={initialData} />
     </>
   );
 }

@@ -5,7 +5,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import type { Coordinates } from './geolocation';
 import type { KmaWeatherData, UVIndexData } from './kma-api';
 import type { AirKoreaData } from './airkorea-api';
-import type { LocationData } from '@/types/weather';
+import type { LocationData, InitialWeatherData } from '@/types/weather';
 import { CACHE } from './constants';
 import { saveLocation, hasLocationChanged } from './location-cache';
 import {
@@ -77,13 +77,15 @@ export interface WeatherDataState {
 interface UseWeatherDataOptions {
   /** GPS 위치로 변경되었을 때 revalidate 트리거 */
   locationChanged?: boolean;
+  /** ISR에서 가져온 초기 데이터 (fallbackData로 사용) */
+  initialData?: InitialWeatherData;
 }
 
 export function useWeatherData(
   coordinates: Coordinates | null,
   options: UseWeatherDataOptions = {}
 ): WeatherDataState {
-  const { locationChanged = false } = options;
+  const { locationChanged = false, initialData } = options;
   const prevCoordsRef = useRef<Coordinates | null>(null);
 
   const lat = coordinates?.lat;
@@ -106,7 +108,10 @@ export function useWeatherData(
   } = useSWR(
     lat && lon ? getCacheKey(lat, lon, '/api/weather-current') : null,
     fetcher,
-    swrOptions
+    {
+      ...swrOptions,
+      fallbackData: initialData?.current ?? undefined,
+    }
   );
   const weatherCurrent = currentRaw ? safeParseCurrentWeather(currentRaw) : null;
 
@@ -119,7 +124,10 @@ export function useWeatherData(
   } = useSWR(
     lat && lon ? getCacheKey(lat, lon, '/api/weather-forecast') : null,
     fetcher,
-    swrOptions
+    {
+      ...swrOptions,
+      fallbackData: initialData?.forecast ?? undefined,
+    }
   );
   const weatherForecast = forecastRaw ? safeParseForecastWeather(forecastRaw) : null;
 
@@ -132,7 +140,10 @@ export function useWeatherData(
   } = useSWR(
     lat && lon ? getCacheKey(lat, lon, '/api/location') : null,
     fetcher,
-    swrOptions
+    {
+      ...swrOptions,
+      fallbackData: initialData?.location ?? undefined,
+    }
   );
   const location = locationRaw ? safeParseLocation(locationRaw) : null;
 
@@ -145,7 +156,10 @@ export function useWeatherData(
   } = useSWR(
     lat && lon ? getCacheKey(lat, lon, '/api/air-quality') : null,
     fetcher,
-    swrOptions
+    {
+      ...swrOptions,
+      fallbackData: initialData?.airQuality ?? undefined,
+    }
   );
   const airQuality = airQualityRaw ? safeParseAirKorea(airQualityRaw) : null;
 
@@ -158,7 +172,10 @@ export function useWeatherData(
   } = useSWR(
     lat && lon ? getCacheKey(lat, lon, '/api/uv') : null,
     fetcher,
-    swrOptions
+    {
+      ...swrOptions,
+      fallbackData: initialData?.uv ?? undefined,
+    }
   );
   const uv = uvRaw ? safeParseUVIndex(uvRaw) : null;
 

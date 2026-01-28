@@ -89,3 +89,35 @@ export interface LocationData {
   region2: string; // 구/군
   region3: string; // 동/읍/면
 }
+
+// ISR 초기 데이터 (서버에서 fetch한 날씨 데이터)
+export interface InitialWeatherData {
+  current: {
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    precipitation: string;
+    precipitationDescription: string;
+  } | null;
+  forecast: {
+    tempMin: number | null;
+    tempMax: number | null;
+    sky: string;
+    skyDescription: string;
+  } | null;
+  location: LocationData | null;
+  airQuality: {
+    stationName: string;
+    stationAddr: string;
+    pm10: number;
+    pm25: number;
+    pm10Grade: 'good' | 'moderate' | 'bad' | 'very_bad';
+    pm25Grade: 'good' | 'moderate' | 'bad' | 'very_bad';
+    dataTime: string;
+  } | null;
+  uv: {
+    uvIndex: number;
+    uvLevel: 'low' | 'moderate' | 'high' | 'very_high' | 'danger';
+    uvDescription: string;
+  } | null;
+}

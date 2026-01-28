@@ -17,7 +17,7 @@ import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
 import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
-import type { WeatherData, AirQualityData } from '@/types/weather';
+import type { WeatherData, AirQualityData, InitialWeatherData } from '@/types/weather';
 import type { CityData } from '@/lib/cities';
 
 // 애니메이션 variants
@@ -58,9 +58,10 @@ function useClientHour() {
 
 interface CityWeatherPageProps {
   city: CityData;
+  initialData?: InitialWeatherData;
 }
 
-export default function CityWeatherPage({ city }: CityWeatherPageProps) {
+export default function CityWeatherPage({ city, initialData }: CityWeatherPageProps) {
   const router = useRouter();
   const clientHour = useClientHour();
   const coordinates = { lat: city.lat, lon: city.lon };
@@ -78,14 +79,17 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
     lastUpdated,
     refetch,
     isRefetching,
-  } = useWeatherData(coordinates);
+  } = useWeatherData(coordinates, { initialData });
 
   // 기본 그라데이션 (로딩/에러 상태용)
   const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates)];
   const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
 
-  // Weather 로딩 중
-  if (weatherLoading) {
+  // initialData가 있으면 SWR hydration 완료까지 대기하지 않고 바로 사용
+  const hasInitialData = !!(initialData?.current && initialData?.forecast);
+
+  // Weather 로딩 중 (initialData 없을 때만 로딩 표시)
+  if (weatherLoading && !hasInitialData) {
     return (
       <div className="min-h-screen pt-safe pb-safe" style={defaultGradientStyle}>
         <LoadingState message={`${city.name} 날씨 정보를 가져오고 있어요...`} />
@@ -93,8 +97,8 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
     );
   }
 
-  // 데이터 에러
-  if (dataError || !weather) {
+  // 데이터 에러 (initialData 없을 때만 에러 표시)
+  if ((dataError || !weather) && !hasInitialData) {
     return (
       <div className="min-h-screen pt-safe pb-safe flex items-center justify-center" style={defaultGradientStyle}>
         <ErrorState message={dataError || '날씨 정보를 가져올 수 없습니다.'} />
@@ -103,30 +107,55 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
   }
 
   // API 데이터 → 컴포넌트 데이터 변환
+  // SWR 데이터 우선, 없으면 initialData 사용 (hydration 중)
+  const currentData = weather ?? (hasInitialData ? {
+    temperature: initialData.current!.temperature,
+    humidity: initialData.current!.humidity,
+    windSpeed: initialData.current!.windSpeed,
+    sky: initialData.current!.precipitation || initialData.forecast!.sky,
+    skyDescription: initialData.current!.precipitationDescription || initialData.forecast!.skyDescription,
+    tempMin: initialData.forecast!.tempMin,
+    tempMax: initialData.forecast!.tempMax,
+  } : null);
+
+  // currentData가 없으면 여기서 리턴 (이론상 도달하지 않음)
+  if (!currentData) {
+    return (
+      <div className="min-h-screen pt-safe pb-safe flex items-center justify-center" style={defaultGradientStyle}>
+        <ErrorState message="날씨 정보를 가져올 수 없습니다." />
+      </div>
+    );
+  }
+
   const locationName = location
     ? formatLocation(location, airQuality)
-    : city.name;
+    : (initialData?.location ? formatLocation(initialData.location, initialData.airQuality) : city.name);
 
   const weatherData: WeatherData = {
-    temperature: weather.temperature,
-    feelsLike: Math.round(getFeelsLikeTemp(weather.temperature, weather.windSpeed, weather.humidity)),
-    tempMin: weather.tempMin ?? weather.temperature - 5,
-    tempMax: weather.tempMax ?? weather.temperature + 5,
-    humidity: weather.humidity,
-    weatherMain: weather.sky,
-    weatherDescription: weather.skyDescription,
+    temperature: currentData.temperature,
+    feelsLike: Math.round(getFeelsLikeTemp(currentData.temperature, currentData.windSpeed, currentData.humidity)),
+    tempMin: currentData.tempMin ?? currentData.temperature - 5,
+    tempMax: currentData.tempMax ?? currentData.temperature + 5,
+    humidity: currentData.humidity,
+    weatherMain: currentData.sky,
+    weatherDescription: currentData.skyDescription,
     weatherIcon: '',
-    windSpeed: weather.windSpeed,
+    windSpeed: currentData.windSpeed,
     cloudiness: 0,
     locationName,
   };
 
+  // SWR 데이터 우선, 없으면 initialData 사용
+  const airQualitySource = airQuality ?? initialData?.airQuality;
   const airQualityData: AirQualityData = {
     aqi: 0,
-    aqiLevel: airQuality?.pm25Grade ?? 'moderate',
-    pm25: airQuality?.pm25 ?? 0,
-    pm10: airQuality?.pm10 ?? 0,
+    aqiLevel: airQualitySource?.pm25Grade ?? 'moderate',
+    pm25: airQualitySource?.pm25 ?? 0,
+    pm10: airQualitySource?.pm10 ?? 0,
   };
+
+  // SWR 데이터 우선, 없으면 initialData 사용
+  const uvSource = uv ?? initialData?.uv;
 
   // 점수 & 옷차림 계산
   const score = calculateOutingScore({
@@ -135,7 +164,7 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
     tempMax: weatherData.tempMax,
     pm25: airQualityData.pm25,
     weatherMain: weatherData.weatherMain,
-    uvIndex: uv?.uvIndex,
+    uvIndex: uvSource?.uvIndex,
     humidity: weatherData.humidity,
     windSpeed: weatherData.windSpeed,
     timestamp: Date.now(),
@@ -198,12 +227,12 @@ export default function CityWeatherPage({ city }: CityWeatherPageProps) {
 
           {/* 미세먼지 */}
           <m.div className="col-span-1" variants={cardVariants}>
-            <DustCard airQuality={airQualityData} loading={airQualityLoading} />
+            <DustCard airQuality={airQualityData} loading={airQualityLoading && !airQualitySource} />
           </m.div>
 
           {/* 자외선 */}
           <m.div className="col-span-1" variants={cardVariants}>
-            <UvCard uvIndex={uv?.uvIndex} loading={uvLoading} />
+            <UvCard uvIndex={uvSource?.uvIndex} loading={uvLoading && !uvSource} />
           </m.div>
         </m.div>
       </div>
