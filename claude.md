@@ -30,12 +30,14 @@ Location-based weather + air quality check → Outing score + Outfit recommendat
 ## Outing Score Logic (100 points max)
 | Factor | Weight | Score |
 |--------|--------|-------|
-| Temperature | 60% | 20~26℃(60) / 12~19℃, 27~32℃(40) / 5~11℃, 33~36℃(20) / else(0) |
-| Weather | 20% | Clear(20) / Cloudy(14) / Overcast(8) / Rain·Snow(0) |
-| Fine dust (PM2.5) | 15% | Good 0~15(15) / Moderate 16~35(10) / Bad 36~75(5) / Very bad 76↑(0) |
+| Feels-like Temp | 65% | Ideal(65) / Good(47) / Caution(24) / Danger(0) - seasonal adjustment |
+| Weather | 15% | Clear(15) / Cloudy(11) / Overcast(6) / Rain·Snow(0) |
+| Fine dust (PM2.5) | 10% | Good 0~15(10) / Moderate 16~35(7) / Bad 36~75(3) / Very bad 76↑(0) |
 | UV Index | 5% | Low 0~2(5) / Moderate 3~5(3) / High 6~7(2) / Very high 8~10(1) / Danger 11↑(0) |
+| Humidity | 5% | Seasonal: Summer(50~65/40~75), Winter(35~55/25~65), Spring·Fall(40~60/30~70) |
+| Wind Penalty | -10 max | Strong 8m/s↑(-10) / Moderate 5~7m/s(-5) / else(0) |
 
-Level: excellent(80+) / good(60-79) / moderate(41-59) / poor(0-40)
+Level: perfect(90+) / excellent(80+) / good(70+) / fair(60+) / moderate(45+) / poor(25+) / bad(0-24)
 
 ## Outfit Recommendation Logic
 | Temperature | Recommendation (Korean) |

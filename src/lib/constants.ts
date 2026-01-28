@@ -7,10 +7,10 @@
 // 점수 가중치 (100점 만점)
 // ============================================
 export const SCORE_WEIGHTS = {
-  TEMPERATURE: 60,  // 기온 (60%) - 기존 호환용
-  FEELS_LIKE_TEMP: 55, // 체감온도 (55%)
-  WEATHER: 20,      // 날씨 (20%)
-  FINE_DUST: 15,    // 미세먼지 (15%)
+  TEMPERATURE: 70,  // 기온 (70%) - 기존 호환용
+  FEELS_LIKE_TEMP: 65, // 체감온도 (65%)
+  WEATHER: 15,      // 날씨 (15%)
+  FINE_DUST: 10,    // 미세먼지 (10%)
   UV: 5,            // 자외선 (5%)
   HUMIDITY: 5,      // 습도 (5%)
   WIND_PENALTY_MAX: -10, // 풍속 페널티 최대값
@@ -37,7 +37,7 @@ export const TEMP_SCORE = {
 } as const;
 
 // ============================================
-// 계절별 체감온도 점수 기준 (℃) - 55점 만점
+// 계절별 체감온도 점수 기준 (℃) - 65점 만점
 // ============================================
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 
@@ -223,14 +223,37 @@ export const THRESHOLDS = {
 } as const;
 
 // ============================================
-// 습도 점수 기준 (%) - 5점 만점
+// 습도 점수 기준 (%) - 5점 만점, 계절별 차등
 // ============================================
 export const HUMIDITY = {
-  IDEAL_MIN: 40,    // 쾌적 구간 시작
+  IDEAL_MIN: 40,    // 쾌적 구간 시작 (기존 호환용)
   IDEAL_MAX: 60,    // 쾌적 구간 끝
   GOOD_MIN: 30,     // 양호 구간 시작
   GOOD_MAX: 70,     // 양호 구간 끝
-  // 그 외: 불쾌
+} as const;
+
+export const SEASON_HUMIDITY_RANGES = {
+  // 여름: 고습도에 민감
+  summer: {
+    ideal: { min: 50, max: 65 },  // 쾌적 (5점)
+    good: { min: 40, max: 75 },   // 양호 (3점)
+    // 그 외: 불쾌 (1점) - 75%↑ 특히 불쾌
+  },
+  // 겨울: 건조함에 민감
+  winter: {
+    ideal: { min: 35, max: 55 },  // 쾌적 (5점)
+    good: { min: 25, max: 65 },   // 양호 (3점)
+    // 그 외: 불쾌 (1점) - 25%↓ 건조 페널티
+  },
+  // 봄/가을: 일반 기준
+  spring: {
+    ideal: { min: 40, max: 60 },  // 쾌적 (5점)
+    good: { min: 30, max: 70 },   // 양호 (3점)
+  },
+  autumn: {
+    ideal: { min: 40, max: 60 },
+    good: { min: 30, max: 70 },
+  },
 } as const;
 
 // ============================================

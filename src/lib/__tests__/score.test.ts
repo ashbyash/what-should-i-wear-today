@@ -16,25 +16,25 @@ describe('calculateOutingScore', () => {
     timestamp: new Date('2024-04-15T14:00:00').getTime(), // 4월 14시 (봄, 오후)
   };
 
-  describe('체감온도 점수 (55점 만점, 계절별 기준)', () => {
-    it('봄/가을 쾌적 구간(15~23℃) → 55점', () => {
+  describe('체감온도 점수 (65점 만점, 계절별 기준)', () => {
+    it('봄/가을 쾌적 구간(15~23℃) → 65점', () => {
       const result = calculateOutingScore({ ...baseInput, temperature: 20 });
-      expect(result.breakdown.feelsLikeTemp).toBe(55);
+      expect(result.breakdown.feelsLikeTemp).toBe(65);
     });
 
-    it('봄/가을 양호 구간(10~14℃) → 40점', () => {
+    it('봄/가을 양호 구간(10~14℃) → 47점', () => {
       const result = calculateOutingScore({ ...baseInput, temperature: 12 });
-      expect(result.breakdown.feelsLikeTemp).toBe(40);
+      expect(result.breakdown.feelsLikeTemp).toBe(47);
     });
 
-    it('봄/가을 양호 구간(24~27℃) → 40점', () => {
+    it('봄/가을 양호 구간(24~27℃) → 47점', () => {
       const result = calculateOutingScore({ ...baseInput, temperature: 25 });
-      expect(result.breakdown.feelsLikeTemp).toBe(40);
+      expect(result.breakdown.feelsLikeTemp).toBe(47);
     });
 
-    it('봄/가을 주의 구간(5~9℃) → 20점', () => {
+    it('봄/가을 주의 구간(5~9℃) → 24점', () => {
       const result = calculateOutingScore({ ...baseInput, temperature: 7 });
-      expect(result.breakdown.feelsLikeTemp).toBe(20);
+      expect(result.breakdown.feelsLikeTemp).toBe(24);
     });
 
     it('봄/가을 위험 구간(5℃ 미만) → 0점', () => {
@@ -42,24 +42,24 @@ describe('calculateOutingScore', () => {
       expect(result.breakdown.feelsLikeTemp).toBe(0);
     });
 
-    it('여름 쾌적 구간(22~28℃) → 55점', () => {
+    it('여름 쾌적 구간(22~28℃) → 65점', () => {
       const summerInput = {
         ...baseInput,
         temperature: 25,
         timestamp: new Date('2024-07-15T14:00:00').getTime(), // 7월 (여름)
       };
       const result = calculateOutingScore(summerInput);
-      expect(result.breakdown.feelsLikeTemp).toBe(55);
+      expect(result.breakdown.feelsLikeTemp).toBe(65);
     });
 
-    it('겨울 쾌적 구간(0~10℃) → 55점', () => {
+    it('겨울 쾌적 구간(0~10℃) → 65점', () => {
       const winterInput = {
         ...baseInput,
         temperature: 5,
         timestamp: new Date('2024-01-15T14:00:00').getTime(), // 1월 (겨울)
       };
       const result = calculateOutingScore(winterInput);
-      expect(result.breakdown.feelsLikeTemp).toBe(55);
+      expect(result.breakdown.feelsLikeTemp).toBe(65);
     });
   });
 
@@ -73,7 +73,7 @@ describe('calculateOutingScore', () => {
       };
       const result = calculateOutingScore(coldWindyInput);
       // Wind Chill로 체감온도 낮아짐 → 점수 하락
-      expect(result.breakdown.feelsLikeTemp).toBeLessThanOrEqual(40);
+      expect(result.breakdown.feelsLikeTemp).toBeLessThanOrEqual(47);
     });
 
     it('무더위 + 고습도 → Heat Index 적용', () => {
@@ -85,24 +85,24 @@ describe('calculateOutingScore', () => {
       };
       const result = calculateOutingScore(hotHumidInput);
       // Heat Index로 체감온도 높아짐 → 점수 하락
-      expect(result.breakdown.feelsLikeTemp).toBeLessThanOrEqual(40);
+      expect(result.breakdown.feelsLikeTemp).toBeLessThanOrEqual(47);
     });
   });
 
-  describe('날씨 점수 (20점 만점)', () => {
-    it('맑음(Clear) → 20점', () => {
+  describe('날씨 점수 (15점 만점)', () => {
+    it('맑음(Clear) → 15점', () => {
       const result = calculateOutingScore({ ...baseInput, weatherMain: 'Clear' });
-      expect(result.breakdown.weather).toBe(20);
+      expect(result.breakdown.weather).toBe(15);
     });
 
-    it('구름(Clouds) → 14점', () => {
+    it('구름(Clouds) → 11점', () => {
       const result = calculateOutingScore({ ...baseInput, weatherMain: 'Clouds' });
-      expect(result.breakdown.weather).toBe(14);
+      expect(result.breakdown.weather).toBe(11);
     });
 
-    it('흐림(Overcast) → 8점', () => {
+    it('흐림(Overcast) → 6점', () => {
       const result = calculateOutingScore({ ...baseInput, weatherMain: 'Overcast' });
-      expect(result.breakdown.weather).toBe(8);
+      expect(result.breakdown.weather).toBe(6);
     });
 
     it('비(Rain) → 0점', () => {
@@ -116,20 +116,20 @@ describe('calculateOutingScore', () => {
     });
   });
 
-  describe('미세먼지 점수 (15점 만점, PM2.5 기준)', () => {
-    it('좋음(0~15) → 15점', () => {
+  describe('미세먼지 점수 (10점 만점, PM2.5 기준)', () => {
+    it('좋음(0~15) → 10점', () => {
       const result = calculateOutingScore({ ...baseInput, pm25: 10 });
-      expect(result.breakdown.fineDust).toBe(15);
-    });
-
-    it('보통(16~35) → 10점', () => {
-      const result = calculateOutingScore({ ...baseInput, pm25: 25 });
       expect(result.breakdown.fineDust).toBe(10);
     });
 
-    it('나쁨(36~75) → 5점', () => {
+    it('보통(16~35) → 7점', () => {
+      const result = calculateOutingScore({ ...baseInput, pm25: 25 });
+      expect(result.breakdown.fineDust).toBe(7);
+    });
+
+    it('나쁨(36~75) → 3점', () => {
       const result = calculateOutingScore({ ...baseInput, pm25: 50 });
-      expect(result.breakdown.fineDust).toBe(5);
+      expect(result.breakdown.fineDust).toBe(3);
     });
 
     it('매우나쁨(76+) → 0점', () => {
@@ -178,24 +178,87 @@ describe('calculateOutingScore', () => {
     });
   });
 
-  describe('습도 점수 (5점 만점)', () => {
-    it('쾌적 구간(40~60%) → 5점', () => {
+  describe('습도 점수 (5점 만점, 계절별 기준)', () => {
+    // 봄/가을 기준 (baseInput은 4월)
+    it('봄/가을 쾌적 구간(40~60%) → 5점', () => {
       const result = calculateOutingScore({ ...baseInput, humidity: 50 });
       expect(result.breakdown.humidity).toBe(5);
     });
 
-    it('양호 구간(30~39%, 61~70%) → 3점', () => {
+    it('봄/가을 양호 구간(30~39%, 61~70%) → 3점', () => {
       const result = calculateOutingScore({ ...baseInput, humidity: 35 });
       expect(result.breakdown.humidity).toBe(3);
     });
 
-    it('불쾌 구간(30% 미만) → 1점', () => {
+    it('봄/가을 불쾌 구간(30% 미만) → 1점', () => {
       const result = calculateOutingScore({ ...baseInput, humidity: 20 });
       expect(result.breakdown.humidity).toBe(1);
     });
 
-    it('불쾌 구간(70% 초과) → 1점', () => {
+    it('봄/가을 불쾌 구간(70% 초과) → 1점', () => {
       const result = calculateOutingScore({ ...baseInput, humidity: 85 });
+      expect(result.breakdown.humidity).toBe(1);
+    });
+
+    // 여름 기준 (고습도에 민감)
+    it('여름 쾌적 구간(50~65%) → 5점', () => {
+      const summerInput = {
+        ...baseInput,
+        humidity: 55,
+        timestamp: new Date('2024-07-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(summerInput);
+      expect(result.breakdown.humidity).toBe(5);
+    });
+
+    it('여름 양호 구간(40~49%, 66~75%) → 3점', () => {
+      const summerInput = {
+        ...baseInput,
+        humidity: 70,
+        timestamp: new Date('2024-07-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(summerInput);
+      expect(result.breakdown.humidity).toBe(3);
+    });
+
+    it('여름 불쾌 구간(75% 초과) → 1점', () => {
+      const summerInput = {
+        ...baseInput,
+        humidity: 80,
+        timestamp: new Date('2024-07-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(summerInput);
+      expect(result.breakdown.humidity).toBe(1);
+    });
+
+    // 겨울 기준 (건조함에 민감)
+    it('겨울 쾌적 구간(35~55%) → 5점', () => {
+      const winterInput = {
+        ...baseInput,
+        humidity: 45,
+        timestamp: new Date('2024-01-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(winterInput);
+      expect(result.breakdown.humidity).toBe(5);
+    });
+
+    it('겨울 양호 구간(25~34%, 56~65%) → 3점', () => {
+      const winterInput = {
+        ...baseInput,
+        humidity: 30,
+        timestamp: new Date('2024-01-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(winterInput);
+      expect(result.breakdown.humidity).toBe(3);
+    });
+
+    it('겨울 불쾌 구간(25% 미만) → 1점', () => {
+      const winterInput = {
+        ...baseInput,
+        humidity: 20,
+        timestamp: new Date('2024-01-15T14:00:00').getTime(),
+      };
+      const result = calculateOutingScore(winterInput);
       expect(result.breakdown.humidity).toBe(1);
     });
 

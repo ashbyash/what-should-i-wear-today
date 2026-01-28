@@ -6,9 +6,9 @@ import {
   OUTING_LEVEL,
   THRESHOLDS,
   WEATHER_CONDITIONS,
-  HUMIDITY,
   WIND_SPEED,
   SEASON_TEMP_RANGES,
+  SEASON_HUMIDITY_RANGES,
   MONTH_TO_SEASON,
   UV_TIME_MULTIPLIERS,
   HOUR_TO_TIME_OF_DAY,
@@ -83,51 +83,51 @@ export function getFeelsLikeTemp(temp: number, windSpeed?: number, humidity?: nu
 }
 
 // ============================================
-// 체감온도 점수 (55점 만점, 계절별 기준)
+// 체감온도 점수 (65점 만점, 계절별 기준)
 // ============================================
 function calcFeelsLikeTempScore(feelsLike: number, season: Season): number {
   const ranges = SEASON_TEMP_RANGES[season];
 
-  // 쾌적 구간: 55점
+  // 쾌적 구간: 65점
   if (feelsLike >= ranges.ideal.min && feelsLike <= ranges.ideal.max) {
     return SCORE_WEIGHTS.FEELS_LIKE_TEMP;
   }
-  // 양호 구간: 40점
+  // 양호 구간: 47점
   if (
     (feelsLike >= ranges.good.coldMin && feelsLike <= ranges.good.coldMax) ||
     (feelsLike >= ranges.good.hotMin && feelsLike <= ranges.good.hotMax)
   ) {
-    return 40;
+    return 47;
   }
-  // 주의 구간: 20점
+  // 주의 구간: 24점
   if (
     (feelsLike >= ranges.caution.coldMin && feelsLike <= ranges.caution.coldMax) ||
     (feelsLike >= ranges.caution.hotMin && feelsLike <= ranges.caution.hotMax)
   ) {
-    return 20;
+    return 24;
   }
   // 위험 구간: 0점
   return 0;
 }
 
-// 날씨 점수 (20점 만점)
+// 날씨 점수 (15점 만점)
 function calcWeatherScore(weatherMain: string): number {
   const weather = weatherMain.toLowerCase();
 
   if (WEATHER_CONDITIONS.CLEAR.some((w) => weather === w)) return SCORE_WEIGHTS.WEATHER;
-  if (WEATHER_CONDITIONS.CLOUDY.some((w) => weather === w)) return 14;
-  if (WEATHER_CONDITIONS.OVERCAST.some((w) => weather === w)) return 8;
+  if (WEATHER_CONDITIONS.CLOUDY.some((w) => weather === w)) return 11;
+  if (WEATHER_CONDITIONS.OVERCAST.some((w) => weather === w)) return 6;
   if (WEATHER_CONDITIONS.RAINY.some((w) => weather === w) || WEATHER_CONDITIONS.SNOWY.some((w) => weather === w)) {
     return 0;
   }
-  return 8; // 기타
+  return 6; // 기타
 }
 
-// 미세먼지 점수 (15점 만점) - PM2.5 기준
+// 미세먼지 점수 (10점 만점) - PM2.5 기준
 function calcFineDustScore(pm25: number): number {
   if (pm25 <= PM25.GOOD) return SCORE_WEIGHTS.FINE_DUST;
-  if (pm25 <= PM25.MODERATE) return 10;
-  if (pm25 <= PM25.BAD) return 5;
+  if (pm25 <= PM25.MODERATE) return 7;
+  if (pm25 <= PM25.BAD) return 3;
   return 0;
 }
 
@@ -146,19 +146,21 @@ function calcUvScore(uvIndex: number | undefined, timeOfDay: TimeOfDay): number 
   return 0;
 }
 
-// 습도 점수 (5점 만점)
-function calcHumidityScore(humidity: number | undefined): number {
+// 습도 점수 (5점 만점, 계절별 기준)
+function calcHumidityScore(humidity: number | undefined, season: Season): number {
   if (humidity === undefined) return 3; // 습도 정보 없으면 보통으로 처리
 
-  // 쾌적 구간: 40-60%
-  if (humidity >= HUMIDITY.IDEAL_MIN && humidity <= HUMIDITY.IDEAL_MAX) {
+  const ranges = SEASON_HUMIDITY_RANGES[season];
+
+  // 쾌적 구간: 5점
+  if (humidity >= ranges.ideal.min && humidity <= ranges.ideal.max) {
     return SCORE_WEIGHTS.HUMIDITY;
   }
-  // 양호 구간: 30-39%, 61-70%
-  if (humidity >= HUMIDITY.GOOD_MIN && humidity <= HUMIDITY.GOOD_MAX) {
+  // 양호 구간: 3점
+  if (humidity >= ranges.good.min && humidity <= ranges.good.max) {
     return 3;
   }
-  // 불쾌 구간: 30% 미만 또는 70% 초과
+  // 불쾌 구간: 1점
   return 1;
 }
 
@@ -259,7 +261,7 @@ export function calculateOutingScore(input: ScoreInput): OutingScore {
     weather: calcWeatherScore(input.weatherMain),
     fineDust: calcFineDustScore(input.pm25),
     uv: calcUvScore(input.uvIndex, timeOfDay),
-    humidity: calcHumidityScore(input.humidity),
+    humidity: calcHumidityScore(input.humidity, season),
     windPenalty: calcWindPenalty(input.windSpeed),
   };
 
