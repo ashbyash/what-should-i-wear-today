@@ -44,8 +44,8 @@ export const WEATHER_OVERLAYS: Record<WeatherType, string> = {
 };
 
 /**
- * suncalc을 사용하여 좌표 기반 일출/일몰 시간 계산
- * 주의: 서버(UTC)와 클라이언트(KST) 시간대 차이를 고려하여 UTC 기준으로 계산
+ * SunCalc을 사용하여 좌표 기반 일출/일몰 시간 계산
+ * 해외 도시 지원을 위해 정확한 천문학적 계산 사용
  */
 export function getSunTimes(
   lat: number = DEFAULT_COORDS.lat,
@@ -64,8 +64,8 @@ export function getSunTimes(
   return {
     sunrise: toKstDecimalHour(times.sunrise),
     sunset: toKstDecimalHour(times.sunset),
-    dawn: toKstDecimalHour(times.dawn), // 시민 박명 시작
-    dusk: toKstDecimalHour(times.dusk), // 시민 박명 끝
+    dawn: toKstDecimalHour(times.dawn),
+    dusk: toKstDecimalHour(times.dusk),
   };
 }
 

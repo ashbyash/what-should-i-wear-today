@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
@@ -12,77 +13,22 @@ import UvCard from '@/components/UvCard';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 import PermissionGuide from '@/components/PermissionGuide';
-import CitySearchModal from '@/components/CitySearchModal';
+
+const CitySearchModal = dynamic(() => import('@/components/CitySearchModal'), {
+  ssr: false,
+});
 import { useGeolocation } from '@/lib/geolocation';
 import { useWeatherData } from '@/lib/useWeatherData';
 import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
 import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
+import { containerVariants, cardVariants } from '@/lib/animation-variants';
+import { useClientHour } from '@/lib/useClientHour';
 import type { WeatherData, AirQualityData } from '@/types/weather';
-
-// 애니메이션 variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-  },
-} as const;
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
-  },
-};
-
-// 개발 환경 시간 테스트 훅
-function useDevHour() {
-  const [devHour, setDevHour] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    const isDev =
-      process.env.NODE_ENV === 'development' ||
-      (typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1'));
-
-    if (isDev) {
-      (window as typeof window & { setHour: (h: number | undefined) => void }).setHour = (h) => {
-        setDevHour(h);
-        console.log(`시간 설정: ${h ?? '현재 시간'} (${h !== undefined ? getTimeOfDay(h) : getTimeOfDay(new Date().getHours())})`);
-      };
-      console.log('🕐 시간 테스트: setHour(19) / setHour() 로 리셋');
-    }
-  }, []);
-
-  return devHour;
-}
-
-// 클라이언트 시간 훅
-function useClientHour() {
-  const [clientHour, setClientHour] = useState<number>(12);
-
-  useEffect(() => {
-    const updateHour = () => {
-      const now = new Date();
-      setClientHour(now.getHours() + now.getMinutes() / 60);
-    };
-    updateHour();
-    const interval = setInterval(updateHour, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return clientHour;
-}
 
 function HomeContent() {
   const router = useRouter();
-  const devHour = useDevHour();
   const clientHour = useClientHour();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
@@ -127,8 +73,10 @@ function HomeContent() {
   } = useWeatherData(coordinates, { locationChanged });
 
   // 기본 그라데이션 (로딩/에러 상태용) - 좌표 기반 일출/일몰 사용
-  const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates ?? undefined)];
-  const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
+  const defaultGradientStyle = useMemo(() => {
+    const gradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates ?? undefined)];
+    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
+  }, [clientHour, coordinates]);
 
   // 위치 로딩 중 (쿼리 파라미터 없을 때만)
   if (!queryCoordinates && geoLoading) {
@@ -212,7 +160,7 @@ function HomeContent() {
   });
 
   // 테마 계산 - 좌표 기반 일출/일몰 사용
-  const theme = getThemeConfig(weatherData.weatherMain, devHour ?? clientHour, coordinates ?? undefined);
+  const theme = getThemeConfig(weatherData.weatherMain, clientHour, coordinates ?? undefined);
   const gradientStyle = getGradientStyle(theme.gradient);
 
   return (

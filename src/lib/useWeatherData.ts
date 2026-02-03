@@ -10,14 +10,14 @@ import { CACHE } from './constants';
 import { saveLocation, hasLocationChanged } from './location-cache';
 import { getCachedWeatherData, saveWeatherData } from './weather-cache';
 import {
-  safeParseCurrentWeather,
-  safeParseForecastWeather,
-  safeParseAirKorea,
-  safeParseUVIndex,
-  safeParseLocation,
+  parseCurrentWeather,
+  parseForecastWeather,
+  parseAirKorea,
+  parseUVIndex,
+  parseLocation,
   type KmaCurrentData,
   type KmaForecastData,
-} from './schemas';
+} from './type-guards';
 
 // SWR fetcher
 const fetcher = async (url: string) => {
@@ -128,7 +128,7 @@ export function useWeatherData(
       fallbackData: fallbackCurrent,
     }
   );
-  const weatherCurrent = currentRaw ? safeParseCurrentWeather(currentRaw) : null;
+  const weatherCurrent = currentRaw ? parseCurrentWeather(currentRaw) : null;
 
   // Weather Forecast API (단기예보)
   const {
@@ -144,7 +144,7 @@ export function useWeatherData(
       fallbackData: fallbackForecast,
     }
   );
-  const weatherForecast = forecastRaw ? safeParseForecastWeather(forecastRaw) : null;
+  const weatherForecast = forecastRaw ? parseForecastWeather(forecastRaw) : null;
 
   // Location API
   const {
@@ -160,7 +160,7 @@ export function useWeatherData(
       fallbackData: fallbackLocation,
     }
   );
-  const location = locationRaw ? safeParseLocation(locationRaw) : null;
+  const location = locationRaw ? parseLocation(locationRaw) : null;
 
   // Air Quality API (lat/lon으로 직접 호출 - 측정소 검색 + 대기질 조회 통합)
   const {
@@ -176,7 +176,7 @@ export function useWeatherData(
       fallbackData: fallbackAirQuality,
     }
   );
-  const airQuality = airQualityRaw ? safeParseAirKorea(airQualityRaw) : null;
+  const airQuality = airQualityRaw ? parseAirKorea(airQualityRaw) : null;
 
   // UV API
   const {
@@ -192,7 +192,7 @@ export function useWeatherData(
       fallbackData: fallbackUv,
     }
   );
-  const uv = uvRaw ? safeParseUVIndex(uvRaw) : null;
+  const uv = uvRaw ? parseUVIndex(uvRaw) : null;
 
   // 통합 날씨 데이터
   const weather = combineWeatherData(weatherCurrent, weatherForecast);

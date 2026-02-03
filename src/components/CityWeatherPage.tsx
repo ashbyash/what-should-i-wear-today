@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { m } from 'framer-motion';
 import LocationHeader from '@/components/LocationHeader';
 import ScoreGauge from '@/components/ScoreGauge';
@@ -11,50 +12,19 @@ import DustCard from '@/components/DustCard';
 import UvCard from '@/components/UvCard';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
-import CitySearchModal from '@/components/CitySearchModal';
+
+const CitySearchModal = dynamic(() => import('@/components/CitySearchModal'), {
+  ssr: false,
+});
 import { useWeatherData } from '@/lib/useWeatherData';
 import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
 import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
+import { containerVariants, cardVariants } from '@/lib/animation-variants';
+import { useClientHour } from '@/lib/useClientHour';
 import type { WeatherData, AirQualityData, InitialWeatherData } from '@/types/weather';
 import type { CityData } from '@/lib/cities';
-
-// 애니메이션 variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-  },
-} as const;
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
-  },
-};
-
-// 클라이언트 시간 훅
-function useClientHour() {
-  const [clientHour, setClientHour] = useState<number>(12);
-
-  useEffect(() => {
-    const updateHour = () => {
-      const now = new Date();
-      setClientHour(now.getHours() + now.getMinutes() / 60);
-    };
-    updateHour();
-    const interval = setInterval(updateHour, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return clientHour;
-}
 
 interface CityWeatherPageProps {
   city: CityData;
@@ -82,8 +52,10 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
   } = useWeatherData(coordinates, { initialData });
 
   // 기본 그라데이션 (로딩/에러 상태용)
-  const defaultGradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates)];
-  const defaultGradientStyle = { background: `linear-gradient(to bottom, ${defaultGradient.from}, ${defaultGradient.to})` };
+  const defaultGradientStyle = useMemo(() => {
+    const gradient = TIME_GRADIENTS[getTimeOfDay(clientHour, { lat: city.lat, lon: city.lon })];
+    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
+  }, [clientHour, city.lat, city.lon]);
 
   // initialData가 있으면 SWR hydration 완료까지 대기하지 않고 바로 사용
   const hasInitialData = !!(initialData?.current && initialData?.forecast);
