@@ -193,7 +193,18 @@ function HomeContent() {
 
           {/* 외출 점수 */}
           <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
-            <ScoreGauge score={score} />
+            <ScoreGauge
+              score={score}
+              weatherContext={{
+                temperature: weatherData.temperature,
+                feelsLike: weatherData.feelsLike,
+                weatherMain: weatherData.weatherMain,
+                pm25: airQualityData.pm25,
+                humidity: weatherData.humidity,
+                windSpeed: weatherData.windSpeed,
+                uvIndex: uv?.uvIndex,
+              }}
+            />
           </m.div>
 
           {/* 옷차림 추천 */}

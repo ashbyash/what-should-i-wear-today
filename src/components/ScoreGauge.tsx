@@ -3,9 +3,20 @@
 import { useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import type { OutingScore } from '@/types/score';
+import { useAIMessage } from '@/lib/useAIMessage';
 
 interface ScoreGaugeProps {
   score: OutingScore;
+  // AI 메시지 생성용 추가 데이터 (optional - 없으면 고정 메시지 사용)
+  weatherContext?: {
+    temperature: number;
+    feelsLike: number;
+    weatherMain: string;
+    pm25: number;
+    humidity?: number;
+    windSpeed?: number;
+    uvIndex?: number;
+  };
 }
 
 function getScoreColor(level: OutingScore['level']): string {
@@ -172,11 +183,52 @@ function BreakdownBar({
   );
 }
 
-export default function ScoreGauge({ score }: ScoreGaugeProps) {
+// 메시지 스켈레톤 컴포넌트
+function MessageSkeleton() {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      <m.span
+        className="inline-block w-2 h-2 bg-white/30 rounded-full"
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
+      />
+      <m.span
+        className="inline-block w-2 h-2 bg-white/30 rounded-full"
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
+      />
+      <m.span
+        className="inline-block w-2 h-2 bg-white/30 rounded-full"
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
+      />
+    </div>
+  );
+}
+
+export default function ScoreGauge({ score, weatherContext }: ScoreGaugeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const colorClass = getScoreColor(score.level);
   const emoji = getScoreEmoji(score.level);
   const progressColor = getProgressColor(score.level);
+
+  // AI 메시지 훅 (weatherContext가 있을 때만 활성화)
+  const aiMessageInput = weatherContext ? {
+    score,
+    temperature: weatherContext.temperature,
+    feelsLike: weatherContext.feelsLike,
+    weatherMain: weatherContext.weatherMain,
+    pm25: weatherContext.pm25,
+    humidity: weatherContext.humidity,
+    windSpeed: weatherContext.windSpeed,
+    uvIndex: weatherContext.uvIndex,
+  } : null;
+
+  const { message: aiMessage, isLoading: aiLoading } = useAIMessage(aiMessageInput);
+
+  // AI 메시지 우선, 실패 시 고정 메시지 fallback
+  const displayMessage = aiMessage || score.message;
+  const isMessageLoading = weatherContext && aiLoading && !aiMessage;
 
   return (
     <div
@@ -217,9 +269,13 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
         </div>
 
         {/* 메시지 */}
-        <p className="text-body text-glass-secondary text-center mt-2">
-          {score.message}
-        </p>
+        <div className="text-body text-glass-secondary text-center mt-2 min-h-[1.5rem]">
+          {isMessageLoading ? (
+            <MessageSkeleton />
+          ) : (
+            <p>{displayMessage}</p>
+          )}
+        </div>
 
         {/* 확장/축소 힌트 */}
         <m.div
