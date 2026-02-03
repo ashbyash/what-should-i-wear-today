@@ -66,10 +66,11 @@ function getProgressColor(level: OutingScore['level']): string {
 }
 
 const BREAKDOWN_LABELS: Record<string, { label: string; max: number; icon: string }> = {
-  temperature: { label: '기온', max: 60, icon: '🌡️' },
-  weather: { label: '날씨', max: 20, icon: '🌤️' },
-  fineDust: { label: '미세먼지', max: 15, icon: '💨' },
+  feelsLikeTemp: { label: '체감온도', max: 65, icon: '🌡️' },
+  weather: { label: '날씨', max: 15, icon: '🌤️' },
+  fineDust: { label: '미세먼지', max: 10, icon: '💨' },
   uv: { label: '자외선', max: 5, icon: '☀️' },
+  humidity: { label: '습도', max: 5, icon: '💧' },
 };
 
 // 원형 프로그레스 바 컴포넌트
@@ -253,6 +254,23 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
                     delay={index * 0.1}
                   />
                 ))}
+
+                {/* 풍속 페널티 표시 */}
+                {score.breakdown.windPenalty < 0 && (
+                  <m.div
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.3 }}
+                  >
+                    <span className="text-sm" aria-hidden="true">💨</span>
+                    <span className="text-caption text-glass-muted w-16 shrink-0">풍속</span>
+                    <div className="flex-1" />
+                    <span className="text-caption text-orange-300">
+                      {score.breakdown.windPenalty}점
+                    </span>
+                  </m.div>
+                )}
 
                 {score.tips.length > 0 && (
                   <m.div

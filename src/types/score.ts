@@ -1,10 +1,10 @@
 // 각 요소별 점수
 export interface ScoreBreakdown {
-  feelsLikeTemp: number; // 0-55 (체감온도 기반)
-  weather: number; // 0-20
-  fineDust: number; // 0-15
+  feelsLikeTemp: number; // 0-65 (체감온도 기반, 계절별 기준)
+  weather: number; // 0-15
+  fineDust: number; // 0-10
   uv: number; // 0-5
-  humidity: number; // 0-5
+  humidity: number; // 0-5 (계절별 기준)
   windPenalty: number; // -10~0 (풍속 페널티)
 }
 

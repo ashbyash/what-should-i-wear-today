@@ -1,13 +1,14 @@
 'use client';
 
 import useSWR from 'swr';
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Coordinates } from './geolocation';
 import type { KmaWeatherData, UVIndexData } from './kma-api';
 import type { AirKoreaData } from './airkorea-api';
 import type { LocationData, InitialWeatherData } from '@/types/weather';
 import { CACHE } from './constants';
 import { saveLocation, hasLocationChanged } from './location-cache';
+import { getCachedWeatherData, saveWeatherData } from './weather-cache';
 import {
   safeParseCurrentWeather,
   safeParseForecastWeather,
@@ -91,6 +92,20 @@ export function useWeatherData(
   const lat = coordinates?.lat;
   const lon = coordinates?.lon;
 
+  // localStorage 캐시 로드 (initialData가 없을 때만)
+  const cachedData = useMemo(() => {
+    if (initialData) return null; // ISR 데이터 우선
+    if (typeof window === 'undefined') return null;
+    return getCachedWeatherData(lat, lon);
+  }, [initialData, lat, lon]);
+
+  // fallback 데이터 결정 (initialData > cachedData)
+  const fallbackCurrent = initialData?.current ?? cachedData?.data.current ?? undefined;
+  const fallbackForecast = initialData?.forecast ?? cachedData?.data.forecast ?? undefined;
+  const fallbackLocation = initialData?.location ?? cachedData?.data.location ?? undefined;
+  const fallbackAirQuality = initialData?.airQuality ?? cachedData?.data.airQuality ?? undefined;
+  const fallbackUv = initialData?.uv ?? cachedData?.data.uv ?? undefined;
+
   // SWR 공통 옵션
   const swrOptions = {
     dedupingInterval: CACHE.TTL,
@@ -110,7 +125,7 @@ export function useWeatherData(
     fetcher,
     {
       ...swrOptions,
-      fallbackData: initialData?.current ?? undefined,
+      fallbackData: fallbackCurrent,
     }
   );
   const weatherCurrent = currentRaw ? safeParseCurrentWeather(currentRaw) : null;
@@ -126,7 +141,7 @@ export function useWeatherData(
     fetcher,
     {
       ...swrOptions,
-      fallbackData: initialData?.forecast ?? undefined,
+      fallbackData: fallbackForecast,
     }
   );
   const weatherForecast = forecastRaw ? safeParseForecastWeather(forecastRaw) : null;
@@ -142,7 +157,7 @@ export function useWeatherData(
     fetcher,
     {
       ...swrOptions,
-      fallbackData: initialData?.location ?? undefined,
+      fallbackData: fallbackLocation,
     }
   );
   const location = locationRaw ? safeParseLocation(locationRaw) : null;
@@ -158,7 +173,7 @@ export function useWeatherData(
     fetcher,
     {
       ...swrOptions,
-      fallbackData: initialData?.airQuality ?? undefined,
+      fallbackData: fallbackAirQuality,
     }
   );
   const airQuality = airQualityRaw ? safeParseAirKorea(airQualityRaw) : null;
@@ -174,7 +189,7 @@ export function useWeatherData(
     fetcher,
     {
       ...swrOptions,
-      fallbackData: initialData?.uv ?? undefined,
+      fallbackData: fallbackUv,
     }
   );
   const uv = uvRaw ? safeParseUVIndex(uvRaw) : null;
@@ -196,6 +211,20 @@ export function useWeatherData(
       }
     }
   }, [lat, lon, location]);
+
+  // 날씨 데이터 캐시 저장 (모든 데이터 로드 완료 시)
+  useEffect(() => {
+    if (lat && lon && currentRaw && forecastRaw && locationRaw) {
+      const weatherDataToCache: InitialWeatherData = {
+        current: currentRaw,
+        forecast: forecastRaw,
+        location: locationRaw,
+        airQuality: airQualityRaw ?? null,
+        uv: uvRaw ?? null,
+      };
+      saveWeatherData(lat, lon, weatherDataToCache);
+    }
+  }, [lat, lon, currentRaw, forecastRaw, locationRaw, airQualityRaw, uvRaw]);
 
   // 위치 변경 시 revalidate
   useEffect(() => {
