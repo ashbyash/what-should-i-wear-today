@@ -46,6 +46,7 @@ export interface ScoreInput {
   humidity?: number; // 습도 (%)
   windSpeed?: number; // 풍속 (m/s)
   timestamp?: number; // 계산 시점 (밀리초), 없으면 현재 시간 사용
+  isOverseas?: boolean; // 해외 도시 여부 (해외 전용 스코링 사용)
 }
 
 // 옷차림 추천에 필요한 입력값

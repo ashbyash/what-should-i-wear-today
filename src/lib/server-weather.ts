@@ -6,16 +6,25 @@
 import { fetchKmaCurrentWeather, fetchKmaForecastWeather, fetchUVIndex } from './kma-api';
 import { fetchLocation } from './kakao-api';
 import { fetchAirKorea } from './airkorea-api';
+import { fetchOpenMeteoWeather } from './open-meteo-api';
+import { isKoreaCoordinates } from './cities';
 import type { InitialWeatherData } from '@/types/weather';
 
 /**
  * 서버에서 초기 날씨 데이터를 병렬로 fetch
  * Promise.allSettled로 개별 API 실패해도 다른 데이터는 반환
+ * 해외 좌표면 Open-Meteo, 한국이면 KMA/AirKorea/Kakao
  */
 export async function fetchInitialWeatherData(
   lat: number,
   lon: number
 ): Promise<InitialWeatherData> {
+  // 해외 좌표 → Open-Meteo API
+  if (!isKoreaCoordinates(lat, lon)) {
+    return fetchOpenMeteoWeather(lat, lon);
+  }
+
+  // 한국 좌표 → 기존 KMA/AirKorea/Kakao API
   const kmaApiKey = process.env.KMA_API_KEY;
   const kmaApihubAuthKey = process.env.KMA_APIHUB_AUTH_KEY;
   const kakaoApiKey = process.env.KAKAO_REST_API_KEY;

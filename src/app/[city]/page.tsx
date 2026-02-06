@@ -29,26 +29,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = `${city.name} 날씨 옷차림 | 오늘 뭐 입지?`;
-  const description = `${city.name} 오늘 날씨와 기온별 옷차림 추천. ${city.description}의 실시간 날씨, 미세먼지, 자외선 정보를 확인하고 외출 점수와 옷차림을 추천받으세요.`;
+  const description = city.isOverseas
+    ? `${city.name} 여행 날씨와 기온별 옷차림 추천. ${city.description}의 실시간 날씨, 미세먼지, 자외선 정보를 확인하고 여행 옷차림을 추천받으세요.`
+    : `${city.name} 오늘 날씨와 기온별 옷차림 추천. ${city.description}의 실시간 날씨, 미세먼지, 자외선 정보를 확인하고 외출 점수와 옷차림을 추천받으세요.`;
+
+  const keywords = [
+    `${city.name} 날씨`,
+    `${city.name} 날씨 옷차림`,
+    `${city.name} 기온별 옷차림`,
+    `${city.name} 오늘 뭐 입지`,
+    `${city.name} 옷차림`,
+    `${city.name} 기온`,
+    `${city.name} 미세먼지`,
+    `${city.name} 여행 날씨`,
+    `${city.name} 여행 옷차림`,
+    `${city.name} 뭐 입고 가지`,
+    '기온별 옷차림',
+    '오늘 뭐 입지',
+    'OOTD',
+    ...(city.isOverseas && city.country ? [
+      `${city.country} 여행`,
+      `${city.country} 날씨`,
+      `${city.country} 여행 옷차림`,
+    ] : []),
+  ];
 
   return {
     title,
     description,
-    keywords: [
-      `${city.name} 날씨`,
-      `${city.name} 날씨 옷차림`,
-      `${city.name} 기온별 옷차림`,
-      `${city.name} 오늘 뭐 입지`,
-      `${city.name} 옷차림`,
-      `${city.name} 기온`,
-      `${city.name} 미세먼지`,
-      `${city.name} 여행 날씨`,
-      `${city.name} 여행 옷차림`,
-      `${city.name} 뭐 입고 가지`,
-      '기온별 옷차림',
-      '오늘 뭐 입지',
-      'OOTD',
-    ],
+    keywords,
     alternates: {
       canonical: `/${city.slug}`,
     },
@@ -93,6 +102,12 @@ function generateJsonLd(city: NonNullable<ReturnType<typeof getCityBySlug>>) {
         latitude: city.lat,
         longitude: city.lon,
       },
+      ...(city.isOverseas && city.country ? {
+        address: {
+          '@type': 'PostalAddress',
+          addressCountry: city.country,
+        },
+      } : {}),
     },
     isPartOf: {
       '@type': 'WebSite',

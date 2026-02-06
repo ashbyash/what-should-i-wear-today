@@ -1,4 +1,4 @@
-// 주요 한국 도시 데이터 (Programmatic SEO용)
+// 도시 데이터 (Programmatic SEO용)
 export interface CityData {
   slug: string;
   name: string;
@@ -6,6 +6,8 @@ export interface CityData {
   lat: number;
   lon: number;
   description: string;
+  isOverseas?: boolean;
+  country?: string;
 }
 
 export const CITIES: CityData[] = [
@@ -354,6 +356,147 @@ export const CITIES: CityData[] = [
     lon: 127.4872,
     description: "순천만 습지, 생태 도시",
   },
+  // 해외 여행지
+  {
+    slug: "osaka",
+    name: "오사카",
+    nameEn: "Osaka",
+    lat: 34.69,
+    lon: 135.50,
+    description: "일본 제2의 도시, 먹거리의 도시",
+    isOverseas: true,
+    country: "일본",
+  },
+  {
+    slug: "tokyo",
+    name: "도쿄",
+    nameEn: "Tokyo",
+    lat: 35.68,
+    lon: 139.65,
+    description: "일본 수도, 세계적 대도시",
+    isOverseas: true,
+    country: "일본",
+  },
+  {
+    slug: "fukuoka",
+    name: "후쿠오카",
+    nameEn: "Fukuoka",
+    lat: 33.59,
+    lon: 130.40,
+    description: "규슈 최대 도시, 한국에서 가장 가까운 일본",
+    isOverseas: true,
+    country: "일본",
+  },
+  {
+    slug: "kyoto",
+    name: "교토",
+    nameEn: "Kyoto",
+    lat: 35.01,
+    lon: 135.77,
+    description: "일본 전통 문화의 도시",
+    isOverseas: true,
+    country: "일본",
+  },
+  {
+    slug: "sapporo",
+    name: "삿포로",
+    nameEn: "Sapporo",
+    lat: 43.06,
+    lon: 141.35,
+    description: "홋카이도 중심 도시, 눈 축제",
+    isOverseas: true,
+    country: "일본",
+  },
+  {
+    slug: "bangkok",
+    name: "방콕",
+    nameEn: "Bangkok",
+    lat: 13.76,
+    lon: 100.50,
+    description: "태국 수도, 동남아 대표 여행지",
+    isOverseas: true,
+    country: "태국",
+  },
+  {
+    slug: "danang",
+    name: "다낭",
+    nameEn: "Da Nang",
+    lat: 16.05,
+    lon: 108.21,
+    description: "베트남 중부 해변 도시",
+    isOverseas: true,
+    country: "베트남",
+  },
+  {
+    slug: "ho-chi-minh",
+    name: "호치민",
+    nameEn: "Ho Chi Minh City",
+    lat: 10.82,
+    lon: 106.63,
+    description: "베트남 최대 도시",
+    isOverseas: true,
+    country: "베트남",
+  },
+  {
+    slug: "cebu",
+    name: "세부",
+    nameEn: "Cebu",
+    lat: 10.32,
+    lon: 123.89,
+    description: "필리핀 대표 휴양지",
+    isOverseas: true,
+    country: "필리핀",
+  },
+  {
+    slug: "bali",
+    name: "발리",
+    nameEn: "Bali",
+    lat: -8.34,
+    lon: 115.09,
+    description: "인도네시아 대표 휴양지",
+    isOverseas: true,
+    country: "인도네시아",
+  },
+  {
+    slug: "taipei",
+    name: "타이베이",
+    nameEn: "Taipei",
+    lat: 25.03,
+    lon: 121.57,
+    description: "대만 수도, 야시장과 먹거리",
+    isOverseas: true,
+    country: "대만",
+  },
+  {
+    slug: "singapore",
+    name: "싱가포르",
+    nameEn: "Singapore",
+    lat: 1.35,
+    lon: 103.82,
+    description: "동남아 도시국가",
+    isOverseas: true,
+    country: "싱가포르",
+  },
+  {
+    slug: "guam",
+    name: "괌",
+    nameEn: "Guam",
+    lat: 13.44,
+    lon: 144.79,
+    description: "서태평양 휴양지",
+    isOverseas: true,
+    country: "괌",
+  },
+  {
+    slug: "honolulu",
+    name: "호놀룰루",
+    nameEn: "Honolulu",
+    lat: 21.31,
+    lon: -157.86,
+    description: "하와이 대표 도시",
+    isOverseas: true,
+    country: "미국",
+  },
 ];
 
 // slug로 도시 찾기
@@ -364,4 +507,19 @@ export function getCityBySlug(slug: string): CityData | undefined {
 // 모든 slug 목록
 export function getAllCitySlugs(): string[] {
   return CITIES.map((city) => city.slug);
+}
+
+// 한국 좌표 범위 체크 (33-39°N, 124-132°E)
+export function isKoreaCoordinates(lat: number, lon: number): boolean {
+  return lat >= 33 && lat <= 39 && lon >= 124 && lon <= 132;
+}
+
+// 해외 도시만
+export function getOverseasCities(): CityData[] {
+  return CITIES.filter((city) => city.isOverseas);
+}
+
+// 국내 도시만
+export function getDomesticCities(): CityData[] {
+  return CITIES.filter((city) => !city.isOverseas);
 }

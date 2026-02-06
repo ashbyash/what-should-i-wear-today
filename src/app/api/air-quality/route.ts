@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAirKorea, fetchAirQualityByStation } from '@/lib/airkorea-api';
+import { fetchOpenMeteoAirQuality } from '@/lib/open-meteo-api';
+import { isKoreaCoordinates } from '@/lib/cities';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -8,16 +10,25 @@ export async function GET(request: NextRequest) {
   const stationName = searchParams.get('stationName');
   const stationAddr = searchParams.get('stationAddr');
 
-  const apiKey = process.env.AIRKOREA_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'AirKorea API key not configured' },
-      { status: 500 }
-    );
-  }
-
   try {
+    // lat/lon이 있고 해외 좌표면 Open-Meteo 사용
+    if (lat && lon && !isKoreaCoordinates(parseFloat(lat), parseFloat(lon))) {
+      const data = await fetchOpenMeteoAirQuality(parseFloat(lat), parseFloat(lon));
+      return NextResponse.json(data, {
+        headers: { 'Cache-Control': 'public, max-age=600' },
+      });
+    }
+
+    // 한국: API 키 필요
+    const apiKey = process.env.AIRKOREA_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'AirKorea API key not configured' },
+        { status: 500 }
+      );
+    }
+
     // stationName이 있으면 측정소 검색 스킵
     if (stationName) {
       const data = await fetchAirQualityByStation(

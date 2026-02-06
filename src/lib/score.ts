@@ -9,6 +9,8 @@ import {
   WIND_SPEED,
   SEASON_TEMP_RANGES,
   SEASON_HUMIDITY_RANGES,
+  OVERSEAS_TEMP_RANGES,
+  OVERSEAS_HUMIDITY_RANGES,
   MONTH_TO_SEASON,
   UV_TIME_MULTIPLIERS,
   HOUR_TO_TIME_OF_DAY,
@@ -85,8 +87,8 @@ export function getFeelsLikeTemp(temp: number, windSpeed?: number, humidity?: nu
 // ============================================
 // 체감온도 점수 (65점 만점, 계절별 기준)
 // ============================================
-function calcFeelsLikeTempScore(feelsLike: number, season: Season): number {
-  const ranges = SEASON_TEMP_RANGES[season];
+function calcFeelsLikeTempScore(feelsLike: number, season: Season, isOverseas?: boolean): number {
+  const ranges = isOverseas ? OVERSEAS_TEMP_RANGES : SEASON_TEMP_RANGES[season];
 
   // 쾌적 구간: 65점
   if (feelsLike >= ranges.ideal.min && feelsLike <= ranges.ideal.max) {
@@ -147,10 +149,10 @@ function calcUvScore(uvIndex: number | undefined, timeOfDay: TimeOfDay): number 
 }
 
 // 습도 점수 (5점 만점, 계절별 기준)
-function calcHumidityScore(humidity: number | undefined, season: Season): number {
+function calcHumidityScore(humidity: number | undefined, season: Season, isOverseas?: boolean): number {
   if (humidity === undefined) return 3; // 습도 정보 없으면 보통으로 처리
 
-  const ranges = SEASON_HUMIDITY_RANGES[season];
+  const ranges = isOverseas ? OVERSEAS_HUMIDITY_RANGES : SEASON_HUMIDITY_RANGES[season];
 
   // 쾌적 구간: 5점
   if (humidity >= ranges.ideal.min && humidity <= ranges.ideal.max) {
@@ -257,11 +259,11 @@ export function calculateOutingScore(input: ScoreInput): OutingScore {
 
   // 점수 계산
   const breakdown: ScoreBreakdown = {
-    feelsLikeTemp: calcFeelsLikeTempScore(feelsLike, season),
+    feelsLikeTemp: calcFeelsLikeTempScore(feelsLike, season, input.isOverseas),
     weather: calcWeatherScore(input.weatherMain),
     fineDust: calcFineDustScore(input.pm25),
     uv: calcUvScore(input.uvIndex, timeOfDay),
-    humidity: calcHumidityScore(input.humidity, season),
+    humidity: calcHumidityScore(input.humidity, season, input.isOverseas),
     windPenalty: calcWindPenalty(input.windSpeed),
   };
 

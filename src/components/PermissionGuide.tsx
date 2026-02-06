@@ -4,9 +4,10 @@ import { getDeviceInfo } from '@/lib/device';
 
 interface PermissionGuideProps {
   error: string;
+  onSearchClick?: () => void;
 }
 
-export default function PermissionGuide({ error }: PermissionGuideProps) {
+export default function PermissionGuide({ error, onSearchClick }: PermissionGuideProps) {
   const { type, isMobile } = getDeviceInfo();
 
   return (
@@ -45,12 +46,23 @@ export default function PermissionGuide({ error }: PermissionGuideProps) {
         )}
       </div>
 
-      <button
-        onClick={() => window.location.reload()}
-        className="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm font-medium transition-colors"
-      >
-        새로고침
-      </button>
+      <div className="mt-6 flex flex-col items-center gap-3">
+        <button
+          onClick={() => window.location.reload()}
+          className="w-full px-6 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm font-medium transition-colors"
+        >
+          새로고침
+        </button>
+
+        {onSearchClick && (
+          <button
+            onClick={onSearchClick}
+            className="w-full px-6 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-full text-sm font-medium transition-colors"
+          >
+            도시 직접 검색
+          </button>
+        )}
+      </div>
     </div>
   );
 }

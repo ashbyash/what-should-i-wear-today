@@ -1,61 +1,75 @@
-# Handoff: AI 기능 개선 (anthropic-refs 활용)
+# Handoff: 해외 여행지 날씨 옷차림 — 구현 완료
 
 ## 1. Completed Work
 
-### anthropic-refs 탐색 완료
-- `/Users/ash/anthropic-refs/` 전체 폴더 탐색 (courses, cookbooks, plugins, tutorial)
-- 현재 프로젝트에 적용 가능한 항목 7개 리스트업 완료
+### 해외 날씨 기능 전체 구현 (Layer 1-3 완료)
 
-### Claude 마이그레이션 시도 → 롤백
-- `openai` → `@anthropic-ai/sdk` 패키지 교체 수행
-- `src/lib/ai-message.ts` OpenAI → Anthropic 클라이언트 전환
-- Anthropic API 크레딧 부족 에러 확인: `invalid_request_error: Your credit balance is too low`
-- OpenAI 잔액이 남아있어 롤백 결정
-- **롤백 완료**: `ai-message.ts` 원본 복원, `openai` 패키지 재설치
+**신규 파일 (1개):**
+- `src/lib/open-meteo-api.ts` (217줄) — Open-Meteo API 어댑터. WMO 코드 매핑, km/h→m/s 풍속 변환, PM2.5/PM10 등급 계산, UV 레벨 계산. `InitialWeatherData` 호환 shape 반환.
 
-### 현재 git 변경
-- `package.json`: openai 버전 `^6.17.0` → `^6.18.0` (npm reinstall로 minor bump)
-- `package-lock.json`: 위 변경 반영
-- `src/lib/ai-message.ts`: 변경 없음 (원본 상태)
+**수정 파일 (15개):**
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/lib/cities.ts` | CityData에 `isOverseas?`, `country?` 추가. 해외 14개 도시 데이터. `isKoreaCoordinates()`, `getOverseasCities()`, `getDomesticCities()` 헬퍼 |
+| `src/lib/constants.ts` | `OVERSEAS_TEMP_RANGES` (ideal 10-25℃), `OVERSEAS_HUMIDITY_RANGES` (ideal 40-65%) 추가 |
+| `src/types/score.ts` | `ScoreInput`에 `isOverseas?: boolean` 추가 |
+| `src/lib/server-weather.ts` | `fetchInitialWeatherData`에 `isKoreaCoordinates` 분기 → 해외면 `fetchOpenMeteoWeather` 호출 |
+| `src/lib/score.ts` | `calcFeelsLikeTempScore`, `calcHumidityScore`에 `isOverseas` 파라미터. 해외면 OVERSEAS 상수 사용 |
+| `src/lib/api-handler.ts` | `ApiHandlerOptions`에 `overseasFetcher` 옵션. 핸들러 내부에서 좌표 판별 후 자동 분기 |
+| `src/app/api/weather-current/route.ts` | `overseasFetcher: fetchOpenMeteoCurrent` 추가 |
+| `src/app/api/weather-forecast/route.ts` | `overseasFetcher: fetchOpenMeteoForecast` 추가 |
+| `src/app/api/uv/route.ts` | `overseasFetcher: fetchOpenMeteoUV` 추가 |
+| `src/app/api/air-quality/route.ts` | 해외 분기: `fetchOpenMeteoAirQuality` 호출 |
+| `src/app/api/location/route.ts` | 해외 좌표 → CITIES에서 매칭, `{name}, {country}` 반환. 한국 → 기존 Kakao API |
+| `src/app/[city]/page.tsx` | 해외 메타데이터 (여행 키워드, country 키워드), JSON-LD에 `addressCountry` |
+| `src/components/CityWeatherPage.tsx` | 해외 `locationName` (`city.name, city.country`), `isOverseas` 스코어 전달 |
+| `src/components/CitySearchModal.tsx` | 국내/해외 섹션 분리, 국가별 그룹핑, 빠른 선택에 해외 도시 추가 |
+| `src/lib/geolocation.ts` | high accuracy 실패 시 low accuracy 폴백 (데스크탑 Mac GPS 미지원 대응) |
+
+### 해외 14개 도시
+
+| 지역 | 도시 |
+|------|------|
+| 일본 | 오사카, 도쿄, 후쿠오카, 교토, 삿포로 |
+| 동남아 | 방콕, 다낭, 호치민, 세부, 발리 |
+| 기타 | 타이베이, 싱가포르, 괌, 호놀룰루 |
+
+### 검증 결과
+- `npm run build` 성공: 73개 정적 페이지 (57개 도시 = 43 국내 + 14 해외)
+- 로컬 테스트: `/osaka`, `/bangkok`, `/seoul` 정상 렌더링 확인
+- 사용자 확인: 오사카 페이지에서 실제 날씨 데이터 표시 (11℃, 72점 등)
 
 ---
 
 ## 2. Current State
 
 ```
-브랜치: main (origin/main과 동기화됨)
-Modified (not staged): package.json, package-lock.json
-유일한 변경: openai ^6.17.0 → ^6.18.0 (reinstall로 인한 minor bump)
-ai-message.ts: 원본 상태 (OpenAI GPT-4o-mini)
+브랜치: main
+상태: 16개 파일 수정 + 1개 신규 (커밋 전)
+  Modified (not staged):
+    HANDOFF.md, src/app/[city]/page.tsx, src/app/api/air-quality/route.ts,
+    src/app/api/location/route.ts, src/app/api/uv/route.ts,
+    src/app/api/weather-current/route.ts, src/app/api/weather-forecast/route.ts,
+    src/components/CitySearchModal.tsx, src/components/CityWeatherPage.tsx,
+    src/lib/api-handler.ts, src/lib/cities.ts, src/lib/constants.ts,
+    src/lib/geolocation.ts, src/lib/score.ts, src/lib/server-weather.ts,
+    src/types/score.ts
+  Untracked:
+    .claude/plans/
+    src/lib/open-meteo-api.ts
+diff stat: 656 insertions(+), 233 deletions(-)
+최근 커밋: ba327aa eval update
 빌드: 성공
 ```
 
 ---
 
-## 3. Pending Tasks — Step 2~4 (OpenAI 기반)
+## 3. Pending Tasks
 
-### Step 2: 프롬프트 엔지니어링 개선
-- **대상 파일**: `src/lib/prompts/score-message.ts`
-- **참고 자료**: `anthropic-refs/courses/prompt_engineering_interactive_tutorial/`
-  - Ch.4: 데이터/지시 분리 → XML 태그로 `<weather_data>`, `<score_breakdown>` 구분
-  - Ch.5: 출력 포맷 지정 (system prompt에 예시 포함으로 대체)
-  - Ch.7: Few-shot 예시 2-3개 추가
-  - Ch.8: 환각 방지 → 제공된 데이터만 사용하도록 명시적 제약
-- **현재 프롬프트 구조**: `buildSystemPrompt()` + `buildUserPrompt(input)` 분리됨
-- **수정 방향**: 프롬프트 기법은 모델에 무관하므로 OpenAI에서도 동일 적용 가능
-
-### Step 3: Prompt Caching (OpenAI)
-- **대상 파일**: `src/lib/ai-message.ts`
-- **참고**: `anthropic-refs/claude-cookbooks/misc/prompt_caching.ipynb`
-- **OpenAI 방식**: 자동 캐싱 (1024 토큰 이상 시스템 프롬프트 자동 캐시)
-- **현재 상태**: 이미 앱 레벨 메모리 캐시 있음 (10점 단위 버킷팅, TTL 기반)
-
-### Step 4: 구조화된 JSON 출력 (선택)
-- **대상 파일**: `src/lib/ai-message.ts`, `src/lib/prompts/score-message.ts`, `src/types/score.ts`
-- **참고**: `anthropic-refs/claude-cookbooks/tool_use/extracting_structured_json.ipynb`
-- **OpenAI 방식**: `response_format: { type: "json_schema" }` 사용
-- **변경 후 응답**: `{ message, tone, keyFactor }` 구조
-- **주의**: UI 컴포넌트(`ScoreGauge.tsx`, `useAIMessage.ts`)도 수정 필요
+- **커밋**: 해외 날씨 기능 + geolocation 폴백 수정 (아직 커밋 안 됨)
+- **배포**: Vercel에 배포하여 HTTPS 환경에서 geolocation 정상 동작 확인
+- **Geolocation 폴백 검증**: 사용자가 브라우저에서 테스트 필요 (high→low accuracy 폴백)
 
 ---
 
@@ -63,64 +77,58 @@ ai-message.ts: 원본 상태 (OpenAI GPT-4o-mini)
 
 | 결정 | 이유 |
 |------|------|
-| Claude 마이그레이션 롤백 | Anthropic API 크레딧 부족 + OpenAI 잔액 남아있음 |
-| OpenAI 유지하며 Step 2~4 진행 | 프롬프트 기법, Structured Output, Prompt Caching 모두 OpenAI에서도 가능 |
-| Claude 전환은 OpenAI 잔액 소진 후 | Claude 전용 장점(prefill, 명시적 cache_control)은 있지만 현재 급하지 않음 |
+| Open-Meteo API (무료, API 키 불필요) | 해외 날씨 데이터 제공. 비용 $0 유지 |
+| `isKoreaCoordinates()` 좌표 기반 분기 | 33-39°N, 124-132°E → 한국, 나머지 → Open-Meteo |
+| 위치명은 CityData에서 직접 사용 | Kakao API가 해외 미지원. 별도 geocoding API 불필요 |
+| OVERSEAS_TEMP_RANGES (ideal 10-25℃) | 해외 여행자 관점. 한국 계절별 기준과 분리 |
+| OVERSEAS_HUMIDITY_RANGES (통합 구간) | 열대 지역은 한국식 계절 구분 무의미 |
+| `createApiHandler`에 `overseasFetcher` 옵션 | 기존 DRY 패턴 유지. 각 라우트에 if/else 분기 안 씀 |
+| 풍속 km/h→m/s 변환 | Open-Meteo는 km/h 반환, 앱은 m/s 기준 |
+| geolocation high→low accuracy 폴백 | Mac 데스크탑에 GPS 없음. `enableHighAccuracy: true` 실패 시 Wi-Fi 위치로 재시도 |
 
 ---
 
 ## 5. Blockers / Issues Found
 
-### Anthropic API 크레딧 부족
-- **에러**: `invalid_request_error: Your credit balance is too low to access the Anthropic API`
-- Evaluation access 플랜에 무료 크레딧 없음, 최소 $5 충전 필요
+### 해결됨
+- **풍속 단위 불일치**: Open-Meteo km/h → 앱 m/s. `open-meteo-api.ts`에서 `/3.6` 변환 적용
+- **webpack 캐시 에러**: `Cannot find module './vendor-chunks/motion-dom.js'`. `rm -rf .next` 후 해결
+- **Geolocation POSITION_UNAVAILABLE**: `enableHighAccuracy: true` → low accuracy 폴백 추가
 
-### 기존 테스트 실패 3건 (마이그레이션 무관)
-- `src/lib/__tests__/outfit.test.ts` 에서 3개 실패
-  - `'다운 롱패딩'` 기대 → 실제 `['다운 패딩', '울 코트']`
-  - `'일교차가 커요, 겉옷 챙기세요'` 기대 → 실제 `'아침엔 코트, 낮엔 얇은 가디건이면 충분해요'`
-
-### localhost Geolocation 이슈 (기존)
-- `enableHighAccuracy: true`가 Mac 데스크톱에서 `POSITION_UNAVAILABLE` 에러 유발
-- `src/lib/geolocation.ts:107`
-- 도시 페이지(`/seoul` 등)로는 정상 접속 가능
+### 미해결 (기존 이슈)
+- `src/lib/__tests__/outfit.test.ts` 3건 실패 (비즈니스 로직 변경 후 테스트 미갱신, 이번 작업과 무관)
 
 ---
 
 ## 6. Context for Next Session
 
-### 핵심 파일
-| 파일 | 역할 |
-|------|------|
-| `src/lib/prompts/score-message.ts` | 프롬프트 템플릿 (Step 2 수정 대상) |
-| `src/lib/ai-message.ts` | AI 서비스 (Step 3, 4 수정 대상) |
-| `src/lib/constants.ts` | 점수 가중치 등 비즈니스 상수 |
-| `src/components/ScoreGauge.tsx` | AI 메시지 렌더링 컴포넌트 |
-| `src/lib/useAIMessage.ts` | 클라이언트 AI 메시지 훅 |
+### 커밋 대상 파일
+- 신규: `src/lib/open-meteo-api.ts`
+- 수정: 위 15개 파일 전부
+- `.claude/plans/` 디렉토리는 커밋 불필요 (구현 완료됨)
 
-### anthropic-refs 주요 참고 경로
-- 프롬프트 기법: `anthropic-refs/courses/prompt_engineering_interactive_tutorial/`
-- JSON 출력: `anthropic-refs/claude-cookbooks/tool_use/extracting_structured_json.ipynb`
-- Evals: `anthropic-refs/claude-cookbooks/misc/building_evals.ipynb`
+### 핵심 아키텍처 포인트
+- 한국/해외 분기: `isKoreaCoordinates(lat, lon)` → server-weather.ts, api-handler.ts, api/location에서 사용
+- Open-Meteo 응답은 `InitialWeatherData` shape로 변환 → 기존 컴포넌트 타입 변경 없음
+- CitySearchModal: 검색어 없으면 국내/해외 섹션 분리 표시, 검색어 있으면 통합 검색
+
+### 실행 명령어
+```bash
+npm run dev          # 개발 서버
+npm run build        # 빌드 (73개 페이지 SSG)
+npm run test         # 유닛 테스트
+```
 
 ---
 
 ## 다음 세션 시작 프롬프트
 
 ```
-이전 세션에서 anthropic-refs 탐색 + Claude 마이그레이션 시도 후 롤백했습니다.
-현재 OpenAI GPT-4o-mini 기반으로 동작 중입니다.
+해외 여행지 날씨 기능이 구현되어 있습니다 (커밋 전).
+HANDOFF.md를 읽고 현재 상태를 확인해주세요.
 
-HANDOFF.md를 읽고 Step 2 (프롬프트 엔지니어링 개선)부터 진행해주세요.
-대상 파일: src/lib/prompts/score-message.ts
-참고: anthropic-refs/courses/prompt_engineering_interactive_tutorial/ Ch.4,5,7,8
-
-적용할 기법:
-1. 데이터/지시 분리 (XML 태그)
-2. Few-shot 예시 2-3개 추가
-3. 환각 방지 제약 추가
-4. 출력 포맷 명시
-
-Step 2 완료 후 Step 3 (Prompt Caching), Step 4 (구조화 JSON 출력) 순서로 진행합니다.
-각 스텝 완료 시 확인 후 다음 스텝으로 넘어갑니다.
+할 일:
+1. 변경 사항 커밋 + 배포
+2. 배포 후 HTTPS 환경에서 해외 도시 페이지 검증 (/osaka, /bangkok 등)
+3. Geolocation 폴백이 프로덕션에서 정상 동작하는지 확인
 ```

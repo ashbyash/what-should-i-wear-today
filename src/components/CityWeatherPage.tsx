@@ -99,9 +99,11 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     );
   }
 
-  const locationName = location
-    ? formatLocation(location, airQuality)
-    : (initialData?.location ? formatLocation(initialData.location, initialData.airQuality) : city.name);
+  const locationName = city.isOverseas
+    ? `${city.name}, ${city.country}`
+    : (location
+      ? formatLocation(location, airQuality)
+      : (initialData?.location ? formatLocation(initialData.location, initialData.airQuality) : city.name));
 
   const weatherData: WeatherData = {
     temperature: currentData.temperature,
@@ -140,6 +142,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     humidity: weatherData.humidity,
     windSpeed: weatherData.windSpeed,
     timestamp: Date.now(),
+    isOverseas: city.isOverseas,
   });
 
   const outfit = getOutfitRecommendation({

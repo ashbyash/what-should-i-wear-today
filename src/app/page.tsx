@@ -22,7 +22,7 @@ import { useWeatherData } from '@/lib/useWeatherData';
 import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
-import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
+import { getThemeConfig, getGradientStyle, getTimeOfDay, getSeason, TIME_GRADIENTS, TIME_TEXT_COLORS, SEASON_ACCENTS, type ThemeConfig } from '@/lib/theme';
 import { containerVariants, cardVariants } from '@/lib/animation-variants';
 import { useClientHour } from '@/lib/useClientHour';
 import type { WeatherData, AirQualityData } from '@/types/weather';
@@ -73,10 +73,24 @@ function HomeContent() {
   } = useWeatherData(coordinates, { locationChanged });
 
   // 기본 그라데이션 (로딩/에러 상태용) - 좌표 기반 일출/일몰 사용
+  const timeOfDay = useMemo(() => getTimeOfDay(clientHour, coordinates ?? undefined), [clientHour, coordinates]);
   const defaultGradientStyle = useMemo(() => {
-    const gradient = TIME_GRADIENTS[getTimeOfDay(clientHour, coordinates ?? undefined)];
+    const gradient = TIME_GRADIENTS[timeOfDay];
     return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
-  }, [clientHour, coordinates]);
+  }, [timeOfDay]);
+
+  // 기본 테마 (위치 에러 시 CitySearchModal에 전달)
+  const defaultTheme = useMemo((): ThemeConfig => {
+    const season = getSeason();
+    return {
+      gradient: TIME_GRADIENTS[timeOfDay],
+      overlay: '',
+      isLight: TIME_TEXT_COLORS[timeOfDay].isLight,
+      seasonAccent: SEASON_ACCENTS[season],
+      timeOfDay,
+      season,
+    };
+  }, [timeOfDay]);
 
   // 위치 로딩 중 (쿼리 파라미터 없을 때만)
   if (!queryCoordinates && geoLoading) {
@@ -91,7 +105,15 @@ function HomeContent() {
   if (!queryCoordinates && geoError) {
     return (
       <div className="min-h-screen pt-safe pb-safe flex items-center justify-center" style={defaultGradientStyle}>
-        <PermissionGuide error={geoError} />
+        <PermissionGuide
+          error={geoError}
+          onSearchClick={() => setIsSearchModalOpen(true)}
+        />
+        <CitySearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
+          theme={defaultTheme}
+        />
       </div>
     );
   }

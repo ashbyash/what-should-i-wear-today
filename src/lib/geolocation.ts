@@ -59,54 +59,72 @@ export function useGeolocation(): GeolocationState {
       return;
     }
 
+    const onSuccess = (position: GeolocationPosition) => {
+      const newLat = position.coords.latitude;
+      const newLon = position.coords.longitude;
+
+      // 캐시된 위치와 비교하여 변경 여부 확인
+      const cachedLoc = cachedLocationRef.current;
+      const changed = cachedLoc
+        ? hasLocationChanged(cachedLoc.lat, cachedLoc.lon, newLat, newLon)
+        : false;
+
+      setState({
+        coordinates: { lat: newLat, lon: newLon },
+        loading: false,
+        error: null,
+        locationChanged: changed,
+        isFromCache: false,
+        cacheReason: null,
+      });
+    };
+
+    const onError = (errorMessage: string) => {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: prev.coordinates ? null : errorMessage,
+        isFromCache: !!prev.coordinates,
+        cacheReason: prev.coordinates ? errorMessage : null,
+      }));
+    };
+
+    const getErrorMessage = (error: GeolocationPositionError): string => {
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          return '위치 권한이 거부되었습니다.';
+        case error.POSITION_UNAVAILABLE:
+          return '위치 정보를 사용할 수 없습니다.';
+        case error.TIMEOUT:
+          return '위치 요청 시간이 초과되었습니다.';
+        default:
+          return '위치를 가져올 수 없습니다.';
+      }
+    };
+
+    // 먼저 high accuracy 시도, 실패 시 low accuracy로 재시도
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const newLat = position.coords.latitude;
-        const newLon = position.coords.longitude;
-
-        // 캐시된 위치와 비교하여 변경 여부 확인
-        const cachedLoc = cachedLocationRef.current;
-        const changed = cachedLoc
-          ? hasLocationChanged(cachedLoc.lat, cachedLoc.lon, newLat, newLon)
-          : false;
-
-        setState({
-          coordinates: { lat: newLat, lon: newLon },
-          loading: false,
-          error: null,
-          locationChanged: changed,
-          isFromCache: false,
-          cacheReason: null,
-        });
-      },
+      onSuccess,
       (error) => {
-        let errorMessage = '위치를 가져올 수 없습니다.';
-
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = '위치 권한이 거부되었습니다.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = '위치 정보를 사용할 수 없습니다.';
-            break;
-          case error.TIMEOUT:
-            errorMessage = '위치 요청 시간이 초과되었습니다.';
-            break;
+        if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
+          // low accuracy로 재시도 (GPS 없는 데스크탑 대응)
+          navigator.geolocation.getCurrentPosition(
+            onSuccess,
+            (retryError) => onError(getErrorMessage(retryError)),
+            {
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 600000,
+            }
+          );
+        } else {
+          onError(getErrorMessage(error));
         }
-
-        // 캐시된 위치가 있으면 에러 무시하고 캐시 사용 (사유 기록)
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: prev.coordinates ? null : errorMessage,
-          isFromCache: !!prev.coordinates,
-          cacheReason: prev.coordinates ? errorMessage : null,
-        }));
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5분 캐시
+        timeout: 5000,
+        maximumAge: 300000,
       }
     );
   }, []);

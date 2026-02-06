@@ -257,6 +257,25 @@ export const SEASON_HUMIDITY_RANGES = {
 } as const;
 
 // ============================================
+// 해외 체감온도 점수 기준 (℃) - 계절 구분 없음
+// ============================================
+export const OVERSEAS_TEMP_RANGES = {
+  ideal: { min: 10, max: 25 },      // 쾌적 (65점)
+  good: { coldMin: 3, coldMax: 9, hotMin: 26, hotMax: 30 }, // 양호 (47점)
+  caution: { coldMin: -3, coldMax: 2, hotMin: 31, hotMax: 35 }, // 주의 (24점)
+  // 그 외: 위험 (0점)
+} as const;
+
+// ============================================
+// 해외 습도 점수 기준 (%) - 계절 구분 없음, 통합 구간
+// ============================================
+export const OVERSEAS_HUMIDITY_RANGES = {
+  ideal: { min: 40, max: 65 },  // 쾌적 (5점)
+  good: { min: 30, max: 75 },   // 양호 (3점)
+  // 그 외: 불쾌 (1점)
+} as const;
+
+// ============================================
 // 풍속 페널티 기준 (m/s)
 // ============================================
 export const WIND_SPEED = {
