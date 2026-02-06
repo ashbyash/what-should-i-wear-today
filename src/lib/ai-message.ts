@@ -2,12 +2,24 @@
  * AI 점수 메시지 생성 서비스
  *
  * - OpenAI API 통합
- * - 메모리 캐시 (동일 점수대 재사용)
+ * - 시스템 프롬프트 메모이제이션 (상수 기반이므로 한 번만 생성)
+ * - 앱 레벨 메모리 캐시 (동일 점수대 재사용)
+ * - OpenAI 서버 사이드 자동 캐싱 (1024 토큰 이상 시스템 프롬프트)
  */
 
 import OpenAI from 'openai';
 import { buildSystemPrompt, buildUserPrompt, type ScoreMessageInput } from './prompts/score-message';
 import { CACHE } from './constants';
+
+// 시스템 프롬프트 메모이제이션 (상수 기반 → 런타임 중 불변)
+let cachedSystemPrompt: string | null = null;
+
+function getSystemPrompt(): string {
+  if (!cachedSystemPrompt) {
+    cachedSystemPrompt = buildSystemPrompt();
+  }
+  return cachedSystemPrompt;
+}
 
 // OpenAI 클라이언트 (lazy initialization)
 let openaiClient: OpenAI | null = null;
@@ -76,15 +88,17 @@ function setCachedMessage(key: string, message: string): void {
 export async function generateScoreMessage(input: ScoreMessageInput): Promise<string | null> {
   const cacheKey = getCacheKey(input);
 
-  // 캐시 확인
+  // 앱 레벨 캐시 확인
   const cached = getCachedMessage(cacheKey);
   if (cached) {
+    console.log(`[AI Message] Cache hit: ${cacheKey}`);
     return cached;
   }
+  console.log(`[AI Message] Cache miss: ${cacheKey}`);
 
   try {
     const client = getOpenAIClient();
-    const systemPrompt = buildSystemPrompt();
+    const systemPrompt = getSystemPrompt();
     const userPrompt = buildUserPrompt(input);
 
     const response = await client.chat.completions.create({
@@ -94,14 +108,18 @@ export async function generateScoreMessage(input: ScoreMessageInput): Promise<st
         { role: 'user', content: userPrompt },
       ],
       max_tokens: 100,
-      temperature: 0.7,
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
     });
 
-    const message = response.choices[0]?.message?.content?.trim();
+    const raw = response.choices[0]?.message?.content?.trim();
 
-    if (message) {
-      setCachedMessage(cacheKey, message);
-      return message;
+    if (raw) {
+      const parsed = JSON.parse(raw) as { message: string };
+      if (parsed.message) {
+        setCachedMessage(cacheKey, parsed.message);
+        return parsed.message;
+      }
     }
 
     return null;
