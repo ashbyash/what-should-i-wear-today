@@ -203,7 +203,15 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
 
           {/* 옷차림 추천 */}
           <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
-            <OutfitCard outfit={outfit} />
+            <OutfitCard
+              outfit={outfit}
+              weatherContext={{
+                temperature: weatherData.temperature,
+                feelsLike: weatherData.feelsLike,
+                weatherMain: weatherData.weatherMain,
+                pm25: airQualityData.pm25,
+              }}
+            />
           </m.div>
 
           {/* 날씨 */}

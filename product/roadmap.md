@@ -1,8 +1,8 @@
 # What Should I Wear Today - Product Roadmap
 
 ## Version
-- Version: 1.2
-- Last Updated: 2026-02-03
+- Version: 1.3
+- Last Updated: 2026-02-09
 
 ---
 
@@ -34,11 +34,15 @@
 - [x] 기온별 옷차림 추천
 
 ### SEO / Infrastructure
-- [x] Programmatic SEO 페이지 (33개 도시)
-- [x] SSG (Static Site Generation)
-- [x] 도시별 고유 메타데이터
+- [x] Programmatic SEO 페이지 (57개 도시: 국내 43 + 해외 14)
+- [x] SSG (Static Site Generation) + ISR (10분 재생성)
+- [x] 도시별 고유 메타데이터 (해외: 국가별 키워드 자동 추가)
+- [x] JSON-LD 구조화 데이터 (WebPage + Place + GeoCoordinates)
 - [x] sitemap.xml, robots.txt
 - [x] OG Image 자동 생성
+
+### UX
+- [x] 도시 검색 모달 UX 개선 (국내/해외 빠른 선택 분리, 국내 축소+더보기, 해외 지역별 칩 레이아웃)
 
 ---
 
@@ -48,16 +52,17 @@
 
 | Feature | Status | Note |
 |---------|--------|------|
-| Google 색인 완료 | 🔄 In Progress | 현재 1/34 페이지만 색인 |
+| Google 색인 완료 | 🔄 In Progress | 현재 1/34 페이지만 색인 → 57페이지 대상 |
 | 키워드 확장 메타데이터 | ✅ Done | 10개 패턴 적용 |
-| 국내 여행지 날씨 | 📋 Planned | 제주, 강릉, 속초, 경주, 여수 등 |
-| AI 점수 메시지 | 📋 Planned | 날씨 조건 반영한 동적 메시지 (OpenAI) |
+| 국내 여행지 날씨 | ✅ Done | 43개 도시 (서울~서귀포) |
+| 해외 여행지 날씨 | ✅ Done | 14개 도시 (일본 5, 동남아 6, 기타 3) |
+| AI 점수 메시지 | ✅ Done | OpenAI gpt-4o-mini, 점수대별 메모리 캐시 적용 |
 | AI 스타일링 팁 | 📋 Planned | 옷 추천에 맥락 있는 한줄 팁 추가 |
 | 문의하기 | ✅ Done | 푸터에 이메일 링크 |
 
-**Success Criteria (국내 여행지)**:
+**Success Criteria (국내+해외 여행지)**:
 - Metric: 여행지 페이지 색인 수
-- Target: 추가 페이지 100% 색인
+- Target: 57페이지 100% 색인
 - Period: 배포 후 30일
 
 **Success Criteria (AI 메시지)**:
@@ -77,7 +82,6 @@
 | 사용자 프로필 | High | 성별, 연령대, 스타일 저장 (DB) |
 | AI 상황별 추천 | High | 출근/데이트/운동/일상 탭 선택 |
 | AI 맞춤 추천 | High | 프로필 기반 옷 추천 개인화 |
-| 해외 여행지 날씨 | Medium | 오사카, 도쿄, 방콕, 다낭 등 (별도 API 필요) |
 | 시간대별 옷차림 | Medium | 아침/점심/저녁 기온 반영 |
 | 공유 기능 | Medium | 오늘 옷차림 결과 공유 (카카오톡, 링크) |
 
@@ -136,6 +140,7 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3 | 2026-02-09 | 국내 43+해외 14 도시 완료 → Done 이동, CitySearchModal UX 개선 반영, SEO 페이지 57개로 업데이트 |
 | 1.2 | 2026-02-03 | Vision 추가 (AI 패션 큐레이션), Q1 AI 기초 기능 추가, Q2 로그인/개인화 추가, Later 재구성 |
 | 1.1 | 2026-01-26 | 국내/해외 여행지 추가, Not Doing → Later 이동 |
 | 1.0 | 2026-01-26 | Initial roadmap |

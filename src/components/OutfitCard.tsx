@@ -1,9 +1,16 @@
 'use client';
 
 import type { OutfitRecommendation } from '@/types/score';
+import { useAIStylingTip } from '@/lib/useAIStylingTip';
 
 interface OutfitCardProps {
   outfit: OutfitRecommendation;
+  weatherContext?: {
+    temperature: number;
+    feelsLike: number;
+    weatherMain: string;
+    pm25: number;
+  };
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; emoji: string }> = {
@@ -16,8 +23,21 @@ const CATEGORY_CONFIG: Record<string, { label: string; emoji: string }> = {
 
 const CATEGORY_ORDER = ['outer', 'top', 'bottom', 'shoes', 'accessory'] as const;
 
-export default function OutfitCard({ outfit }: OutfitCardProps) {
+export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) {
   const { categories, alerts } = outfit;
+
+  // AI 스타일링 팁 훅 (weatherContext가 있을 때만 활성화)
+  const stylingTipInput = weatherContext ? {
+    categories,
+    alerts,
+    temperature: weatherContext.temperature,
+    feelsLike: weatherContext.feelsLike,
+    weatherMain: weatherContext.weatherMain,
+    pm25: weatherContext.pm25,
+  } : null;
+
+  const { tip: stylingTip, isLoading: tipLoading } = useAIStylingTip(stylingTipInput);
+  const isTipLoading = weatherContext && tipLoading && !stylingTip;
 
   // 접근성을 위한 옷차림 요약 생성
   const outfitSummary = CATEGORY_ORDER
@@ -29,7 +49,7 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
     <div
       className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full"
       role="region"
-      aria-label={`오늘의 옷차림 추천. ${outfitSummary}${alerts.length > 0 ? `. 주의사항: ${alerts.join(', ')}` : ''}`}
+      aria-label={`오늘의 옷차림 추천. ${outfitSummary}${alerts.length > 0 ? `. 주의사항: ${alerts.join(', ')}` : ''}${stylingTip ? `. 스타일링 팁: ${stylingTip}` : ''}`}
     >
       <div className="card-body p-4">
         <h3 className="card-title text-heading-2 justify-center text-glass-secondary">
@@ -73,6 +93,23 @@ export default function OutfitCard({ outfit }: OutfitCardProps) {
                 <span className="text-body font-medium">{alert}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {(stylingTip || isTipLoading) && (
+          <div className="mt-3 pt-3 border-t border-white/20">
+            <div className="flex items-center justify-center gap-1.5 text-white min-h-[1.5rem]">
+              <span className="text-purple-300" aria-hidden="true">✨</span>
+              {isTipLoading ? (
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse" />
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse [animation-delay:0.2s]" />
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse [animation-delay:0.4s]" />
+                </span>
+              ) : (
+                <span className="text-body font-medium">{stylingTip}</span>
+              )}
+            </div>
           </div>
         )}
       </div>
