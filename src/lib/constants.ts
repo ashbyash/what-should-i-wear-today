@@ -299,5 +299,8 @@ export const WEATHER_CONDITIONS = {
 // 캐시 설정
 // ============================================
 export const CACHE = {
-  TTL: 5 * 60 * 1000, // 5분
+  TTL: 5 * 60 * 1000, // 5분 (SWR dedupingInterval)
+  SERVER_TTL: 10 * 60 * 1000, // 10분 (서버 Map 캐시)
+  CLIENT_TTL: 10 * 60 * 1000, // 10분 (localStorage 캐시)
+  HTTP_TTL: 600, // 10분 (Cache-Control, seconds)
 } as const;

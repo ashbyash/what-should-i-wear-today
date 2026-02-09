@@ -6,9 +6,10 @@
 
 import type { InitialWeatherData } from '@/types/weather';
 import { calculateDistance } from './location-cache';
+import { CACHE } from './constants';
 
 const WEATHER_CACHE_KEY = 'last_weather';
-const WEATHER_CACHE_TTL = 1 * 60 * 60 * 1000; // 1시간
+const WEATHER_CACHE_TTL = CACHE.CLIENT_TTL; // 10분
 const LOCATION_THRESHOLD_KM = 1; // 1km 이내면 동일 위치로 간주
 
 export interface CachedWeatherData {

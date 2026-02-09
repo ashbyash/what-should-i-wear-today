@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isKoreaCoordinates } from './cities';
+import { CACHE } from './constants';
 
 type EnvKey = 'KMA_API_KEY' | 'AIRKOREA_API_KEY' | 'KAKAO_REST_API_KEY' | 'KMA_APIHUB_AUTH_KEY';
 
@@ -43,7 +44,7 @@ export function createApiHandler<T>(options: ApiHandlerOptions<T>) {
         const data = await overseasFetcher(latNum, lonNum);
         return NextResponse.json(data, {
           headers: {
-            'Cache-Control': 'public, max-age=600',
+            'Cache-Control': `public, max-age=${CACHE.HTTP_TTL}`,
           },
         });
       } catch (error) {
@@ -72,7 +73,7 @@ export function createApiHandler<T>(options: ApiHandlerOptions<T>) {
       const data = await fetcher(latNum, lonNum, apiKey, secondaryKey);
       return NextResponse.json(data, {
         headers: {
-          'Cache-Control': 'public, max-age=600',
+          'Cache-Control': `public, max-age=${CACHE.HTTP_TTL}`,
         },
       });
     } catch (error) {

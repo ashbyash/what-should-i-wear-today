@@ -7,13 +7,15 @@
 
 import { toGridCoordinate } from './coordinates';
 import { fetchAwsStations, findNearestStation } from './weather-stations';
+import { getKSTDate, formatKSTDate, formatKSTTime, getKSTHour, getKSTMinutes, getKSTYesterday } from './kst-time';
+import { CACHE } from './constants';
 
 const KMA_FORECAST_URL = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0';
 const KMA_LIVING_URL = 'https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4';
 const KMA_APIHUB_AWS_URL = 'https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-aws2_min';
 
-// 서버 캐시 (격자 좌표 기반, TTL 10분)
-const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10분
+// 서버 캐시 (격자 좌표 + base_time 기반)
+const WEATHER_CACHE_TTL = CACHE.SERVER_TTL;
 const weatherCache = new Map<string, { data: KmaWeatherData; timestamp: number }>();
 
 // AWS 관측 캐시 (관측소 ID 기반, TTL 5분)
@@ -23,12 +25,12 @@ const awsCache = new Map<string, { data: AwsObservation; timestamp: number }>();
 // AWS API 타임아웃 (2초)
 const AWS_FETCH_TIMEOUT = 2000;
 
-// UV 인덱스 캐시 (시도 코드 기반, TTL 1시간)
-const UV_CACHE_TTL = 60 * 60 * 1000; // 1시간
+// UV 인덱스 캐시 (시도 코드 기반)
+const UV_CACHE_TTL = CACHE.SERVER_TTL;
 const uvCache = new Map<string, { data: UVIndexData; timestamp: number }>();
 
-function getCacheKey(nx: number, ny: number): string {
-  return `${nx},${ny}`;
+function getCacheKey(nx: number, ny: number, baseDate: string, baseTime: string): string {
+  return `${nx},${ny},${baseDate},${baseTime}`;
 }
 
 // AWS 관측 데이터
@@ -142,30 +144,24 @@ export interface KmaWeatherData {
  * - 정각~10분: 이전 시간 데이터 사용
  */
 function getUltraSrtBaseTime(): { baseDate: string; baseTime: string } {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  let hour = now.getHours();
-  const minute = now.getMinutes();
+  const kstNow = getKSTDate();
+  let hour = getKSTHour(kstNow);
+  const minute = getKSTMinutes(kstNow);
 
   // 10분 이전이면 이전 시간 사용
   if (minute < 10) {
     hour -= 1;
     if (hour < 0) {
-      hour = 23;
-      // 날짜도 하루 전으로
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterday = getKSTYesterday();
       return {
-        baseDate: `${yesterday.getFullYear()}${String(yesterday.getMonth() + 1).padStart(2, '0')}${String(yesterday.getDate()).padStart(2, '0')}`,
+        baseDate: formatKSTDate(yesterday),
         baseTime: '2300',
       };
     }
   }
 
   return {
-    baseDate: `${year}${month}${day}`,
+    baseDate: formatKSTDate(kstNow),
     baseTime: `${String(hour).padStart(2, '0')}00`,
   };
 }
@@ -174,10 +170,7 @@ function getUltraSrtBaseTime(): { baseDate: string; baseTime: string } {
  * 날짜를 YYYYMMDD 형식으로 변환
  */
 function formatDateStr(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  return formatKSTDate(date);
 }
 
 /**
@@ -186,11 +179,11 @@ function formatDateStr(date: Date): string {
  * - 발표 후 약 10분 후 API 제공
  */
 function getVilageFcstBaseTime(): { baseDate: string; baseTime: string } {
-  const now = new Date();
+  const kstNow = getKSTDate();
   const baseTimes = [2, 5, 8, 11, 14, 17, 20, 23];
 
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+  const hour = getKSTHour(kstNow);
+  const minute = getKSTMinutes(kstNow);
 
   // 현재 시간보다 이전의 가장 가까운 발표 시간 찾기
   let baseHour = baseTimes[0];
@@ -202,8 +195,7 @@ function getVilageFcstBaseTime(): { baseDate: string; baseTime: string } {
 
   // 02시 이전이면 전날 23시
   if (hour < 2 || (hour === 2 && minute < 10)) {
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterday = getKSTYesterday();
     return {
       baseDate: formatDateStr(yesterday),
       baseTime: '2300',
@@ -211,7 +203,7 @@ function getVilageFcstBaseTime(): { baseDate: string; baseTime: string } {
   }
 
   return {
-    baseDate: formatDateStr(now),
+    baseDate: formatDateStr(kstNow),
     baseTime: `${String(baseHour).padStart(2, '0')}00`,
   };
 }
@@ -221,14 +213,13 @@ function getVilageFcstBaseTime(): { baseDate: string; baseTime: string } {
  * - 05시 10분 이전이면 전날 05시 발표 사용
  */
 function get0500BaseTime(): { baseDate: string; baseTime: string } {
-  const now = new Date();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+  const kstNow = getKSTDate();
+  const hour = getKSTHour(kstNow);
+  const minute = getKSTMinutes(kstNow);
 
   // 05시 10분 이전이면 전날 05시 발표 사용
   if (hour < 5 || (hour === 5 && minute < 10)) {
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterday = getKSTYesterday();
     return {
       baseDate: formatDateStr(yesterday),
       baseTime: '0500',
@@ -236,7 +227,7 @@ function get0500BaseTime(): { baseDate: string; baseTime: string } {
   }
 
   return {
-    baseDate: formatDateStr(now),
+    baseDate: formatDateStr(kstNow),
     baseTime: '0500',
   };
 }
@@ -318,15 +309,10 @@ function parseCurrentData(items: KmaItem[]): KmaCurrentData {
  * 현재 시각을 YYYYMMDDHHMM 형식으로 반환
  */
 function getAwsTimeString(): string {
-  const now = new Date();
+  const kstNow = getKSTDate();
   // 1분 전 데이터 요청 (최신 데이터 확보)
-  now.setMinutes(now.getMinutes() - 1);
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hour = String(now.getHours()).padStart(2, '0');
-  const minute = String(now.getMinutes()).padStart(2, '0');
-  return `${year}${month}${day}${hour}${minute}`;
+  kstNow.setUTCMinutes(kstNow.getUTCMinutes() - 1);
+  return `${formatKSTDate(kstNow)}${formatKSTTime(kstNow)}`;
 }
 
 /**
@@ -503,8 +489,7 @@ function parseForecastData(
   items: KmaItem[],
   targetDate?: string
 ): { tempMin: number | null; tempMax: number | null; skyCode: SkyCode } {
-  const today = new Date();
-  const todayStr = targetDate ?? formatDateStr(today);
+  const todayStr = targetDate ?? formatKSTDate();
 
   let tempMin: number | null = null;
   let tempMax: number | null = null;
@@ -592,16 +577,17 @@ export async function fetchKmaWeather(
   apiKey: string
 ): Promise<KmaWeatherData> {
   const { nx, ny } = toGridCoordinate(lat, lon);
-  const cacheKey = getCacheKey(nx, ny);
+  const base0500 = get0500BaseTime();
+  const baseLatest = getVilageFcstBaseTime();
+
+  // 캐시 키에 base_time 포함 → 새 발표 시 자동 갱신
+  const cacheKey = getCacheKey(nx, ny, baseLatest.baseDate, baseLatest.baseTime);
 
   // 캐시 확인
   const cached = weatherCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < WEATHER_CACHE_TTL) {
     return cached.data;
   }
-
-  const base0500 = get0500BaseTime();
-  const baseLatest = getVilageFcstBaseTime();
   const isSameBase = base0500.baseDate === baseLatest.baseDate && base0500.baseTime === baseLatest.baseTime;
 
   // 초단기실황 + 단기예보(05시 + 최신) 병렬 호출
@@ -795,8 +781,8 @@ export async function fetchUVIndex(
     return cached.data;
   }
 
-  const now = new Date();
-  const time = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}`;
+  const kstNow = getKSTDate();
+  const time = `${formatKSTDate(kstNow)}${String(getKSTHour(kstNow)).padStart(2, '0')}`;
 
   const params = new URLSearchParams({
     serviceKey: apiKey,
