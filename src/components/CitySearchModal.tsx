@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, m } from 'framer-motion';
-import { CITIES, getDomesticCities, getOverseasCities } from '@/lib/cities';
+import { CITIES, getDomesticCities, getOverseasCitiesByRegion } from '@/lib/cities';
 import type { CityData } from '@/lib/cities';
 import { useLocationSearch } from '@/lib/useLocationSearch';
 import { TIME_GRADIENTS, type ThemeConfig } from '@/lib/theme';
@@ -12,15 +12,11 @@ import type { SearchResult } from '@/types/location';
 // theme 없을 때 기본값 (night)
 const DEFAULT_GRADIENT = TIME_GRADIENTS.night;
 
-// 빠른 선택용 도시 (국내 + 해외 인기)
-const FEATURED_SLUGS = [
-  'jeju',
-  'gangneung',
-  'busan',
-  'osaka',
-  'bangkok',
-  'tokyo',
-];
+// 빠른 선택용 도시
+const FEATURED_DOMESTIC = ['jeju', 'busan', 'gangneung'];
+const FEATURED_OVERSEAS = ['osaka', 'bangkok', 'tokyo'];
+
+const DOMESTIC_PREVIEW_COUNT = 5;
 
 interface CitySearchModalProps {
   isOpen: boolean;
@@ -35,6 +31,7 @@ export default function CitySearchModal({
 }: CitySearchModalProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAllDomestic, setShowAllDomestic] = useState(false);
 
   // 통합 검색 훅
   const { results, isLoading, isEmpty } = useLocationSearch(searchQuery);
@@ -55,25 +52,22 @@ export default function CitySearchModal({
     return results;
   }, [searchQuery, results]);
 
-  // 해외 도시를 국가별로 그룹핑
-  const overseasByCountry = useMemo(() => {
-    const overseas = getOverseasCities();
-    const grouped: Record<string, CityData[]> = {};
-    overseas.forEach((city) => {
-      const country = city.country ?? '기타';
-      if (!grouped[country]) grouped[country] = [];
-      grouped[country].push(city);
-    });
-    return grouped;
-  }, []);
+  // 해외 도시를 지역별로 그룹핑 (일본/동남아/기타)
+  const overseasByRegion = useMemo(() => getOverseasCitiesByRegion(), []);
 
   const domesticCities = useMemo(() => getDomesticCities(), []);
 
   // 빠른 선택용 도시 데이터
-  const featuredCities = useMemo(() => {
-    return FEATURED_SLUGS.map((slug) =>
+  const featuredDomestic = useMemo(() => {
+    return FEATURED_DOMESTIC.map((slug) =>
       CITIES.find((city) => city.slug === slug)
-    ).filter(Boolean);
+    ).filter(Boolean) as CityData[];
+  }, []);
+
+  const featuredOverseas = useMemo(() => {
+    return FEATURED_OVERSEAS.map((slug) =>
+      CITIES.find((city) => city.slug === slug)
+    ).filter(Boolean) as CityData[];
   }, []);
 
   // 검색 결과 선택 핸들러
@@ -279,27 +273,50 @@ export default function CitySearchModal({
             {/* 빠른 선택 (검색어 없을 때만) */}
             {!searchQuery && (
               <m.section
-                className="mb-6"
+                className="pt-4 mb-6"
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <h3 className={`text-sm font-medium ${colors.muted} mb-3`}>
-                  빠른 선택
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {featuredCities.map((city) => (
-                    <button
-                      key={city!.slug}
-                      onClick={() => handleCitySelect(city!.slug)}
-                      className={`px-4 py-2 rounded-full ${colors.bgStrong} border ${colors.borderStrong}
-                                 text-sm ${colors.secondary}
-                                 ${colors.hoverBg} ${colors.activeBg}
-                                 transition-colors`}
-                    >
-                      {city!.name}
-                    </button>
-                  ))}
+                {/* 국내 인기 */}
+                <div className="mb-3">
+                  <h3 className={`text-xs font-medium ${colors.muted} mb-2`}>
+                    국내 인기
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {featuredDomestic.map((city) => (
+                      <button
+                        key={city.slug}
+                        onClick={() => handleCitySelect(city.slug)}
+                        className={`px-4 py-2 rounded-full ${colors.bgStrong} border ${colors.borderStrong}
+                                   text-sm ${colors.secondary}
+                                   ${colors.hoverBg} ${colors.activeBg}
+                                   transition-colors`}
+                      >
+                        {city.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* 해외 인기 */}
+                <div>
+                  <h3 className={`text-xs font-medium ${colors.muted} mb-2`}>
+                    해외 인기
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {featuredOverseas.map((city) => (
+                      <button
+                        key={city.slug}
+                        onClick={() => handleCitySelect(city.slug)}
+                        className={`px-4 py-2 rounded-full ${colors.bgStrong} border ${colors.borderStrong}
+                                   text-sm ${colors.secondary}
+                                   ${colors.hoverBg} ${colors.activeBg}
+                                   transition-colors`}
+                      >
+                        {city.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </m.section>
             )}
@@ -378,7 +395,7 @@ export default function CitySearchModal({
                     국내 도시 ({domesticCities.length})
                   </h3>
                   <div className="space-y-1">
-                    {domesticCities.map((city) => (
+                    {(showAllDomestic ? domesticCities : domesticCities.slice(0, DOMESTIC_PREVIEW_COUNT)).map((city) => (
                       <button
                         key={city.slug}
                         onClick={() => handleCitySelect(city.slug)}
@@ -413,60 +430,54 @@ export default function CitySearchModal({
                       </button>
                     ))}
                   </div>
+                  {domesticCities.length > DOMESTIC_PREVIEW_COUNT && (
+                    <button
+                      onClick={() => setShowAllDomestic(!showAllDomestic)}
+                      className={`w-full mt-2 py-2.5 rounded-xl text-sm font-medium
+                                 ${colors.bg} border ${colors.border}
+                                 ${colors.secondary}
+                                 ${colors.hoverBg} ${colors.activeBg}
+                                 transition-colors`}
+                    >
+                      {showAllDomestic
+                        ? '접기'
+                        : `더 보기 (+${domesticCities.length - DOMESTIC_PREVIEW_COUNT})`}
+                    </button>
+                  )}
                 </m.section>
 
-                {/* 해외 여행지 (국가별 그룹핑) */}
+                {/* 해외 여행지 (지역별 칩 레이아웃) */}
                 <m.section
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
                   <h3 className={`text-sm font-medium ${colors.muted} mb-3`}>
-                    해외 여행지 ({getOverseasCities().length})
+                    해외 여행지
                   </h3>
-                  {Object.entries(overseasByCountry).map(([country, cities]) => (
-                    <div key={country} className="mb-4">
-                      <p className={`text-xs font-medium ${colors.muted} mb-1 px-2`}>
-                        {country}
-                      </p>
-                      <div className="space-y-1">
-                        {cities.map((city) => (
-                          <button
-                            key={city.slug}
-                            onClick={() => handleCitySelect(city.slug)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl
-                                       ${colors.hoverBg} ${colors.activeBg}
-                                       transition-colors text-left`}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className={`${colors.primary} font-medium`}>
-                                {city.name}
-                                <span className={`ml-2 text-sm ${colors.muted}`}>
-                                  {city.nameEn}
-                                </span>
-                              </p>
-                              <p className={`text-sm ${colors.muted} mt-0.5 truncate`}>
-                                {city.description}
-                              </p>
-                            </div>
-                            <svg
-                              className={`w-5 h-5 ${colors.muted} flex-shrink-0`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                  <div className="space-y-3">
+                    {overseasByRegion.map(([region, cities]) => (
+                      <div key={region} className="flex items-start gap-2">
+                        <span className={`text-xs font-medium ${colors.muted} pt-2 shrink-0 w-12`}>
+                          {region}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {cities.map((city) => (
+                            <button
+                              key={city.slug}
+                              onClick={() => handleCitySelect(city.slug)}
+                              className={`px-3 py-1.5 rounded-full ${colors.bg} border ${colors.border}
+                                         text-sm ${colors.secondary}
+                                         ${colors.hoverBg} ${colors.activeBg}
+                                         transition-colors`}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </button>
-                        ))}
+                              {city.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </m.section>
               </>
             )}

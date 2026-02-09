@@ -523,3 +523,31 @@ export function getOverseasCities(): CityData[] {
 export function getDomesticCities(): CityData[] {
   return CITIES.filter((city) => !city.isOverseas);
 }
+
+// 해외 도시를 지역별로 그룹핑 (일본/동남아/기타)
+const REGION_MAP: Record<string, string> = {
+  '일본': '일본',
+  '태국': '동남아',
+  '베트남': '동남아',
+  '필리핀': '동남아',
+  '인도네시아': '동남아',
+  '싱가포르': '동남아',
+  '대만': '기타',
+  '괌': '기타',
+  '미국': '기타',
+};
+
+const REGION_ORDER = ['일본', '동남아', '기타'];
+
+export function getOverseasCitiesByRegion(): [string, CityData[]][] {
+  const overseas = getOverseasCities();
+  const grouped: Record<string, CityData[]> = {};
+
+  overseas.forEach((city) => {
+    const region = city.country ? (REGION_MAP[city.country] ?? '기타') : '기타';
+    if (!grouped[region]) grouped[region] = [];
+    grouped[region].push(city);
+  });
+
+  return REGION_ORDER.filter((r) => grouped[r]).map((r) => [r, grouped[r]]);
+}
