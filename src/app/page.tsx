@@ -213,6 +213,24 @@ function HomeContent() {
             />
           </m.div>
 
+          {/* 옷차림 추천 */}
+          <m.div className="col-span-2 md:col-span-3" variants={cardVariants}>
+            <OutfitCard
+              outfit={outfit}
+              weatherContext={{
+                temperature: weatherData.temperature,
+                feelsLike: weatherData.feelsLike,
+                weatherMain: weatherData.weatherMain,
+                pm25: airQualityData.pm25,
+              }}
+            />
+          </m.div>
+
+          {/* 날씨 */}
+          <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
+            <WeatherCard weather={weatherData} />
+          </m.div>
+
           {/* 외출 점수 */}
           <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
             <ScoreGauge
@@ -229,26 +247,8 @@ function HomeContent() {
             />
           </m.div>
 
-          {/* 옷차림 추천 */}
-          <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
-            <OutfitCard
-              outfit={outfit}
-              weatherContext={{
-                temperature: weatherData.temperature,
-                feelsLike: weatherData.feelsLike,
-                weatherMain: weatherData.weatherMain,
-                pm25: airQualityData.pm25,
-              }}
-            />
-          </m.div>
-
-          {/* 날씨 */}
-          <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
-            <WeatherCard weather={weatherData} />
-          </m.div>
-
           {/* 미세먼지 */}
-          <m.div className="col-span-1" variants={cardVariants}>
+          <m.div className="col-span-1 md:col-span-2" variants={cardVariants}>
             <DustCard airQuality={airQualityData} loading={airQualityLoading} />
           </m.div>
 

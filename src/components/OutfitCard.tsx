@@ -51,7 +51,7 @@ export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) 
       role="region"
       aria-label={`오늘의 옷차림 추천. ${outfitSummary}${alerts.length > 0 ? `. 주의사항: ${alerts.join(', ')}` : ''}${stylingTip ? `. 스타일링 팁: ${stylingTip}` : ''}`}
     >
-      <div className="card-body p-4">
+      <div className="card-body p-4 md:max-w-lg md:mx-auto">
         <h3 className="card-title text-heading-2 justify-center text-glass-secondary">
           <svg className="w-5 h-5 text-glass-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path
