@@ -2,14 +2,16 @@
 
 import { m } from 'framer-motion';
 import { weatherAnimations } from '@/lib/animation-variants';
-import { getWeatherEmoji } from '@/lib/weather-utils';
+import { getWeatherEmoji, getTimeCategoryForHour } from '@/lib/weather-utils';
 import HourlyForecast from './HourlyForecast';
 import type { WeatherData, HourlyForecastItem } from '@/types/weather';
+import type { CityData } from '@/lib/cities';
 
 interface WeatherCardProps {
   weather: WeatherData;
   hourlyForecast?: HourlyForecastItem[] | null;
   hourlyLoading?: boolean;
+  city?: CityData;
 }
 
 function getWeatherLabel(weatherMain: string): string {
@@ -38,8 +40,12 @@ function getWeatherLabel(weatherMain: string): string {
   }
 }
 
-export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = false }: WeatherCardProps) {
-  const emoji = getWeatherEmoji(weather.weatherMain);
+export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = false, city }: WeatherCardProps) {
+  const nowHour = `${String(new Date().getHours()).padStart(2, '0')}:00`;
+  const currentTimeCategory = city
+    ? getTimeCategoryForHour(nowHour, city.lat, city.lon, city.utcOffset)
+    : undefined;
+  const emoji = getWeatherEmoji(weather.weatherMain, currentTimeCategory);
   const label = getWeatherLabel(weather.weatherMain);
   const weatherKey = weather.weatherMain.toLowerCase();
   const animation = weatherAnimations[weatherKey] || weatherAnimations.default;
@@ -85,7 +91,7 @@ export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = f
         {/* 시간별 예보 */}
         {(hourlyLoading || (hourlyForecast && hourlyForecast.length > 0)) && (
           <div className="border-t border-white/20 pt-3 mt-3 w-full">
-            <HourlyForecast data={hourlyForecast ?? null} loading={hourlyLoading} />
+            <HourlyForecast data={hourlyForecast ?? null} loading={hourlyLoading} city={city} />
           </div>
         )}
       </div>

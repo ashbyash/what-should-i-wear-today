@@ -183,7 +183,7 @@ export async function fetchOpenMeteoUV(lat: number, lon: number) {
  * timezone=auto로 현지 시간 자동 반환
  */
 export async function fetchOpenMeteoHourly(lat: number, lon: number): Promise<HourlyForecastItem[]> {
-  const url = `${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code&forecast_hours=36&timezone=auto`;
+  const url = `${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code,precipitation_probability&forecast_hours=36&timezone=auto`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`Open-Meteo hourly API error: ${res.status}`);
   const data = await res.json();
@@ -196,13 +196,17 @@ export async function fetchOpenMeteoHourly(lat: number, lon: number): Promise<Ho
   const result: HourlyForecastItem[] = [];
   for (let i = 0; i < hourly.time.length; i++) {
     const timeStr: string = hourly.time[i];
-    const hour = timeStr.split('T')[1]?.substring(0, 2);
+    const parts = timeStr.split('T');
+    const date = parts[0];
+    const hour = parts[1]?.substring(0, 2);
     if (!hour) continue;
 
     result.push({
       time: `${hour}:00`,
       temperature: Math.round(hourly.temperature_2m[i]),
       weatherMain: wmoCodeToWeatherMain(hourly.weather_code[i]),
+      date,
+      precipitationProbability: hourly.precipitation_probability?.[i],
     });
   }
 

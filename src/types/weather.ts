@@ -92,9 +92,11 @@ export interface LocationData {
 
 // 시간별 예보 아이템
 export interface HourlyForecastItem {
-  time: string;           // "15:00"
-  temperature: number;    // 15 (반올림된 정수)
-  weatherMain: string;    // "Clear", "Rain", etc.
+  time: string;                        // "15:00"
+  temperature: number;                 // 15 (반올림된 정수)
+  weatherMain: string;                 // "Clear", "Rain", etc.
+  date?: string;                       // "2026-02-12"
+  precipitationProbability?: number;   // 0-100
 }
 
 // ISR 초기 데이터 (서버에서 fetch한 날씨 데이터)

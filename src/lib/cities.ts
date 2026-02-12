@@ -8,6 +8,7 @@ export interface CityData {
   description: string;
   isOverseas?: boolean;
   country?: string;
+  utcOffset?: number; // UTC 기준 오프셋 (예: 9=한국, 7=태국)
 }
 
 export const CITIES: CityData[] = [
@@ -366,6 +367,7 @@ export const CITIES: CityData[] = [
     description: "일본 제2의 도시, 먹거리의 도시",
     isOverseas: true,
     country: "일본",
+    utcOffset: 9,
   },
   {
     slug: "tokyo",
@@ -376,6 +378,7 @@ export const CITIES: CityData[] = [
     description: "일본 수도, 세계적 대도시",
     isOverseas: true,
     country: "일본",
+    utcOffset: 9,
   },
   {
     slug: "fukuoka",
@@ -386,6 +389,7 @@ export const CITIES: CityData[] = [
     description: "규슈 최대 도시, 한국에서 가장 가까운 일본",
     isOverseas: true,
     country: "일본",
+    utcOffset: 9,
   },
   {
     slug: "kyoto",
@@ -396,6 +400,7 @@ export const CITIES: CityData[] = [
     description: "일본 전통 문화의 도시",
     isOverseas: true,
     country: "일본",
+    utcOffset: 9,
   },
   {
     slug: "sapporo",
@@ -406,6 +411,7 @@ export const CITIES: CityData[] = [
     description: "홋카이도 중심 도시, 눈 축제",
     isOverseas: true,
     country: "일본",
+    utcOffset: 9,
   },
   {
     slug: "bangkok",
@@ -416,6 +422,7 @@ export const CITIES: CityData[] = [
     description: "태국 수도, 동남아 대표 여행지",
     isOverseas: true,
     country: "태국",
+    utcOffset: 7,
   },
   {
     slug: "danang",
@@ -426,6 +433,7 @@ export const CITIES: CityData[] = [
     description: "베트남 중부 해변 도시",
     isOverseas: true,
     country: "베트남",
+    utcOffset: 7,
   },
   {
     slug: "ho-chi-minh",
@@ -436,6 +444,7 @@ export const CITIES: CityData[] = [
     description: "베트남 최대 도시",
     isOverseas: true,
     country: "베트남",
+    utcOffset: 7,
   },
   {
     slug: "cebu",
@@ -446,6 +455,7 @@ export const CITIES: CityData[] = [
     description: "필리핀 대표 휴양지",
     isOverseas: true,
     country: "필리핀",
+    utcOffset: 8,
   },
   {
     slug: "bali",
@@ -456,6 +466,7 @@ export const CITIES: CityData[] = [
     description: "인도네시아 대표 휴양지",
     isOverseas: true,
     country: "인도네시아",
+    utcOffset: 8,
   },
   {
     slug: "taipei",
@@ -466,6 +477,7 @@ export const CITIES: CityData[] = [
     description: "대만 수도, 야시장과 먹거리",
     isOverseas: true,
     country: "대만",
+    utcOffset: 8,
   },
   {
     slug: "singapore",
@@ -476,6 +488,7 @@ export const CITIES: CityData[] = [
     description: "동남아 도시국가",
     isOverseas: true,
     country: "싱가포르",
+    utcOffset: 8,
   },
   {
     slug: "guam",
@@ -486,6 +499,7 @@ export const CITIES: CityData[] = [
     description: "서태평양 휴양지",
     isOverseas: true,
     country: "괌",
+    utcOffset: 10,
   },
   {
     slug: "honolulu",
@@ -496,6 +510,7 @@ export const CITIES: CityData[] = [
     description: "하와이 대표 도시",
     isOverseas: true,
     country: "미국",
+    utcOffset: -10,
   },
 ];
 

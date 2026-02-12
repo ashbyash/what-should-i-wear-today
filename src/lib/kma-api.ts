@@ -857,7 +857,7 @@ function parseHourlyItems(items: KmaItem[]): HourlyForecastItem[] {
   const endTimestamp = parseInt(`${endDateStr}${String(endHour).padStart(2, '0')}`);
 
   // fcstDate+fcstTime 기준 그룹화
-  const timeMap = new Map<string, { tmp?: number; sky?: SkyCode; pty?: PtyCode }>();
+  const timeMap = new Map<string, { tmp?: number; sky?: SkyCode; pty?: PtyCode; pop?: number }>();
 
   for (const item of items) {
     if (!item.fcstDate || !item.fcstTime || !item.fcstValue) continue;
@@ -879,6 +879,9 @@ function parseHourlyItems(items: KmaItem[]): HourlyForecastItem[] {
         break;
       case 'PTY':
         entry.pty = item.fcstValue as PtyCode;
+        break;
+      case 'POP':
+        entry.pop = parseInt(item.fcstValue, 10);
         break;
     }
 
@@ -904,6 +907,8 @@ function parseHourlyItems(items: KmaItem[]): HourlyForecastItem[] {
       time: `${hour}:00`,
       temperature: entry.tmp,
       weatherMain,
+      date: `${key.substring(0, 4)}-${key.substring(4, 6)}-${key.substring(6, 8)}`,
+      precipitationProbability: entry.pop,
     });
   }
 

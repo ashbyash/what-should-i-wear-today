@@ -1,12 +1,25 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { Fragment, useRef, useState, useEffect, useCallback } from 'react';
 import type { HourlyForecastItem } from '@/types/weather';
-import { getWeatherEmoji } from '@/lib/weather-utils';
+import type { CityData } from '@/lib/cities';
+import { getWeatherEmoji, getTimeCategoryForHour } from '@/lib/weather-utils';
 
 interface HourlyForecastProps {
   data: HourlyForecastItem[] | null;
   loading: boolean;
+  city?: CityData;
+}
+
+function getDateLabel(dateStr: string): string {
+  const itemDate = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((itemDate.getTime() - today.getTime()) / 86400000);
+  if (diffDays === 1) return '내일';
+  if (diffDays === 2) return '모레';
+  return `${itemDate.getMonth() + 1}/${itemDate.getDate()}`;
 }
 
 function HourlySkeleton() {
@@ -15,19 +28,20 @@ function HourlySkeleton() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="flex flex-col items-center gap-1.5 w-14 shrink-0 py-2 px-1 bg-white/10 rounded-lg animate-pulse"
+          className="flex flex-col items-center gap-0.5 w-14 shrink-0 py-2 px-1 bg-white/10 rounded-lg animate-pulse"
           style={{ animationDelay: `${i * 100}ms` }}
         >
           <div className="w-8 h-2.5 bg-white/20 rounded" />
           <div className="w-7 h-7 bg-white/20 rounded-full" />
           <div className="w-6 h-3 bg-white/20 rounded" />
+          <div className="w-5 h-2 bg-white/20 rounded" />
         </div>
       ))}
     </div>
   );
 }
 
-export default function HourlyForecast({ data, loading }: HourlyForecastProps) {
+export default function HourlyForecast({ data, loading, city }: HourlyForecastProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -57,38 +71,60 @@ export default function HourlyForecast({ data, loading }: HourlyForecastProps) {
   if (loading) return <HourlySkeleton />;
   if (!data || data.length === 0) return null;
 
-  // 현재 시각의 HH 구하기 (클라이언트 로컬 시간)
-  const nowHour = String(new Date().getHours()).padStart(2, '0');
-  const nowLabel = `${nowHour}:00`;
-
   return (
     <div className="relative" role="region" aria-label="시간별 예보">
       {/* 스크롤 컨테이너 */}
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
+        className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth px-1"
       >
         {data.map((item, i) => {
-          const isNow = i === 0 || item.time === nowLabel;
+          const isNow = i === 0;
+
+          const timeCategory = (item.date && city)
+            ? getTimeCategoryForHour(item.time, city.lat, city.lon, city.utcOffset)
+            : undefined;
+          const emoji = getWeatherEmoji(item.weatherMain, timeCategory);
+
+          const prevDate = i > 0 ? data[i - 1]?.date : undefined;
+          const showDivider = item.date && prevDate && item.date !== prevDate;
+
           return (
-            <div
-              key={`${item.time}-${i}`}
-              className={`flex flex-col items-center gap-1 w-14 shrink-0 py-2 px-1 rounded-lg snap-start transition-colors
-                ${isNow
-                  ? 'bg-white/25 shadow-md scale-105'
-                  : 'bg-white/10 hover:bg-white/15'
-                }`}
-            >
-              <span className={`text-xs ${isNow ? 'text-glass-primary font-semibold' : 'text-glass-muted'}`}>
-                {isNow && i === 0 ? '지금' : item.time}
-              </span>
-              <span className="text-xl" aria-hidden="true">
-                {getWeatherEmoji(item.weatherMain)}
-              </span>
-              <span className={`text-sm ${isNow ? 'text-glass-primary font-semibold' : 'text-glass-secondary'}`}>
-                {item.temperature}°
-              </span>
-            </div>
+            <Fragment key={`${item.date}-${item.time}-${i}`}>
+              {showDivider && (
+                <div
+                  className="flex flex-col items-center justify-center w-12 shrink-0 snap-start"
+                  role="separator"
+                >
+                  <div className="h-5 w-px bg-white/30" />
+                  <span className="text-xs font-medium text-glass-primary bg-white/20 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {getDateLabel(item.date!)}
+                  </span>
+                  <div className="h-5 w-px bg-white/30" />
+                </div>
+              )}
+
+              <div
+                className={`flex flex-col items-center gap-0.5 w-14 shrink-0 py-2 px-1 rounded-lg snap-start transition-colors
+                  ${isNow ? 'bg-white/25 shadow-md scale-105' : 'bg-white/10 hover:bg-white/15'}`}
+              >
+                <span className={`text-xs ${isNow ? 'text-glass-primary font-semibold' : 'text-glass-muted'}`}>
+                  {isNow && i === 0 ? '지금' : item.time}
+                </span>
+
+                <span className="text-xl" aria-hidden="true">{emoji}</span>
+
+                <span className={`text-sm ${isNow ? 'text-glass-primary font-semibold' : 'text-glass-secondary'}`}>
+                  {item.temperature}°
+                </span>
+
+                {item.precipitationProbability != null && item.precipitationProbability > 0 && (
+                  <span className="text-[10px] leading-none text-blue-200/80">
+                    💧{item.precipitationProbability}%
+                  </span>
+                )}
+              </div>
+            </Fragment>
           );
         })}
       </div>
