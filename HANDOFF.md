@@ -1,116 +1,90 @@
-# Handoff: AI 스타일링 팁 구현
+# Handoff: 시간별 예보 UX 개선 구현 예정
 
 ## 1. Completed Work (이번 세션)
 
-### CitySearchModal UX 개선
-해외 여행지 발견성 향상을 위한 모달 리디자인 완료.
+### 시간별 예보 기능 전체 구현 (이전 세션, 미커밋)
+- 14개 파일 수정/신규 (상세: `.claude/plans/quiet-nibbling-crescent.md` 참고)
+- 브라우저 테스트 완료 (/, /seoul, /osaka) — 이상 없음
+- **아직 커밋하지 않음**
 
-**변경 파일:**
-- `src/components/CitySearchModal.tsx` (커밋 e41b565)
-  - `FEATURED_SLUGS` → `FEATURED_DOMESTIC`(제주/부산/강릉) + `FEATURED_OVERSEAS`(오사카/방콕/도쿄) 분리 (line 16-17)
-  - 빠른 선택 섹션: "국내 인기" / "해외 인기" 라벨 분리 (line 287-326)
-  - 국내 도시: 5개만 기본 표시 + "더 보기" 버튼 접기/펼치기 (line 380-429)
-  - 해외 섹션: 세로 리스트 → 지역별(일본/동남아/기타) 가로 칩 레이아웃 (line 432-464)
-  - 빠른 선택 상단 패딩 `pt-4` 추가 (line 282)
-- `src/lib/cities.ts` (커밋 e41b565)
-  - `getOverseasCitiesByRegion()` 헬퍼 추가 (line 527-553)
-  - `REGION_MAP` (국가→지역 매핑) + `REGION_ORDER` (표시 순서) 상수 추가
+### 시간별 예보 UX 개선 플래닝 완료 (이번 세션)
+4가지 UX 개선에 대한 상세 구현 플랜 작성 완료:
+1. CityWeatherPage 카드 레이아웃 변경 (page.tsx와 동일)
+2. 밤/낮/일출/일몰 시간대별 이모지 시스템
+3. 날짜 경계(23:00→00:00) "내일"/"모레" 구분 표시
+4. 강수확률(💧60%) 표시
 
-### Roadmap 업데이트 (v1.2 → v1.3)
-- `product/roadmap.md` (커밋 전 — 스테이징 필요)
-  - Done: SEO 페이지 33→57개, JSON-LD/ISR 명시, CitySearchModal UX 추가
-  - Now: 국내 여행지 ✅ Done, 해외 여행지 ✅ Done, AI 점수 메시지 ✅ Done
-  - Next: "해외 여행지 날씨" 제거 (이미 완료)
+**핵심 발견**: 해외 도시 타임존 이슈
+- `getSunTimes()`가 KST 고정 → 해외 도시 시간 불일치
+- 해결: `CityData`에 `utcOffset` 추가, `SunCalc.getTimes()` 직접 사용 후 UTC→현지 변환
+
+**확정된 이모지 매핑**:
+| 시간대 | Clear | Clouds | Rain/Snow/Thunder | Mist/Fog |
+|--------|-------|--------|-------------------|----------|
+| 낮 | ☀️ | ☁️ | 🌧️/❄️/⛈️ | ☁️ |
+| 밤 | 🌙 | ☁️ | 🌧️/❄️/⛈️ | ☁️ |
+| 일출/일몰 | 🌤️ | 🌤️ | 🌧️/❄️/⛈️ | ☁️ |
 
 ## 2. Current State
 
 ```
 Branch: main
-Latest commit: e41b565 "overseas ui update"
-Uncommitted: product/roadmap.md (v1.3 업데이트)
-Build: 성공 (73개 정적 페이지)
-Lint: 통과
+Latest commit: bce643c "card location update"
+Uncommitted: 14개 파일 (시간별 예보 기능, 수정 11 + 신규 3)
+Build: 성공
 ```
 
-## 3. Pending Task: AI 스타일링 팁
+## 3. Next Session Tasks — Step 1~8 순서대로 구현
 
-### 목표
-옷차림 카드 하단에 AI 생성 스타일링 팁 1줄 추가.
-기존 룰베이스 alert 아래에 표시.
+상세 플랜: `.claude/plans/quiet-nibbling-crescent.md`
 
-### 설계 결정 (이번 세션에서 확정)
+| Step | 파일 | 작업 | 변경량 |
+|------|------|------|--------|
+| 1 | `src/types/weather.ts` | `HourlyForecastItem`에 `date?`, `precipitationProbability?` 추가 | +2줄 |
+| 2 | `src/lib/cities.ts` | `CityData`에 `utcOffset?`, 해외 도시 12곳에 값 추가 | +15줄 |
+| 3 | `src/lib/kma-api.ts` | `parseHourlyItems()`에 POP 카테고리 추출 + date 필드 | +8줄 |
+| 4 | `src/lib/open-meteo-api.ts` | URL에 `precipitation_probability` 추가 + date 필드 | +5줄 |
+| 5 | `src/lib/weather-utils.ts` | `getTimeCategoryForHour()` 신규 + `getWeatherEmoji()` 확장 | +50줄 |
+| 6 | `src/components/WeatherCard.tsx` | `city?` prop 추가, 메인 이모지 시간대 반영 | +10줄 |
+| 7 | `src/components/HourlyForecast.tsx` | 날짜 구분 칩, 강수확률, 시간대 이모지, 스켈레톤 | +40줄 |
+| 8 | `src/components/CityWeatherPage.tsx` | 카드 순서 변경 + `city` prop 전달 | 순서변경 |
 
-**옷차림 아이템(카테고리별)**: 룰베이스 유지
-- 온도→아이템 매핑은 lookup table 문제, AI가 더 잘할 수 없음
-- 할루시네이션 위험, 비용, 지연 없이 정확한 추천 가능
+**의존성**: Step 1,2 → Step 3,4,5 → Step 6,7 → Step 8
 
-**Alert 메시지(일교차/미세먼지/체감온도)**: 룰베이스 유지
-- 사실 전달 목적, 이미 시간대별 겉옷 비교 로직 구현됨
-
-**스타일링 팁**: AI로 추가 (NEW)
-- 여러 조건(기온+날씨+미세먼지+바람)을 자연어로 합성하는 건 AI가 룰베이스보다 나음
-- 예: "울 니트에 머플러 포인트로 따뜻하고 세련되게!"
-- 예: "비 오는 날, 고어텍스에 첼시부츠 조합이면 멋스러워요"
-
-### 재사용할 기존 인프라
-
-AI 점수 메시지와 동일한 패턴 복제:
-
-| 레이어 | 기존 (점수 메시지) | 새로 만들 것 (스타일링 팁) |
-|--------|-------------------|--------------------------|
-| 프롬프트 | `src/lib/prompts/score-message.ts` | `src/lib/prompts/styling-tip.ts` |
-| 서비스 | `src/lib/ai-message.ts` | `src/lib/ai-styling-tip.ts` |
-| API Route | `src/app/api/ai-message/route.ts` | `src/app/api/ai-styling-tip/route.ts` |
-| 클라이언트 훅 | `src/lib/useAIMessage.ts` | `src/lib/useAIStylingTip.ts` |
-| UI | `src/components/ScoreGauge.tsx` | `src/components/OutfitCard.tsx` (수정) |
-
-### 기존 AI 인프라 상세
-
-**캐시 전략** (`src/lib/ai-message.ts`):
-- 서버 메모리 캐시: 10점 단위 버킷 + 레벨 + 날씨 + PM2.5 등급 → 캐시 키
-- TTL: 5분 (`CACHE.TTL` = 300,000ms, `src/lib/constants.ts:302`)
-- 최대 50개 엔트리, LRU 방식
-- 클라이언트: SWR `dedupingInterval`로 5분간 중복 요청 방지
-
-**프롬프트 패턴** (`src/lib/prompts/score-message.ts`):
-- System prompt: XML 태그로 구조화 (`<role>`, `<rules>`, `<output_format>`, `<examples>`)
-- User prompt: `<weather_data>` + `<score_breakdown>` 태그로 데이터 전달
-- Few-shot 3개 예시 포함
-- JSON output format (`{ "message": "..." }`)
-- 한국어 30자 이내 제약
-- gpt-4o-mini, temperature 0.3, max_tokens 100
-
-**OutfitCard UI** (`src/components/OutfitCard.tsx`):
-- `outfit.alerts[]`를 하단에 ⚠️ 아이콘과 함께 표시 (line 68-77)
-- 스타일링 팁은 alerts 아래에 별도 섹션으로 추가하면 됨
-- 글래스모피즘 스타일: `bg-white/15 backdrop-blur-md border-white/20`
-
-**스타일링 팁 프롬프트에 필요한 입력 데이터:**
-- `outfit.categories` (현재 추천된 아이템 목록) — 이걸 기반으로 스타일링 제안
-- `temperature`, `feelsLike`, `weatherMain`, `pm25`
-- `outfit.alerts` (일교차/미세먼지/체감온도 경고)
-
-### 참고할 코드 위치
-- AI 점수 메시지 프롬프트: `src/lib/prompts/score-message.ts` (전체)
-- AI 서비스 + 캐시: `src/lib/ai-message.ts` (전체)
-- API Route: `src/app/api/ai-message/route.ts` (전체)
-- 클라이언트 훅: `src/lib/useAIMessage.ts` (전체)
-- 옷차림 로직: `src/lib/outfit.ts` (전체)
-- 옷차림 UI: `src/components/OutfitCard.tsx` (전체, 특히 line 68-77 alerts 영역)
-- 캐시 상수: `src/lib/constants.ts:301-303`
-
-## 4. Key Decisions
+## 4. Key Decisions Made
 
 | 결정 | 이유 |
 |------|------|
-| 옷차림 아이템은 룰베이스 유지 | lookup table 문제, AI 할루시네이션 위험, 비용/지연 불필요 |
-| Alert 메시지도 룰베이스 유지 | 사실 전달 목적, 이미 시간대별 겉옷 비교 로직 동작 중 |
-| AI는 스타일링 팁 1줄만 추가 | 다중 조건 합성은 AI가 우위, 기존 인프라 재사용으로 구현비용 최소 |
-| AI 스타일링 팁을 시간대별 옷차림/공유보다 우선 | 평가 점수 7/10 vs 6/10, Now(Q1)에 이미 배치, 인프라 재사용 가능 |
+| `date`, `precipitationProbability` optional 유지 | 기존 ISR 캐시 데이터 하위 호환 |
+| `utcOffset`을 CityData에 추가 | 해외 도시 일출/일몰 정확한 현지 시간 계산 |
+| `SunCalc.getTimes()` 직접 사용 (theme.ts의 getSunTimes 미사용) | getSunTimes는 KST 고정, 해외 도시에서 UTC→현지 변환 필요 |
+| page.tsx는 city prop 미전달 (undefined) | 메인은 geolocation 기반, 한국 사용자 → KST 기본 동작 충분 |
+| 강수확률 0%일 때 숨김 | 깔끔한 UI, 필요할 때만 정보 표시 |
+| Mist/Fog → ☁️ (구름 이모지) | 사각형 🌫️ 대신, 안개=낮은 구름으로 통일 |
+| 일출/일몰 → 🌤️ | 사각형 🌅/🌇 대신, 둥근 이모지로 통일 |
 
-## 5. Blockers / Issues Found
+## 5. 핵심 파일 맵
 
-없음. 빌드/린트 모두 통과.
+```
+데이터 흐름 (현재):
+kma-api.ts fetchKmaHourlyForecast() [TMP/SKY/PTY]
+  → api/weather-hourly/route.ts
+  → useWeatherData.ts (SWR)
+  → WeatherCard.tsx → HourlyForecast.tsx
+
+데이터 흐름 (변경 후):
+kma-api.ts [+POP, +date] / open-meteo-api.ts [+precipitation_probability, +date]
+  → api/weather-hourly/route.ts (변경 없음)
+  → useWeatherData.ts (변경 없음, optional 필드 자동 통과)
+  → WeatherCard.tsx [+city prop → getTimeCategoryForHour()]
+  → HourlyForecast.tsx [+날짜 구분 칩, +강수확률, +시간대 이모지]
+
+이모지 로직:
+weather-utils.ts getTimeCategoryForHour(hour, lat, lon, utcOffset?)
+  → SunCalc.getTimes() → UTC → 현지 시간 변환
+  → sunrise/sunset ±30분 경계 → TimeCategory
+  → getWeatherEmoji(weatherMain, timeCategory?) → 이모지
+```
 
 ## 6. Context for Next Session
 
@@ -118,17 +92,24 @@ AI 점수 메시지와 동일한 패턴 복제:
 ```
 HANDOFF.md를 읽어줘.
 
-AI 스타일링 팁 기능을 구현해줘.
+이전 세션에서:
+- 시간별 예보 기능 구현 완료 (미커밋, 14개 파일)
+- 시간별 예보 UX 개선 상세 플랜 작성 완료
 
-목표: OutfitCard 하단에 AI 생성 스타일링 팁 1줄 추가.
+이번 세션에서 할 일:
+1. 먼저 시간별 예보 기능을 커밋
+2. 상세 플랜(.claude/plans/quiet-nibbling-crescent.md)에 따라 Step 1~8 순서대로 구현
+   - Step 1: types/weather.ts — date, precipitationProbability 추가
+   - Step 2: lib/cities.ts — utcOffset 추가
+   - Step 3: lib/kma-api.ts — POP 추출 + date
+   - Step 4: lib/open-meteo-api.ts — precipitation_probability + date
+   - Step 5: lib/weather-utils.ts — getTimeCategoryForHour() + getWeatherEmoji() 확장
+   - Step 6: components/WeatherCard.tsx — city prop + 메인 이모지 시간대
+   - Step 7: components/HourlyForecast.tsx — 날짜 구분, 강수확률, 시간대 이모지
+   - Step 8: components/CityWeatherPage.tsx — 카드 레이아웃 + city 전달
+3. npm run build로 타입 체크
+4. dev 서버에서 브라우저 테스트 (/, /seoul, /osaka, /bangkok)
+5. 커밋
 
-구현 방법:
-1. src/lib/prompts/styling-tip.ts — 프롬프트 템플릿 (score-message.ts 패턴 복제)
-   - 입력: 추천된 옷 아이템 목록 + 날씨 데이터
-   - 출력: 스타일링 팁 한 문장 (JSON)
-2. src/lib/ai-styling-tip.ts — 서비스 (ai-message.ts 패턴 복제, 캐시 포함)
-3. src/app/api/ai-styling-tip/route.ts — API Route
-4. src/lib/useAIStylingTip.ts — 클라이언트 훅 (SWR)
-5. src/components/OutfitCard.tsx — alerts 아래에 스타일링 팁 표시
-6. 기존 룰베이스 옷차림/alert은 변경하지 않음
+각 Step의 구체적인 코드 변경 사항은 플랜 파일에 모두 기술되어 있으니 참고해서 구현해줘.
 ```

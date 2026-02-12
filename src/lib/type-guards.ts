@@ -3,6 +3,8 @@
  * 서버에서 이미 검증된 데이터이므로 기본적인 null 체크만 수행
  */
 
+import type { HourlyForecastItem } from '@/types/weather';
+
 export interface KmaCurrentData {
   temperature: number;
   humidity: number;
@@ -78,4 +80,15 @@ export function parseLocation(data: unknown): LocationData | null {
   if (!isObject(data)) return null;
   if (typeof data.address !== 'string') return null;
   return data as unknown as LocationData;
+}
+
+export function parseHourlyForecast(data: unknown): HourlyForecastItem[] | null {
+  if (!Array.isArray(data)) return null;
+  if (data.length === 0) return [];
+  const first = data[0];
+  if (!isObject(first)) return null;
+  if (typeof first.time !== 'string') return null;
+  if (typeof first.temperature !== 'number') return null;
+  if (typeof first.weatherMain !== 'string') return null;
+  return data as HourlyForecastItem[];
 }

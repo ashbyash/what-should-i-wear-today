@@ -9,6 +9,7 @@ import { toGridCoordinate } from './coordinates';
 import { fetchAwsStations, findNearestStation } from './weather-stations';
 import { getKSTDate, formatKSTDate, formatKSTTime, getKSTHour, getKSTMinutes, getKSTYesterday } from './kst-time';
 import { CACHE } from './constants';
+import type { HourlyForecastItem } from '@/types/weather';
 
 const KMA_FORECAST_URL = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0';
 const KMA_LIVING_URL = 'https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4';
@@ -826,6 +827,136 @@ export async function fetchUVIndex(
 
   // 캐시 저장
   uvCache.set(areaNo, { data: result, timestamp: Date.now() });
+
+  return result;
+}
+
+// ============================================
+// 시간별 예보 (단기예보 활용)
+// ============================================
+
+// 시간별 예보 캐시
+const hourlyCacheTTL = CACHE.SERVER_TTL;
+const hourlyCache = new Map<string, { data: HourlyForecastItem[]; timestamp: number }>();
+
+/**
+ * 단기예보 응답에서 시간별 예보 아이템 파싱
+ * - TMP(기온), SKY(하늘상태), PTY(강수형태) 추출
+ * - 현재 KST 시각 ~ +36시간 필터링
+ */
+function parseHourlyItems(items: KmaItem[]): HourlyForecastItem[] {
+  const kstNow = getKSTDate();
+  const currentDate = formatKSTDate(kstNow);
+  const currentHour = getKSTHour(kstNow);
+  const currentTimestamp = parseInt(`${currentDate}${String(currentHour).padStart(2, '0')}`);
+
+  // +36시간 끝 시점 계산
+  const endDate = new Date(kstNow.getTime() + 36 * 60 * 60 * 1000);
+  const endDateStr = formatKSTDate(endDate);
+  const endHour = endDate.getUTCHours();
+  const endTimestamp = parseInt(`${endDateStr}${String(endHour).padStart(2, '0')}`);
+
+  // fcstDate+fcstTime 기준 그룹화
+  const timeMap = new Map<string, { tmp?: number; sky?: SkyCode; pty?: PtyCode }>();
+
+  for (const item of items) {
+    if (!item.fcstDate || !item.fcstTime || !item.fcstValue) continue;
+
+    const fcstHour = item.fcstTime.substring(0, 2);
+    const fcstTimestamp = parseInt(`${item.fcstDate}${fcstHour}`);
+
+    if (fcstTimestamp < currentTimestamp || fcstTimestamp > endTimestamp) continue;
+
+    const key = `${item.fcstDate}${item.fcstTime}`;
+    const entry = timeMap.get(key) ?? {};
+
+    switch (item.category) {
+      case 'TMP':
+        entry.tmp = Math.round(parseFloat(item.fcstValue));
+        break;
+      case 'SKY':
+        entry.sky = item.fcstValue as SkyCode;
+        break;
+      case 'PTY':
+        entry.pty = item.fcstValue as PtyCode;
+        break;
+    }
+
+    timeMap.set(key, entry);
+  }
+
+  // 시간 순 정렬 + HourlyForecastItem 변환
+  const result: HourlyForecastItem[] = [];
+
+  const sortedKeys = Array.from(timeMap.keys()).sort();
+  for (const key of sortedKeys) {
+    const entry = timeMap.get(key)!;
+    if (entry.tmp === undefined) continue;
+
+    const hour = key.substring(8, 10);
+    const ptyCode = entry.pty ?? '0';
+    const skyCode = entry.sky ?? '1';
+    const weatherMain = ptyCode !== '0'
+      ? (PTY_MAP[ptyCode] || 'Rain')
+      : (SKY_MAP[skyCode as SkyCode] || 'Clear');
+
+    result.push({
+      time: `${hour}:00`,
+      temperature: entry.tmp,
+      weatherMain,
+    });
+  }
+
+  return result.slice(0, 37);
+}
+
+/**
+ * KMA 시간별 예보 조회 (외부용)
+ * - 단기예보(getVilageFcst) numOfRows=500으로 36시간치 조회
+ * - 서버 캐시 적용
+ */
+export async function fetchKmaHourlyForecast(
+  lat: number,
+  lon: number,
+  apiKey: string
+): Promise<HourlyForecastItem[]> {
+  const { nx, ny } = toGridCoordinate(lat, lon);
+  const { baseDate, baseTime } = getVilageFcstBaseTime();
+  const cacheKey = `hourly_${nx},${ny},${baseDate},${baseTime}`;
+
+  const cached = hourlyCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < hourlyCacheTTL) {
+    return cached.data;
+  }
+
+  const params = new URLSearchParams({
+    serviceKey: apiKey,
+    numOfRows: '500',
+    pageNo: '1',
+    dataType: 'JSON',
+    base_date: baseDate,
+    base_time: baseTime,
+    nx: String(nx),
+    ny: String(ny),
+  });
+
+  const url = `${KMA_FORECAST_URL}/getVilageFcst?${params}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`기상청 시간별 예보 API 오류: ${response.status}`);
+  }
+
+  const data: KmaApiResponse = await response.json();
+
+  if (data.response.header.resultCode !== '00') {
+    throw new Error(`기상청 시간별 예보 API 오류: ${data.response.header.resultMsg}`);
+  }
+
+  const items = data.response.body?.items?.item ?? [];
+  const result = parseHourlyItems(items);
+
+  hourlyCache.set(cacheKey, { data: result, timestamp: Date.now() });
 
   return result;
 }

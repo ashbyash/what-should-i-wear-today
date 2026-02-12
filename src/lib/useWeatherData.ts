@@ -15,9 +15,11 @@ import {
   parseAirKorea,
   parseUVIndex,
   parseLocation,
+  parseHourlyForecast,
   type KmaCurrentData,
   type KmaForecastData,
 } from './type-guards';
+import type { HourlyForecastItem } from '@/types/weather';
 
 // SWR fetcher
 const fetcher = async (url: string) => {
@@ -66,6 +68,8 @@ export interface WeatherDataState {
   airQualityLoading: boolean;
   uv: UVIndexData | null;
   uvLoading: boolean;
+  hourlyForecast: HourlyForecastItem[] | null;
+  hourlyLoading: boolean;
   location: LocationData | null;
   locationLoading: boolean;
   loading: boolean;
@@ -105,6 +109,7 @@ export function useWeatherData(
   const fallbackLocation = initialData?.location ?? cachedData?.data.location ?? undefined;
   const fallbackAirQuality = initialData?.airQuality ?? cachedData?.data.airQuality ?? undefined;
   const fallbackUv = initialData?.uv ?? cachedData?.data.uv ?? undefined;
+  const fallbackHourly = initialData?.hourly ?? cachedData?.data.hourly ?? undefined;
 
   // SWR 공통 옵션
   const swrOptions = {
@@ -194,6 +199,22 @@ export function useWeatherData(
   );
   const uv = uvRaw ? parseUVIndex(uvRaw) : null;
 
+  // Hourly Forecast API (시간별 예보)
+  const {
+    data: hourlyRaw,
+    isLoading: hourlyLoading,
+    isValidating: hourlyValidating,
+    mutate: mutateHourly,
+  } = useSWR(
+    lat && lon ? getCacheKey(lat, lon, '/api/weather-hourly') : null,
+    fetcher,
+    {
+      ...swrOptions,
+      fallbackData: fallbackHourly,
+    }
+  );
+  const hourlyForecast = hourlyRaw ? parseHourlyForecast(hourlyRaw) : null;
+
   // 통합 날씨 데이터
   const weather = combineWeatherData(weatherCurrent, weatherForecast);
 
@@ -221,10 +242,11 @@ export function useWeatherData(
         location: locationRaw,
         airQuality: airQualityRaw ?? null,
         uv: uvRaw ?? null,
+        hourly: hourlyRaw ?? null,
       };
       saveWeatherData(lat, lon, weatherDataToCache);
     }
-  }, [lat, lon, currentRaw, forecastRaw, locationRaw, airQualityRaw, uvRaw]);
+  }, [lat, lon, currentRaw, forecastRaw, locationRaw, airQualityRaw, uvRaw, hourlyRaw]);
 
   // 위치 변경 시 revalidate
   useEffect(() => {
@@ -234,6 +256,7 @@ export function useWeatherData(
       mutateLocation();
       mutateAirQuality();
       mutateUV();
+      mutateHourly();
     }
   }, [
     locationChanged,
@@ -244,6 +267,7 @@ export function useWeatherData(
     mutateLocation,
     mutateAirQuality,
     mutateUV,
+    mutateHourly,
   ]);
 
   // 수동 새로고침
@@ -253,12 +277,14 @@ export function useWeatherData(
     mutateLocation();
     mutateAirQuality();
     mutateUV();
+    mutateHourly();
   }, [
     mutateCurrent,
     mutateForecast,
     mutateLocation,
     mutateAirQuality,
     mutateUV,
+    mutateHourly,
   ]);
 
   // 로딩 상태 계산
@@ -267,7 +293,8 @@ export function useWeatherData(
     forecastValidating ||
     locationValidating ||
     airQualityValidating ||
-    uvValidating;
+    uvValidating ||
+    hourlyValidating;
 
   const loading =
     !coordinates ||
@@ -291,6 +318,8 @@ export function useWeatherData(
     airQualityLoading,
     uv,
     uvLoading,
+    hourlyForecast,
+    hourlyLoading,
     location,
     locationLoading,
     loading,

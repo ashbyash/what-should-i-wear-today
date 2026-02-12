@@ -2,33 +2,14 @@
 
 import { m } from 'framer-motion';
 import { weatherAnimations } from '@/lib/animation-variants';
-import type { WeatherData } from '@/types/weather';
+import { getWeatherEmoji } from '@/lib/weather-utils';
+import HourlyForecast from './HourlyForecast';
+import type { WeatherData, HourlyForecastItem } from '@/types/weather';
 
 interface WeatherCardProps {
   weather: WeatherData;
-}
-
-function getWeatherEmoji(weatherMain: string): string {
-  const weather = weatherMain.toLowerCase();
-  switch (weather) {
-    case 'clear':
-      return '☀️';
-    case 'clouds':
-      return '☁️';
-    case 'rain':
-    case 'drizzle':
-      return '🌧️';
-    case 'thunderstorm':
-      return '⛈️';
-    case 'snow':
-      return '❄️';
-    case 'mist':
-    case 'fog':
-    case 'haze':
-      return '🌫️';
-    default:
-      return '🌤️';
-  }
+  hourlyForecast?: HourlyForecastItem[] | null;
+  hourlyLoading?: boolean;
 }
 
 function getWeatherLabel(weatherMain: string): string {
@@ -57,7 +38,7 @@ function getWeatherLabel(weatherMain: string): string {
   }
 }
 
-export default function WeatherCard({ weather }: WeatherCardProps) {
+export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = false }: WeatherCardProps) {
   const emoji = getWeatherEmoji(weather.weatherMain);
   const label = getWeatherLabel(weather.weatherMain);
   const weatherKey = weather.weatherMain.toLowerCase();
@@ -100,6 +81,13 @@ export default function WeatherCard({ weather }: WeatherCardProps) {
           <div>최저 {weather.tempMin}° · 최고 {weather.tempMax}°</div>
           <div>바람 {weather.windSpeed}m/s · 습도 {weather.humidity}%</div>
         </div>
+
+        {/* 시간별 예보 */}
+        {(hourlyLoading || (hourlyForecast && hourlyForecast.length > 0)) && (
+          <div className="border-t border-white/20 pt-3 mt-3 w-full">
+            <HourlyForecast data={hourlyForecast ?? null} loading={hourlyLoading} />
+          </div>
+        )}
       </div>
     </div>
   );

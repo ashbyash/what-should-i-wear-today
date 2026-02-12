@@ -3,10 +3,10 @@
  * ISR 빌드 시점 및 revalidate 시점에 호출
  */
 
-import { fetchKmaCurrentWeather, fetchKmaForecastWeather, fetchUVIndex } from './kma-api';
+import { fetchKmaCurrentWeather, fetchKmaForecastWeather, fetchUVIndex, fetchKmaHourlyForecast } from './kma-api';
 import { fetchLocation } from './kakao-api';
 import { fetchAirKorea } from './airkorea-api';
-import { fetchOpenMeteoWeather } from './open-meteo-api';
+import { fetchOpenMeteoWeather, fetchOpenMeteoHourly } from './open-meteo-api';
 import { isKoreaCoordinates } from './cities';
 import type { InitialWeatherData } from '@/types/weather';
 
@@ -21,7 +21,15 @@ export async function fetchInitialWeatherData(
 ): Promise<InitialWeatherData> {
   // 해외 좌표 → Open-Meteo API
   if (!isKoreaCoordinates(lat, lon)) {
-    return fetchOpenMeteoWeather(lat, lon);
+    const [weatherResult, hourlyResult] = await Promise.allSettled([
+      fetchOpenMeteoWeather(lat, lon),
+      fetchOpenMeteoHourly(lat, lon),
+    ]);
+    const weather = weatherResult.status === 'fulfilled' ? weatherResult.value : {
+      current: null, forecast: null, location: null, airQuality: null, uv: null,
+    };
+    weather.hourly = hourlyResult.status === 'fulfilled' ? hourlyResult.value : null;
+    return weather;
   }
 
   // 한국 좌표 → 기존 KMA/AirKorea/Kakao API
@@ -38,16 +46,18 @@ export async function fetchInitialWeatherData(
       location: null,
       airQuality: null,
       uv: null,
+      hourly: null,
     };
   }
 
-  const [currentResult, forecastResult, locationResult, airQualityResult, uvResult] =
+  const [currentResult, forecastResult, locationResult, airQualityResult, uvResult, hourlyResult] =
     await Promise.allSettled([
       fetchKmaCurrentWeather(lat, lon, kmaApiKey, kmaApihubAuthKey),
       fetchKmaForecastWeather(lat, lon, kmaApiKey),
       fetchLocation(lat, lon, kakaoApiKey),
       fetchAirKorea(lat, lon, airkoreaApiKey),
       fetchUVIndex(lat, lon, kmaApiKey),
+      fetchKmaHourlyForecast(lat, lon, kmaApiKey),
     ]);
 
   return {
@@ -56,5 +66,6 @@ export async function fetchInitialWeatherData(
     location: locationResult.status === 'fulfilled' ? locationResult.value : null,
     airQuality: airQualityResult.status === 'fulfilled' ? airQualityResult.value : null,
     uv: uvResult.status === 'fulfilled' ? uvResult.value : null,
+    hourly: hourlyResult.status === 'fulfilled' ? hourlyResult.value : null,
   };
 }

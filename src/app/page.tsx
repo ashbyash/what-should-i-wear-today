@@ -65,6 +65,8 @@ function HomeContent() {
     airQualityLoading,
     uv,
     uvLoading,
+    hourlyForecast,
+    hourlyLoading,
     location,
     error: dataError,
     lastUpdated,
@@ -228,7 +230,7 @@ function HomeContent() {
 
           {/* 날씨 */}
           <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
-            <WeatherCard weather={weatherData} />
+            <WeatherCard weather={weatherData} hourlyForecast={hourlyForecast} hourlyLoading={hourlyLoading} />
           </m.div>
 
           {/* 외출 점수 */}

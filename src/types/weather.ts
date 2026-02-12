@@ -90,6 +90,13 @@ export interface LocationData {
   region3: string; // 동/읍/면
 }
 
+// 시간별 예보 아이템
+export interface HourlyForecastItem {
+  time: string;           // "15:00"
+  temperature: number;    // 15 (반올림된 정수)
+  weatherMain: string;    // "Clear", "Rain", etc.
+}
+
 // ISR 초기 데이터 (서버에서 fetch한 날씨 데이터)
 export interface InitialWeatherData {
   current: {
@@ -120,4 +127,5 @@ export interface InitialWeatherData {
     uvLevel: 'low' | 'moderate' | 'high' | 'very_high' | 'danger';
     uvDescription: string;
   } | null;
+  hourly?: HourlyForecastItem[] | null;
 }

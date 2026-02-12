@@ -4,7 +4,7 @@
  * - InitialWeatherData와 동일한 shape 반환
  */
 
-import type { InitialWeatherData } from '@/types/weather';
+import type { InitialWeatherData, HourlyForecastItem } from '@/types/weather';
 
 const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1';
 const OPEN_METEO_AQ_BASE = 'https://air-quality-api.open-meteo.com/v1';
@@ -176,6 +176,37 @@ export async function fetchOpenMeteoUV(lat: number, lon: number) {
     uvLevel,
     uvDescription: getUvDescription(uvLevel),
   };
+}
+
+/**
+ * 시간별 예보 데이터 (36시간)
+ * timezone=auto로 현지 시간 자동 반환
+ */
+export async function fetchOpenMeteoHourly(lat: number, lon: number): Promise<HourlyForecastItem[]> {
+  const url = `${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weather_code&forecast_hours=36&timezone=auto`;
+  const res = await fetchWithTimeout(url);
+  if (!res.ok) throw new Error(`Open-Meteo hourly API error: ${res.status}`);
+  const data = await res.json();
+
+  const hourly = data.hourly;
+  if (!hourly?.time || !hourly?.temperature_2m || !hourly?.weather_code) {
+    return [];
+  }
+
+  const result: HourlyForecastItem[] = [];
+  for (let i = 0; i < hourly.time.length; i++) {
+    const timeStr: string = hourly.time[i];
+    const hour = timeStr.split('T')[1]?.substring(0, 2);
+    if (!hour) continue;
+
+    result.push({
+      time: `${hour}:00`,
+      temperature: Math.round(hourly.temperature_2m[i]),
+      weatherMain: wmoCodeToWeatherMain(hourly.weather_code[i]),
+    });
+  }
+
+  return result;
 }
 
 /**
