@@ -566,3 +566,47 @@ export function getOverseasCitiesByRegion(): [string, CityData[]][] {
 
   return REGION_ORDER.filter((r) => grouped[r]).map((r) => [r, grouped[r]]);
 }
+
+// SEO 내부 링크용 인기 도시 (국내 7 + 해외 3)
+export const POPULAR_CITY_SLUGS = [
+  'seoul', 'busan', 'jeju', 'incheon', 'daegu', 'daejeon', 'gwangju',
+  'osaka', 'tokyo', 'bangkok',
+] as const;
+
+export function getPopularCities(excludeSlug?: string): CityData[] {
+  return POPULAR_CITY_SLUGS
+    .filter((slug) => slug !== excludeSlug)
+    .map((slug) => getCityBySlug(slug))
+    .filter(Boolean) as CityData[];
+}
+
+// 국내 도시를 지역별로 그룹핑
+const DOMESTIC_REGION_MAP: Record<string, string> = {
+  seoul: '수도권', incheon: '수도권', suwon: '수도권', seongnam: '수도권',
+  bundang: '수도권', pangyo: '수도권', goyang: '수도권', ilsan: '수도권',
+  yongin: '수도권', gwacheon: '수도권', bucheon: '수도권', anyang: '수도권',
+  ansan: '수도권', hwaseong: '수도권', dongtan: '수도권', pyeongtaek: '수도권',
+  gwangmyeong: '수도권', uijeongbu: '수도권', namyangju: '수도권', paju: '수도권',
+  gimpo: '수도권', hanam: '수도권', guri: '수도권', siheung: '수도권',
+  daejeon: '충청권', cheongju: '충청권',
+  busan: '영남권', daegu: '영남권', ulsan: '영남권', changwon: '영남권', gyeongju: '영남권',
+  gwangju: '호남권', jeonju: '호남권', yeosu: '호남권', tongyeong: '호남권',
+  mokpo: '호남권', damyang: '호남권', suncheon: '호남권',
+  gangneung: '강원·제주', sokcho: '강원·제주', chuncheon: '강원·제주',
+  andong: '강원·제주', jeju: '강원·제주',
+};
+
+const DOMESTIC_REGION_ORDER = ['수도권', '충청권', '영남권', '호남권', '강원·제주'];
+
+export function getDomesticCitiesByRegion(): [string, CityData[]][] {
+  const domestic = getDomesticCities();
+  const grouped: Record<string, CityData[]> = {};
+
+  domestic.forEach((city) => {
+    const region = DOMESTIC_REGION_MAP[city.slug] ?? '기타';
+    if (!grouped[region]) grouped[region] = [];
+    grouped[region].push(city);
+  });
+
+  return DOMESTIC_REGION_ORDER.filter((r) => grouped[r]).map((r) => [r, grouped[r]]);
+}

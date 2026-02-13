@@ -14,6 +14,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
+  // 전체 도시 디렉토리
+  const citiesDirectory: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/cities`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+  ];
+
   // 도시별 페이지
   const cityPages: MetadataRoute.Sitemap = CITIES.map((city) => ({
     url: `${baseUrl}/${city.slug}`,
@@ -22,5 +32,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...home, ...cityPages];
+  return [...home, ...citiesDirectory, ...cityPages];
 }

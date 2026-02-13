@@ -10,6 +10,7 @@ import OutfitCard from '@/components/OutfitCard';
 import WeatherCard from '@/components/WeatherCard';
 import DustCard from '@/components/DustCard';
 import UvCard from '@/components/UvCard';
+import PopularCities from '@/components/PopularCities';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 
@@ -231,6 +232,8 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
             <UvCard uvIndex={uvSource?.uvIndex} loading={uvLoading && !uvSource} />
           </m.div>
         </m.div>
+
+        <PopularCities currentCitySlug={city.slug} isLight={theme.isLight} />
       </div>
 
       {/* 도시 검색 모달 */}

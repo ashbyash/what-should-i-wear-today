@@ -10,6 +10,7 @@ import OutfitCard from '@/components/OutfitCard';
 import WeatherCard from '@/components/WeatherCard';
 import DustCard from '@/components/DustCard';
 import UvCard from '@/components/UvCard';
+import PopularCities from '@/components/PopularCities';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
 import PermissionGuide from '@/components/PermissionGuide';
@@ -259,6 +260,8 @@ function HomeContent() {
             <UvCard uvIndex={uv?.uvIndex} loading={uvLoading} />
           </m.div>
         </m.div>
+
+        <PopularCities isLight={theme.isLight} />
       </div>
 
       {/* 도시 검색 모달 */}
