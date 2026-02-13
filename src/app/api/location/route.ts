@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchLocation } from '@/lib/kakao-api';
+import { fetchNominatimLocation } from '@/lib/nominatim-api';
 import { isKoreaCoordinates, CITIES } from '@/lib/cities';
 
 export async function GET(request: NextRequest) {
@@ -17,20 +18,28 @@ export async function GET(request: NextRequest) {
   const latNum = parseFloat(lat);
   const lonNum = parseFloat(lon);
 
-  // 해외 좌표 → CITIES에서 가장 가까운 도시 정보 반환
+  // 해외 좌표 → Nominatim 역지오코딩, 실패 시 CITIES 폴백
   if (!isKoreaCoordinates(latNum, lonNum)) {
-    const overseasCity = CITIES.find(
-      (c) => c.isOverseas && Math.abs(c.lat - latNum) < 0.5 && Math.abs(c.lon - lonNum) < 0.5
-    );
+    try {
+      const data = await fetchNominatimLocation(latNum, lonNum);
+      return NextResponse.json(data, {
+        headers: { 'Cache-Control': 'public, max-age=1800' },
+      });
+    } catch (error) {
+      console.error('Nominatim API error:', error);
+      const overseasCity = CITIES.find(
+        (c) => c.isOverseas && Math.abs(c.lat - latNum) < 0.5 && Math.abs(c.lon - lonNum) < 0.5
+      );
 
-    return NextResponse.json({
-      address: overseasCity ? `${overseasCity.name}, ${overseasCity.country}` : '해외',
-      region1: overseasCity?.country ?? '',
-      region2: overseasCity?.name ?? '',
-      region3: '',
-    }, {
-      headers: { 'Cache-Control': 'public, max-age=600' },
-    });
+      return NextResponse.json({
+        address: overseasCity ? `${overseasCity.name}, ${overseasCity.country}` : '해외',
+        region1: overseasCity?.country ?? '',
+        region2: overseasCity?.name ?? '',
+        region3: '',
+      }, {
+        headers: { 'Cache-Control': 'public, max-age=600' },
+      });
+    }
   }
 
   // 한국 좌표 → 기존 Kakao API

@@ -32,26 +32,16 @@ export default function CitySearchModal({
 }: CitySearchModalProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchTab, setSearchTab] = useState<'domestic' | 'overseas'>('domestic');
   const [showAllDomestic, setShowAllDomestic] = useState(false);
 
   // 통합 검색 훅
-  const { results, isLoading, isEmpty } = useLocationSearch(searchQuery);
+  const { domesticResults, overseasResults, isLoading, isEmpty } = useLocationSearch(searchQuery);
 
-  // 검색어 없을 때 전체 도시 표시
-  const displayResults = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return CITIES.map((city) => ({
-        type: 'predefined' as const,
-        name: city.name,
-        nameEn: city.nameEn,
-        description: city.description,
-        lat: city.lat,
-        lon: city.lon,
-        slug: city.slug,
-      }));
-    }
-    return results;
-  }, [searchQuery, results]);
+  // 현재 탭의 검색 결과
+  const activeSearchResults = useMemo(() => {
+    return searchTab === 'domestic' ? domesticResults : overseasResults;
+  }, [searchTab, domesticResults, overseasResults]);
 
   // 해외 도시를 지역별로 그룹핑 (일본/동남아/기타)
   const overseasByRegion = useMemo(() => getOverseasCitiesByRegion(), []);
@@ -317,12 +307,38 @@ export default function CitySearchModal({
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.25 }}
               >
-                <h3 className={`text-sm font-medium ${colors.muted} mb-3`}>
-                  검색 결과 ({displayResults.length})
-                </h3>
-                <div className="space-y-1">
-                  {displayResults.length > 0 ? (
-                    displayResults.map((result, index) => (
+                {/* 국내/해외 탭 */}
+                <div className="flex gap-2 pt-3 mb-3" role="tablist">
+                  <button
+                    role="tab"
+                    aria-selected={searchTab === 'domestic'}
+                    onClick={() => setSearchTab('domestic')}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+                      ${searchTab === 'domestic'
+                        ? `${colors.bgStrong} ${colors.primary} shadow-sm`
+                        : `${colors.bg} ${colors.muted} ${colors.hoverBg}`
+                      }`}
+                  >
+                    국내 {domesticResults.length > 0 && domesticResults.length}
+                  </button>
+                  <button
+                    role="tab"
+                    aria-selected={searchTab === 'overseas'}
+                    onClick={() => setSearchTab('overseas')}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+                      ${searchTab === 'overseas'
+                        ? `${colors.bgStrong} ${colors.primary} shadow-sm`
+                        : `${colors.bg} ${colors.muted} ${colors.hoverBg}`
+                      }`}
+                  >
+                    해외 {overseasResults.length > 0 && overseasResults.length}
+                  </button>
+                </div>
+
+                {/* 탭 결과 */}
+                <div className="space-y-1" role="tabpanel">
+                  {activeSearchResults.length > 0 ? (
+                    activeSearchResults.map((result, index) => (
                       <button
                         key={`${result.type}-${result.name}-${index}`}
                         onClick={() => handleSelect(result)}
@@ -331,11 +347,22 @@ export default function CitySearchModal({
                                    transition-colors text-left`}
                       >
                         <div className="flex-1 min-w-0">
-                          <p className={`${colors.primary} font-medium`}>
+                          <p className={`${colors.primary} font-medium flex items-center gap-2`}>
                             {result.name}
                             {result.type === 'predefined' && result.nameEn && (
-                              <span className={`ml-2 text-sm ${colors.muted}`}>
+                              <span className={`text-sm ${colors.muted}`}>
                                 {result.nameEn}
+                              </span>
+                            )}
+                            {result.type === 'openmeteo' && result.country && (
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full
+                                               ${isLight ? 'bg-sky-500/10 border-sky-500/20 text-sky-700' : 'bg-sky-400/15 border-sky-400/20 text-sky-300'}
+                                               border`}>
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
+                                  <path strokeWidth="1.5" d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                </svg>
+                                {result.country}
                               </span>
                             )}
                           </p>
@@ -366,6 +393,12 @@ export default function CitySearchModal({
                       </p>
                       <p className={`${colors.muted} text-sm mt-2`}>
                         다른 키워드로 검색해보세요
+                      </p>
+                    </div>
+                  ) : !isLoading ? (
+                    <div className="text-center py-8">
+                      <p className={`${colors.muted} text-sm`}>
+                        {searchTab === 'domestic' ? '국내' : '해외'} 검색 결과가 없습니다
                       </p>
                     </div>
                   ) : null}

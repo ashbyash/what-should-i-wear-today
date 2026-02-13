@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { getDomesticCitiesByRegion, getOverseasCitiesByRegion, getDomesticCities, getOverseasCities } from '@/lib/cities';
 import CitiesTabs from '@/components/CitiesTabs';
+import TimeBackground from '@/components/TimeBackground';
 
 const SITE_URL = 'https://ootd-by-weather.vercel.app';
 
@@ -57,11 +58,7 @@ export default function CitiesPage() {
   const jsonLdHtml = JSON.stringify(generateJsonLd());
 
   return (
-    <div
-      className="min-h-screen"
-      data-theme="dark"
-      style={{ background: 'linear-gradient(to bottom, #56ccf2, #2f80ed)' }}
-    >
+    <TimeBackground className="min-h-screen">
       <Script
         id="cities-jsonld"
         type="application/ld+json"
@@ -89,6 +86,6 @@ export default function CitiesPage() {
           overseasCount={overseasCount}
         />
       </div>
-    </div>
+    </TimeBackground>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { CITIES } from './cities';
-import type { SearchResult, KakaoPlaceResponse } from '@/types/location';
+import type { SearchResult, KakaoPlaceResponse, OpenMeteoSearchResponse } from '@/types/location';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -44,25 +44,41 @@ export function useLocationSearch(query: string) {
         city.nameEn.toLowerCase().includes(lowerQuery) ||
         city.slug.toLowerCase().includes(lowerQuery)
     ).map((city) => ({
-      type: 'predefined',
+      type: 'predefined' as const,
       name: city.name,
       nameEn: city.nameEn,
       description: city.description,
       lat: city.lat,
       lon: city.lon,
       slug: city.slug,
+      isOverseas: city.isOverseas ?? false,
     }));
   }, [debouncedQuery]);
 
   // 카카오 API 호출 (2글자 이상)
-  const shouldFetchKakao = debouncedQuery.length >= 2;
+  const shouldFetch = debouncedQuery.length >= 2;
   const {
     data: kakaoData,
     error: kakaoError,
     isLoading: kakaoLoading,
   } = useSWR<KakaoPlaceResponse>(
-    shouldFetchKakao
+    shouldFetch
       ? `/api/search-location?query=${encodeURIComponent(debouncedQuery)}`
+      : null,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+      revalidateOnFocus: false,
+    }
+  );
+
+  // Open-Meteo 해외 검색 (2글자 이상, Kakao와 독립)
+  const {
+    data: openMeteoData,
+    isLoading: openMeteoLoading,
+  } = useSWR<OpenMeteoSearchResponse>(
+    shouldFetch
+      ? `/api/search-overseas?query=${encodeURIComponent(debouncedQuery)}`
       : null,
     fetcher,
     {
@@ -96,15 +112,56 @@ export function useLocationSearch(query: string) {
       });
   }, [kakaoData, predefinedResults]);
 
-  // 결과 병합: 사전 정의 → 카카오
+  // Open-Meteo 결과 변환 + 중복 제거 (한국 결과 필터링)
+  const openMeteoResults = useMemo((): SearchResult[] => {
+    if (!openMeteoData?.results) return [];
+
+    return openMeteoData.results
+      .filter((place) => place.country_code !== 'KR')
+      .map((place) => ({
+        type: 'openmeteo' as const,
+        name: place.name,
+        description: `${place.admin1 ? place.admin1 + ', ' : ''}${place.country}`,
+        lat: place.latitude,
+        lon: place.longitude,
+        country: place.country,
+        isOverseas: true,
+      }))
+      .filter((omResult) => {
+        // 사전 정의 도시와 좌표 근접 시 제외
+        return !predefinedResults.some((predefined) =>
+          areCoordinatesNear(
+            predefined.lat,
+            predefined.lon,
+            omResult.lat,
+            omResult.lon
+          )
+        );
+      });
+  }, [openMeteoData, predefinedResults]);
+
+  // 결과 병합: 사전 정의 → 카카오 → Open-Meteo
   const results = useMemo(() => {
-    return [...predefinedResults, ...kakaoResults];
+    return [...predefinedResults, ...kakaoResults, ...openMeteoResults];
+  }, [predefinedResults, kakaoResults, openMeteoResults]);
+
+  // 국내/해외 분리
+  const domesticResults = useMemo(() => {
+    return [...predefinedResults.filter(r => !r.isOverseas), ...kakaoResults];
   }, [predefinedResults, kakaoResults]);
+
+  const overseasResults = useMemo(() => {
+    return [...predefinedResults.filter(r => r.isOverseas), ...openMeteoResults];
+  }, [predefinedResults, openMeteoResults]);
+
+  const isLoading = kakaoLoading || openMeteoLoading;
 
   return {
     results,
-    isLoading: kakaoLoading,
+    domesticResults,
+    overseasResults,
+    isLoading,
     error: kakaoError,
-    isEmpty: debouncedQuery.length > 0 && results.length === 0 && !kakaoLoading,
+    isEmpty: debouncedQuery.length > 0 && results.length === 0 && !isLoading,
   };
 }
