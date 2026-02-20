@@ -1,59 +1,66 @@
-# Handoff: 해외 Geocoding 기능 구현 완료
+# Handoff: Footer 배경색 불일치 버그 분석 + TimeContext 플랜 수립
 
 ## 1. Completed Work (이번 세션)
 
-### 신규 파일 (2개)
-| 파일 | 작업 |
-|------|------|
-| `src/app/api/search-overseas/route.ts` | Open-Meteo Geocoding 순방향 검색 API. Zod 스키마 검증, Cache-Control 1시간, KR 필터링은 클라이언트 훅에서 처리 |
-| `src/lib/nominatim-api.ts` | Nominatim 역지오코딩 모듈. 인메모리 캐시 30분 TTL, toFixed(2) 키 정밀도, User-Agent 헤더 |
+### 버그 원인 분석
+- 페이지 이동(cities → 메인) 시 Footer와 메인 콘텐츠 배경색이 한 박자 어긋나는 버그 발견 및 원인 확인
+- `useClientHour()`가 3곳에서 독립 호출, 각각 `useState(12)`로 시작 후 `useEffect`에서 실제 시간 설정
+- 리마운트 타이밍 차이로 색상 불일치 발생
 
-### 수정 파일 (4개)
-| 파일 | 작업 |
-|------|------|
-| `src/types/location.ts` | SearchResult에 `'openmeteo'` 타입 + `country?` 필드 추가. `OpenMeteoResult`, `OpenMeteoSearchResponse` 타입 추가 |
-| `src/app/api/location/route.ts` | 해외 분기: Nominatim 우선 호출 → 실패 시 CITIES ±0.5° 폴백 → '해외'. Cache-Control 30분(성공)/10분(폴백) |
-| `src/lib/useLocationSearch.ts` | 3소스 병합 (predefined + Kakao + Open-Meteo). Open-Meteo SWR 추가, KR country_code 필터링, predefined 좌표 중복 제거, 독립 에러 처리 |
-| `src/components/CitySearchModal.tsx` | openmeteo 결과에 글로브 아이콘 + country 배지 (sky 컬러 계열, 라이트/다크 대응) |
-
-### 검증 완료
-- `npm run build` 통과 (번들 사이즈 변화 없음)
-- dev 서버 실제 테스트:
-  - "paris" → 파리(프랑스) + 미국 Paris들 반환
-  - "요코하마" → 요코하마 시(일본) + 글로브 배지
-  - "서울" → Open-Meteo 결과 없음 (KR 필터링 정상)
-  - `/?lat=35.44&lon=139.65` → "일본 요코하마시 中区" 표시 + 날씨/옷차림 정상
+### TimeContext 도입 플랜 작성
+- 플랜 파일 작성 완료 (아래 Section 6 참조)
+- 코드 수정은 미착수 (다음 세션에서 진행)
 
 ## 2. Current State
 
 ```
 Branch: main
-Latest commit: d786dfe "cities page update"
-Uncommitted:
-  modified:   HANDOFF.md
-  modified:   src/app/api/location/route.ts
-  modified:   src/components/CitySearchModal.tsx
-  modified:   src/lib/useLocationSearch.ts
-  modified:   src/types/location.ts
-  new file:   src/app/api/search-overseas/route.ts
-  new file:   src/lib/nominatim-api.ts
+Latest commit: fc959c4 "oversea search update"
+Working tree: HANDOFF.md만 수정
 ```
 
 ## 3. Pending Tasks
 
-- 커밋 (사용자가 직접 수행)
-- UI/UX 개선 — 다음 세션에서 진행 (사용자 요청)
+### 즉시 실행: TimeContext 도입 (4 Step)
+
+**Step 1: TimeProvider 생성**
+- 신규 파일: `src/lib/TimeProvider.tsx`
+- `TimeContext` 생성, `clientHour` 값을 Context로 제공
+- 기존 `useClientHour.ts`의 타이머 로직(useState + useEffect + setInterval 60초)을 이동
+- 타이머 1개로 통합
+
+**Step 2: Providers에 TimeProvider 추가**
+- 수정 파일: `src/components/Providers.tsx` (현재 17줄)
+- 현재: `ErrorBoundary > LazyMotionProvider > {children}`
+- 변경: `ErrorBoundary > LazyMotionProvider > TimeProvider > {children}`
+- `layout.tsx`에서 `Providers`가 `{children}` + `<Footer />`를 이미 감싸고 있으므로 모든 컴포넌트 커버
+
+**Step 3: useClientHour를 Context 래퍼로 변경**
+- 수정 파일: `src/lib/useClientHour.ts` (현재 20줄)
+- 기존: 독립 타이머 생성 (`useState(12)` + `useEffect` + `setInterval`)
+- 변경: `useContext(TimeContext)` 래퍼로 교체
+- **API 동일 유지** → 소비자 코드(page.tsx, CityWeatherPage.tsx, Footer.tsx) 변경 불필요
+
+**Step 4: TimeBackground도 동일 시간 사용**
+- 수정 파일: `src/components/TimeBackground.tsx` (현재 33줄)
+- 기존 L13: `getTimeOfDay()` 인자 없이 호출, 빈 의존성 배열(`[]`)로 한번만 계산
+- 변경: `useClientHour()` 호출로 교체 → 다른 컴포넌트와 동일한 시간 사용
+
+### 검증
+- `npm run build` 성공 확인
+- 로컬에서 메인 → /cities → 뒤로가기 시 Footer/메인 배경색 일치 확인
+
+### 후순위 (미착수)
+- 글로벌 CLAUDE.md 압축 (209줄 → ~50줄, "나중에" 결정)
+- UI/UX 디테일 수정 (CitySearchModal 탭, CitiesTabs 스타일)
 
 ## 4. Key Decisions Made
 
 | 결정 | 이유 |
 |------|------|
-| Approach A (Minimal Change) 선택 | 2개 프로바이더에 추상화 레이어는 과도. 기존 패턴 그대로 복제가 일관성/유지보수 면에서 유리 |
-| 독립 에러 처리 | Kakao 실패 시에도 Open-Meteo 결과 표시, 반대도 마찬가지 |
-| Nominatim 캐시 30분 TTL | 역지오코딩 결과는 거의 불변. 1 req/sec 제한 고려해 적중률 우선 |
-| 캐시 키 toFixed(2) | 해외는 도시 단위면 충분, 높은 캐시 적중률 |
-| `/api/location`만 Nominatim 적용 | ISR 해외 페이지는 CityData에서 직접 표시하므로 server-weather.ts 수정 불필요 |
-| 타입을 types/location.ts로 이동 | API route → client hook 간 cross-boundary import 방지 (코드 리뷰에서 수정) |
+| Context 방식 채택 (초기값 변경 X) | 초기값을 `new Date().getHours()`로 바꾸면 SSR/hydration mismatch 발생 가능. Context가 근본적 해결 |
+| `useClientHour()` API 유지 | 소비자 3곳(page.tsx, CityWeatherPage.tsx, Footer.tsx)의 코드 변경 없이 내부만 교체 |
+| `TimeBackground`도 수정 대상에 포함 | 현재 `getTimeOfDay()` 인자 없이 한번만 계산 → 다른 컴포넌트와 시간 불일치 가능 |
 
 ## 5. Blockers / Issues Found
 
@@ -61,45 +68,84 @@ Uncommitted:
 
 ## 6. Active Plan File
 
-**절대경로**: `/Users/ash/.claude/plans/fluffy-greeting-fiddle.md`
+**절대경로**: `/Users/ash/.claude/plans/wild-wiggling-crayon.md`
 
-6 Step 모두 구현 완료. 플랜 내용은 참고용으로만 유효.
+Footer 배경색 불일치 수정을 위한 TimeContext 도입 플랜. 4 Step 구성, 미착수 상태.
 
 ## 7. Context for Next Session
 
-### 변경된 검색 플로우 (구현 완료)
-```
-CitySearchModal → useLocationSearch(query) [300ms debounce]
-  ├─ predefined: CITIES 배열 필터 (57개, 즉시)
-  ├─ kakao: /api/search-location → Kakao API (한국)
-  └─ openmeteo: /api/search-overseas → Open-Meteo API (해외, KR 제외)
+### 버그 현상
+- 메인 → /cities → 뒤로가기 시 Footer와 메인 콘텐츠 배경 그라데이션 색상 불일치
+- Footer는 layout에 있어 리마운트 안됨(이미 실제 시간), HomeContent는 새로 마운트되며 12시부터 시작
 
-병합: [...predefined, ...kakao, ...openmeteo]
-중복 제거: areCoordinatesNear(±0.01°) — predefined 기준
+### `useClientHour` 소비자 3곳 (변경 불필요, API 동일 유지)
 ```
-
-### 변경된 역지오코딩 플로우 (구현 완료)
-```
-/api/location?lat={lat}&lon={lon}
-  ├─ 국내: Kakao 역지오코딩 → region1/2/3
-  └─ 해외: Nominatim (30분 캐시) → region1=국가, region2=도시, region3=구역
-           실패 시 → CITIES ±0.5° 매칭 → '해외'
+src/app/page.tsx              L28 import, L33 호출 → getTimeOfDay(clientHour, coordinates)
+src/components/CityWeatherPage.tsx  L26 import, L37 호출 → getTimeOfDay(clientHour, {lat, lon})
+src/components/Footer.tsx     L5 import, L8 호출 → getTimeOfDay(clientHour)
 ```
 
-### UI/UX 개선 대상 파일
+### 수정 대상 파일 4개
 ```
-src/components/CitySearchModal.tsx — 검색 결과 렌더링 (line 326-370)
-src/lib/useLocationSearch.ts       — 검색 훅 반환값 (results, isLoading, isEmpty)
+src/lib/TimeProvider.tsx      — 신규 생성 (Context + Provider, 타이머 로직)
+src/lib/useClientHour.ts      — 독립 타이머 → useContext(TimeContext) 래퍼
+src/components/Providers.tsx  — TimeProvider 추가 (ErrorBoundary > LazyMotion > TimeProvider)
+src/components/TimeBackground.tsx — getTimeOfDay() → useClientHour() 교체
 ```
 
-### 현재 country 배지 구현 (line 341-351)
+### 현재 useClientHour.ts 전체 코드 (20줄)
 ```tsx
-{result.type === 'openmeteo' && result.country && (
-  <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full
-    ${isLight ? 'bg-sky-500/10 border-sky-500/20 text-sky-700' : 'bg-sky-400/15 border-sky-400/20 text-sky-300'}
-    border`}>
-    <svg className="w-3 h-3">...</svg>  {/* globe icon */}
-    {result.country}
-  </span>
-)}
+'use client';
+import { useState, useEffect } from 'react';
+
+export function useClientHour() {
+  const [clientHour, setClientHour] = useState<number>(12);
+  useEffect(() => {
+    const updateHour = () => {
+      const now = new Date();
+      setClientHour(now.getHours() + now.getMinutes() / 60);
+    };
+    updateHour();
+    const interval = setInterval(updateHour, 60000);
+    return () => clearInterval(interval);
+  }, []);
+  return clientHour;
+}
+```
+
+### 현재 Providers.tsx 전체 코드 (17줄)
+```tsx
+'use client';
+import { ReactNode } from 'react';
+import ErrorBoundary from './ErrorBoundary';
+import LazyMotionProvider from './LazyMotionProvider';
+
+interface ProvidersProps { children: ReactNode; }
+
+export default function Providers({ children }: ProvidersProps) {
+  return (
+    <ErrorBoundary>
+      <LazyMotionProvider>{children}</LazyMotionProvider>
+    </ErrorBoundary>
+  );
+}
+```
+
+### 현재 TimeBackground.tsx 전체 코드 (33줄)
+```tsx
+'use client';
+import { useMemo } from 'react';
+import { getTimeOfDay, TIME_GRADIENTS, TIME_TEXT_COLORS } from '@/lib/theme';
+
+export default function TimeBackground({ children, className = '' }) {
+  const { gradientStyle, isLight } = useMemo(() => {
+    const timeOfDay = getTimeOfDay();  // 인자 없음, 빈 deps로 한번만 실행
+    const gradient = TIME_GRADIENTS[timeOfDay];
+    return {
+      gradientStyle: { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` },
+      isLight: TIME_TEXT_COLORS[timeOfDay].isLight,
+    };
+  }, []);
+  // ... render
+}
 ```
