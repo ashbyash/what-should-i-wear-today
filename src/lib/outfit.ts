@@ -1,6 +1,13 @@
 import type { OutfitInput, OutfitRecommendation, OutfitByCategory } from '@/types/score';
-import { OUTFIT_TEMP, PM25, THRESHOLDS, WEATHER_CONDITIONS, TEMP_ZONE_OUTER } from './constants';
+import { OUTFIT_TEMP, PM25, THRESHOLDS, WEATHER_CONDITIONS, TEMP_ZONE_OUTER, MONTH_TO_SEASON } from './constants';
+import type { Season } from './constants';
 import { getFeelsLikeTemp } from './score';
+
+// timestamp → 계절 반환
+function getSeasonFromTimestamp(timestamp?: number): Season {
+  const month = new Date(timestamp ?? Date.now()).getMonth() + 1;
+  return MONTH_TO_SEASON[month];
+}
 
 // 마지막 글자 받침 여부 확인
 function hasEndConsonant(word: string): boolean {
@@ -20,13 +27,13 @@ function getTempZoneKey(temp: number): string {
   return 'EXTREME';
 }
 
-// 온도별 옷차림 추천 (카테고리별)
-function getClothesForTemp(temp: number): OutfitByCategory {
+// 온도별 옷차림 추천 (카테고리별, 계절 반영)
+function getClothesForTemp(temp: number, season: Season): OutfitByCategory {
   // 28℃ 이상 (한여름)
   if (temp >= OUTFIT_TEMP.HOT) {
     return {
-      top: ['린넨 반팔 셔츠', '면 민소매'],
-      bottom: ['면 반바지', '린넨 반바지'],
+      top: ['반팔 티셔츠', '린넨 반팔 셔츠', '민소매'],
+      bottom: ['반바지', '린넨 반바지', '린넨 긴바지'],
       shoes: ['샌들', '캔버스 스니커즈'],
     };
   }
@@ -34,36 +41,54 @@ function getClothesForTemp(temp: number): OutfitByCategory {
   if (temp >= OUTFIT_TEMP.WARM) {
     return {
       outer: ['얇은 가디건'],
-      top: ['면 반팔 티셔츠', '샴브레이 반팔 셔츠'],
-      bottom: ['얇은 면바지', '면 슬랙스'],
+      top: ['반팔 티셔츠', '반팔 셔츠', '샴브레이 셔츠'],
+      bottom: ['얇은 바지', '슬랙스', '얇은 청바지'],
       shoes: ['캔버스 스니커즈', '로퍼'],
     };
   }
   // 17~22℃ (봄/가을)
   if (temp >= OUTFIT_TEMP.MILD) {
+    if (season === 'autumn') {
+      return {
+        outer: ['니트 가디건', '후드집업', '청자켓'],
+        top: ['얇은 니트', '긴팔 티셔츠', '후드티'],
+        bottom: ['청바지', '슬랙스', '코듀로이 팬츠'],
+        shoes: ['스니커즈', '로퍼'],
+      };
+    }
+    // 봄 + 여름/겨울 fallback
     return {
-      outer: ['나일론 바람막이', '면 가디건'],
-      top: ['면 긴팔 티셔츠', '얇은 맨투맨'],
-      bottom: ['청바지', '면바지'],
+      outer: ['바람막이', '가디건', '청자켓'],
+      top: ['긴팔 티셔츠', '맨투맨', '셔츠'],
+      bottom: ['청바지', '면바지', '슬랙스'],
       shoes: ['스니커즈', '로퍼'],
     };
   }
   // 12~16℃ (환절기)
   if (temp >= OUTFIT_TEMP.COOL) {
+    if (season === 'autumn') {
+      return {
+        outer: ['자켓', '야상', '니트 가디건'],
+        top: ['맨투맨', '울 니트', '쭈리 맨투맨'],
+        bottom: ['청바지', '슬랙스', '코듀로이 팬츠'],
+        shoes: ['스니커즈', '더비슈즈'],
+      };
+    }
+    // 봄 + 여름/겨울 fallback
     return {
-      outer: ['면 자켓', '니트 가디건'],
-      top: ['쭈리 맨투맨', '울 니트'],
+      outer: ['자켓', '청자켓', '바람막이'],
+      top: ['맨투맨', '셔츠', '후드티'],
       bottom: ['청바지', '슬랙스'],
-      shoes: ['가죽 스니커즈', '더비슈즈'],
+      shoes: ['스니커즈', '더비슈즈'],
     };
   }
   // 6~11℃ (초겨울)
   if (temp >= OUTFIT_TEMP.COLD) {
     return {
-      outer: ['울 코트', '가죽자켓'],
+      outer: ['울 코트', '가죽자켓', '경량패딩', '야상'],
       top: ['기모 맨투맨', '플란넬 셔츠', '울 니트'],
-      bottom: ['두꺼운 슬랙스', '코듀로이 팬츠'],
-      shoes: ['가죽 스니커즈', '부츠'],
+      bottom: ['기모 청바지', '두꺼운 슬랙스', '코듀로이 팬츠'],
+      shoes: ['부츠', '가죽 스니커즈'],
       accessory: ['목도리'],
     };
   }
@@ -192,8 +217,9 @@ export function getOutfitRecommendation(input: OutfitInput): OutfitRecommendatio
   // 체감온도 계산
   const feelsLike = getFeelsLikeTemp(input.temperature, input.windSpeed, input.humidity);
 
-  // 체감온도 기반으로 옷차림 추천
-  const baseClothes = getClothesForTemp(feelsLike);
+  // 체감온도 + 계절 기반으로 옷차림 추천
+  const season = getSeasonFromTimestamp(input.timestamp);
+  const baseClothes = getClothesForTemp(feelsLike, season);
   const rainGear = getRainGear(input.weatherMain);
 
   const categories = mergeCategories(baseClothes, rainGear);

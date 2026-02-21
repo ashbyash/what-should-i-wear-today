@@ -156,6 +156,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     weatherMain: weatherData.weatherMain,
     windSpeed: weatherData.windSpeed,
     humidity: weatherData.humidity,
+    timestamp: Date.now(),
   });
 
   // 테마 계산

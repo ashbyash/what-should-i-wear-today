@@ -58,4 +58,5 @@ export interface OutfitInput {
   weatherMain: string;
   windSpeed?: number;  // 풍속 (m/s) - 체감온도 계산용
   humidity?: number;   // 습도 (%) - 체감온도 계산용
+  timestamp?: number;  // 계절 판단용 (밀리초), 없으면 현재 시간 사용
 }

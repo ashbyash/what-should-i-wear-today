@@ -182,6 +182,7 @@ function HomeContent() {
     weatherMain: weatherData.weatherMain,
     windSpeed: weatherData.windSpeed,
     humidity: weatherData.humidity,
+    timestamp: Date.now(),
   });
 
   // 테마 계산 - 좌표 기반 일출/일몰 사용

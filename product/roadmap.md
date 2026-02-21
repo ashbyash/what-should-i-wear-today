@@ -1,8 +1,8 @@
 # What Should I Wear Today - Product Roadmap
 
 ## Version
-- Version: 1.3
-- Last Updated: 2026-02-09
+- Version: 1.4
+- Last Updated: 2026-02-20
 
 ---
 
@@ -41,34 +41,29 @@
 - [x] sitemap.xml, robots.txt
 - [x] OG Image 자동 생성
 
+### AI
+- [x] AI 점수 메시지 (OpenAI gpt-4o-mini, 점수대별 메모리 캐시)
+- [x] AI 스타일링 팁 (옷 추천에 맥락 있는 한줄 팁, SWR 캐싱)
+
 ### UX
 - [x] 도시 검색 모달 UX 개선 (국내/해외 빠른 선택 분리, 국내 축소+더보기, 해외 지역별 칩 레이아웃)
+- [x] 시간대별 배경 그라데이션 (TimeProvider Context 기반 통합)
+- [x] 문의하기 (푸터 이메일 링크)
 
 ---
 
 ## Now (2026 Q1)
 
-### Focus: SEO 색인 + 국내 여행지 확장 + AI 기초
+### Focus: SEO 색인 완료
 
 | Feature | Status | Note |
 |---------|--------|------|
-| Google 색인 완료 | 🔄 In Progress | 현재 1/34 페이지만 색인 → 57페이지 대상 |
-| 키워드 확장 메타데이터 | ✅ Done | 10개 패턴 적용 |
-| 국내 여행지 날씨 | ✅ Done | 43개 도시 (서울~서귀포) |
-| 해외 여행지 날씨 | ✅ Done | 14개 도시 (일본 5, 동남아 6, 기타 3) |
-| AI 점수 메시지 | ✅ Done | OpenAI gpt-4o-mini, 점수대별 메모리 캐시 적용 |
-| AI 스타일링 팁 | 📋 Planned | 옷 추천에 맥락 있는 한줄 팁 추가 |
-| 문의하기 | ✅ Done | 푸터에 이메일 링크 |
+| Google 색인 완료 | 🔄 In Progress | 57페이지 대상, Search Console 모니터링 중 |
 
-**Success Criteria (국내+해외 여행지)**:
+**Success Criteria**:
 - Metric: 여행지 페이지 색인 수
 - Target: 57페이지 100% 색인
 - Period: 배포 후 30일
-
-**Success Criteria (AI 메시지)**:
-- Metric: API 비용 효율성
-- Target: 캐싱으로 호출 90% 절감
-- Period: 적용 후 7일
 
 ---
 
@@ -140,6 +135,7 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.4 | 2026-02-20 | Q1 완료 항목 Done 이동 (AI 스타일링 팁, AI 점수 메시지, 문의하기, 시간대별 배경), Now 섹션 정리 |
 | 1.3 | 2026-02-09 | 국내 43+해외 14 도시 완료 → Done 이동, CitySearchModal UX 개선 반영, SEO 페이지 57개로 업데이트 |
 | 1.2 | 2026-02-03 | Vision 추가 (AI 패션 큐레이션), Q1 AI 기초 기능 추가, Q2 로그인/개인화 추가, Later 재구성 |
 | 1.1 | 2026-01-26 | 국내/해외 여행지 추가, Not Doing → Later 이동 |
