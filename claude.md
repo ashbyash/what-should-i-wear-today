@@ -53,6 +53,12 @@ Level: perfect(90+) / excellent(80+) / good(70+) / fair(60+) / moderate(45+) / p
 +) Daily temperature range ≥ 10℃ → Add "일교차가 커요, 겉옷 챙기세요"
 +) PM2.5 ≥ 36 → Add "마스크 착용 권장"
 
+## Testing
+- Framework: vitest
+- Test location: `src/lib/__tests__/`
+- Run: `npx vitest run`
+- Rule: When adding or modifying features in `src/lib/`, write or update corresponding tests before marking the task complete
+
 ## Folder Structure
 ```
 /app          → Pages

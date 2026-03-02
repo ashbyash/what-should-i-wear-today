@@ -24,10 +24,12 @@ export default function Footer() {
       style={gradientStyle}
     >
       <a
-        href="mailto:xxxseoulcity@gmail.com"
+        href="https://forms.gle/m4DZwWHrbS6LTcEp8"
+        target="_blank"
+        rel="noopener noreferrer"
         className={`${textClass} transition-colors`}
       >
-        문의: xxxseoulcity@gmail.com
+        문의하기
       </a>
     </footer>
   );
