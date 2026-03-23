@@ -14,7 +14,9 @@ export default function Footer() {
 
     return {
       gradientStyle: { background: `linear-gradient(to bottom, ${gradient.to}, ${gradient.to})` },
-      textClass: isLight ? 'text-gray-700/60 hover:text-gray-700' : 'text-white/60 hover:text-white',
+      textClass: isLight
+        ? 'text-[rgba(30,30,50,0.5)] hover:text-[rgba(30,30,50,0.8)]'
+        : 'text-white/45 hover:text-white/95',
     };
   }, [clientHour]);
 
