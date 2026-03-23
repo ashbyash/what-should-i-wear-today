@@ -127,17 +127,17 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
 
                 <GlassInner
                   isLight={isLight}
-                  className={`flex flex-col items-center gap-0.5 shrink-0 snap-start transition-colors
-                    min-w-[52px] text-center !py-2.5 !px-1.5
+                  className={`flex flex-col items-center gap-1 shrink-0 snap-start transition-colors
+                    min-w-[52px] md:min-w-[64px] text-center !py-3 !px-2 md:!py-4 md:!px-3
                     ${isNow ? 'shadow-md scale-105' : ''}`}
                 >
-                  <span className={`text-xs ${isNow ? `${primaryColor} font-semibold` : mutedColor}`}>
+                  <span className={`text-xs md:text-sm ${isNow ? `${primaryColor} font-semibold` : mutedColor}`}>
                     {isNow && i === 0 ? '지금' : item.time}
                   </span>
 
-                  <span className="text-xl" aria-hidden="true">{emoji}</span>
+                  <span className="text-xl md:text-2xl" aria-hidden="true">{emoji}</span>
 
-                  <span className={`text-sm ${isNow ? `${primaryColor} font-semibold` : primaryColor}`}>
+                  <span className={`text-sm md:text-base ${isNow ? `${primaryColor} font-semibold` : primaryColor}`}>
                     {item.temperature}°
                   </span>
 
