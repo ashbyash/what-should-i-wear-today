@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import GlassCard, { GlassInner } from './GlassCard';
 import { useAIMessage } from '@/lib/useAIMessage';
 import type { WeatherData } from '@/types/weather';
@@ -160,7 +160,7 @@ function BreakdownBar({
   const percentage = (value / max) * 100;
 
   return (
-    <motion.div
+    <m.div
       className="flex items-center gap-2"
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
@@ -169,7 +169,7 @@ function BreakdownBar({
       <span className="text-sm" aria-hidden="true">{icon}</span>
       <span className="text-caption text-glass-muted w-16 shrink-0">{label}</span>
       <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
+        <m.div
           className="h-full rounded-full"
           style={{
             background: percentage >= 70
@@ -186,24 +186,24 @@ function BreakdownBar({
       <span className="text-caption text-glass-secondary w-12 text-right">
         {value ?? 0}/{max}
       </span>
-    </motion.div>
+    </m.div>
   );
 }
 
 function MessageSkeleton() {
   return (
     <div className="flex items-center justify-center gap-1">
-      <motion.span
+      <m.span
         className="inline-block w-2 h-2 bg-white/30 rounded-full"
         animate={{ opacity: [0.3, 0.7, 0.3] }}
         transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
       />
-      <motion.span
+      <m.span
         className="inline-block w-2 h-2 bg-white/30 rounded-full"
         animate={{ opacity: [0.3, 0.7, 0.3] }}
         transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
       />
-      <motion.span
+      <m.span
         className="inline-block w-2 h-2 bg-white/30 rounded-full"
         animate={{ opacity: [0.3, 0.7, 0.3] }}
         transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
@@ -429,14 +429,14 @@ export default function HeroCard({
             >
               {weather.temperature}°
             </span>
-            <motion.span
+            <m.span
               className="text-3xl mb-1"
               aria-hidden="true"
               animate={{ rotate: [0, 5, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             >
               {weatherEmoji}
-            </motion.span>
+            </m.span>
           </div>
           <span className={`text-base font-medium ${secondaryText}`}>{weatherLabel}</span>
           <span className={`text-sm ${mutedText}`}>체감 {weather.feelsLike}°</span>
@@ -458,7 +458,7 @@ export default function HeroCard({
           </span>
           <div className="flex items-center gap-0.5">
             <span className={`text-[10px] uppercase tracking-widest ${mutedText}`}>SCORE</span>
-            <motion.svg
+            <m.svg
               className={`w-3 h-3 ${mutedText}`}
               fill="none"
               stroke="currentColor"
@@ -468,7 +468,7 @@ export default function HeroCard({
               transition={{ duration: 0.2 }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </motion.svg>
+            </m.svg>
           </div>
         </button>
       </div>
@@ -476,7 +476,7 @@ export default function HeroCard({
       {/* 5. Score breakdown (expandable) */}
       <AnimatePresence>
         {isExpanded && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -498,7 +498,7 @@ export default function HeroCard({
 
               {/* Wind penalty */}
               {score.breakdown.windPenalty < 0 && (
-                <motion.div
+                <m.div
                   className="flex items-center gap-2"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -510,22 +510,22 @@ export default function HeroCard({
                   <span className="text-caption text-orange-300">
                     {score.breakdown.windPenalty}점
                   </span>
-                </motion.div>
+                </m.div>
               )}
 
               {/* Tips */}
               {score.tips.length > 0 && (
-                <motion.div
+                <m.div
                   className={`pt-3 border-t border-white/10 text-xs text-center ${mutedText}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
                 >
                   💡 {score.tips.join(' · ')}
-                </motion.div>
+                </m.div>
               )}
             </GlassInner>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
