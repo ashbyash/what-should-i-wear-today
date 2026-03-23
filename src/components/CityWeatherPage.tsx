@@ -3,13 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { m } from 'framer-motion';
-import LocationHeader from '@/components/LocationHeader';
-import ScoreGauge from '@/components/ScoreGauge';
+import HeroCard from '@/components/HeroCard';
 import OutfitCard from '@/components/OutfitCard';
-import WeatherCard from '@/components/WeatherCard';
-import DustCard from '@/components/DustCard';
-import UvCard from '@/components/UvCard';
+import HourlyForecast from '@/components/HourlyForecast';
+import ConditionsRow from '@/components/ConditionsRow';
 import PopularCities from '@/components/PopularCities';
 import LoadingState from '@/components/LoadingState';
 import ErrorState from '@/components/ErrorState';
@@ -22,7 +19,6 @@ import { calculateOutingScore, getFeelsLikeTemp } from '@/lib/score';
 import { getOutfitRecommendation } from '@/lib/outfit';
 import { formatLocation } from '@/lib/format-location';
 import { getThemeConfig, getGradientStyle, getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
-import { containerVariants, cardVariants } from '@/lib/animation-variants';
 import { useClientHour } from '@/lib/useClientHour';
 import type { WeatherData, AirQualityData, InitialWeatherData } from '@/types/weather';
 import type { CityData } from '@/lib/cities';
@@ -44,14 +40,13 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     airQuality,
     airQualityLoading,
     uv,
-    uvLoading,
-    hourlyForecast,
-    hourlyLoading,
     location,
     error: dataError,
     lastUpdated,
     refetch,
     isRefetching,
+    hourlyForecast,
+    hourlyLoading,
   } = useWeatherData(coordinates, { initialData });
 
   // 기본 그라데이션 (로딩/에러 상태용)
@@ -169,71 +164,59 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
       style={gradientStyle}
       data-theme={theme.isLight ? 'light' : 'dark'}
     >
-      <div className="max-w-3xl mx-auto px-4 pb-8">
-        <m.div
-          className="grid grid-cols-2 md:grid-cols-3 gap-3"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* 위치 헤더 */}
-          <m.div className="col-span-2 md:col-span-3" variants={cardVariants}>
-            <LocationHeader
-              locationName={locationName}
-              lastUpdated={lastUpdated}
-              onRefresh={refetch}
-              isRefreshing={isRefetching}
-              onSearchClick={() => setIsSearchModalOpen(true)}
-              isViewingOtherLocation={true}
-              onReturnToCurrentLocation={() => router.push('/')}
-            />
-          </m.div>
+      <div className="flex flex-col gap-4 max-w-3xl mx-auto px-4 pb-8 pt-4">
+        {/* Hero Card — full width */}
+        <HeroCard
+          locationName={locationName}
+          weather={weatherData}
+          score={score}
+          isLight={theme.isLight}
+          lastUpdated={lastUpdated}
+          onRefresh={refetch}
+          isRefreshing={isRefetching}
+          onSearchClick={() => setIsSearchModalOpen(true)}
+          isViewingOtherLocation={true}
+          onReturnToCurrentLocation={() => router.push('/')}
+          weatherContext={{
+            temperature: weatherData.temperature,
+            feelsLike: weatherData.feelsLike,
+            weatherMain: weatherData.weatherMain,
+            pm25: airQualityData.pm25,
+            humidity: weatherData.humidity,
+            windSpeed: weatherData.windSpeed,
+            uvIndex: uvSource?.uvIndex,
+          }}
+        />
 
-          {/* 옷차림 추천 */}
-          <m.div className="col-span-2 md:col-span-3" variants={cardVariants}>
-            <OutfitCard
-              outfit={outfit}
-              weatherContext={{
-                temperature: weatherData.temperature,
-                feelsLike: weatherData.feelsLike,
-                weatherMain: weatherData.weatherMain,
-                pm25: airQualityData.pm25,
-              }}
-            />
-          </m.div>
+        {/* Outfit + Hourly — 1col mobile, 2col desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
+          <OutfitCard
+            outfit={outfit}
+            isLight={theme.isLight}
+            weatherContext={{
+              temperature: weatherData.temperature,
+              feelsLike: weatherData.feelsLike,
+              weatherMain: weatherData.weatherMain,
+              pm25: airQualityData.pm25,
+            }}
+          />
+          <HourlyForecast
+            data={hourlyForecast}
+            loading={hourlyLoading}
+            isLight={theme.isLight}
+          />
+        </div>
 
-          {/* 날씨 */}
-          <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
-            <WeatherCard weather={weatherData} hourlyForecast={hourlyForecast} hourlyLoading={hourlyLoading && !initialData?.hourly} city={city} />
-          </m.div>
+        {/* Conditions Row — full width */}
+        <ConditionsRow
+          airQuality={airQualityData}
+          uvIndex={uvSource?.uvIndex}
+          humidity={weatherData.humidity}
+          isLight={theme.isLight}
+          loading={airQualityLoading && !airQualitySource}
+        />
 
-          {/* 외출 점수 */}
-          <m.div className="col-span-2 md:col-span-1" variants={cardVariants}>
-            <ScoreGauge
-              score={score}
-              weatherContext={{
-                temperature: weatherData.temperature,
-                feelsLike: weatherData.feelsLike,
-                weatherMain: weatherData.weatherMain,
-                pm25: airQualityData.pm25,
-                humidity: weatherData.humidity,
-                windSpeed: weatherData.windSpeed,
-                uvIndex: uvSource?.uvIndex,
-              }}
-            />
-          </m.div>
-
-          {/* 미세먼지 */}
-          <m.div className="col-span-1 md:col-span-2" variants={cardVariants}>
-            <DustCard airQuality={airQualityData} loading={airQualityLoading && !airQualitySource} />
-          </m.div>
-
-          {/* 자외선 */}
-          <m.div className="col-span-1" variants={cardVariants}>
-            <UvCard uvIndex={uvSource?.uvIndex} loading={uvLoading && !uvSource} />
-          </m.div>
-        </m.div>
-
+        {/* Popular Cities — full width */}
         <PopularCities currentCitySlug={city.slug} isLight={theme.isLight} />
       </div>
 
