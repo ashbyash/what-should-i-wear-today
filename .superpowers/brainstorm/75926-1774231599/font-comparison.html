@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Comparison</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;400;600;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; color: #fff; padding: 20px; }
+  h2 { font-family: -apple-system, sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 6px; color: #fff; }
+  .subtitle { font-family: -apple-system, sans-serif; font-size: 14px; color: #888; margin-bottom: 24px; }
+  .font-grid { display: flex; flex-direction: column; gap: 16px; }
+  .font-card {
+    border-radius: 20px; overflow: hidden; cursor: pointer;
+    border: 2px solid transparent; transition: border-color 0.2s;
+  }
+  .font-card:hover { border-color: rgba(255,255,255,0.3); }
+  .font-card.selected { border-color: #4ade80; }
+  .font-card .preview {
+    padding: 24px; min-height: 200px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .font-card .info {
+    background: #1a1a1a; padding: 16px;
+  }
+  .font-card .info h3 { font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .font-card .info p { font-family: -apple-system, sans-serif; font-size: 12px; color: #888; line-height: 1.5; }
+  .tag { display: inline-block; font-family: -apple-system, sans-serif; font-size: 10px; background: #333; color: #aaa; padding: 2px 8px; border-radius: 4px; margin-right: 4px; margin-top: 6px; }
+  .selected-indicator {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #4ade80; color: #000; font-family: -apple-system, sans-serif;
+    font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 12px;
+    display: none; z-index: 10;
+  }
+</style>
+</head>
+<body>
+<h2>Korean Font Comparison</h2>
+<p class="subtitle">Refined Glass 스타일에 어울리는 한글 폰트. 클릭해서 선택하세요.</p>
+
+<div class="font-grid">
+
+  <!-- Pretendard (Current) -->
+  <div class="font-card" data-choice="pretendard" onclick="selectFont(this)">
+    <div class="preview" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); font-weight: 500;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 48px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 28px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+          <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 10px; color: rgba(255,255,255,0.45);">SCORE</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.18); margin-top: auto;">
+        <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 13px; color: rgba(255,255,255,0.8);">나들이하기 딱 좋은 날씨예요</div>
+        <div style="font-family: 'Pretendard Variable', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px;">면 반팔 티셔츠 · 얇은 면바지 · 가디건</div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Pretendard (현재 사용 중)</h3>
+      <p>중립적이고 깔끔한 고딕. 가독성 뛰어나고 무난함. 다만 개성은 적은 편.</p>
+      <span class="tag">무난함</span><span class="tag">높은 가독성</span><span class="tag">현재 사용</span>
+    </div>
+  </div>
+
+  <!-- SUIT -->
+  <div class="font-card" data-choice="suit" onclick="selectFont(this)">
+    <div class="preview" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-family: 'SUIT Variable', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); font-weight: 500;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-family: 'SUIT Variable', sans-serif; font-size: 48px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+        <div style="text-align: right;">
+          <div style="font-family: 'SUIT Variable', sans-serif; font-size: 28px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+          <div style="font-family: 'SUIT Variable', sans-serif; font-size: 10px; color: rgba(255,255,255,0.45);">SCORE</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.18); margin-top: auto;">
+        <div style="font-family: 'SUIT Variable', sans-serif; font-size: 13px; color: rgba(255,255,255,0.8);">나들이하기 딱 좋은 날씨예요</div>
+        <div style="font-family: 'SUIT Variable', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px;">면 반팔 티셔츠 · 얇은 면바지 · 가디건</div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>SUIT</h3>
+      <p>Pretendard 기반이지만 약간 더 둥글고 부드러운 인상. Inter 한글 대응. Glass UI에 자연스러움.</p>
+      <span class="tag">부드러움</span><span class="tag">Pretendard 계열</span><span class="tag">무료</span>
+    </div>
+  </div>
+
+  <!-- Wanted Sans -->
+  <div class="font-card" data-choice="wanted" onclick="selectFont(this)">
+    <div class="preview" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); font-weight: 500;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 48px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+        <div style="text-align: right;">
+          <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 28px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+          <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 10px; color: rgba(255,255,255,0.45);">SCORE</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.18); margin-top: auto;">
+        <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 13px; color: rgba(255,255,255,0.8);">나들이하기 딱 좋은 날씨예요</div>
+        <div style="font-family: 'WantedSans Variable', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px;">면 반팔 티셔츠 · 얇은 면바지 · 가디건</div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Wanted Sans</h3>
+      <p>원티드랩에서 만든 폰트. 기하학적이고 모던한 느낌. 숫자가 특히 예쁨. 트렌디한 스타트업 느낌.</p>
+      <span class="tag">모던</span><span class="tag">기하학적</span><span class="tag">숫자 강점</span><span class="tag">무료</span>
+    </div>
+  </div>
+
+  <!-- Noto Sans KR -->
+  <div class="font-card" data-choice="noto" onclick="selectFont(this)">
+    <div class="preview" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); font-weight: 500;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 48px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 28px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+          <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 10px; color: rgba(255,255,255,0.45);">SCORE</div>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.18); margin-top: auto;">
+        <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 13px; color: rgba(255,255,255,0.8);">나들이하기 딱 좋은 날씨예요</div>
+        <div style="font-family: 'Noto Sans KR', sans-serif; font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px;">면 반팔 티셔츠 · 얇은 면바지 · 가디건</div>
+      </div>
+    </div>
+    <div class="info">
+      <h3>Noto Sans KR</h3>
+      <p>Google 표준 한글 폰트. 안정적이고 범용적. thin(200) 웨이트가 예뻐서 큰 숫자 표현에 좋음.</p>
+      <span class="tag">안정적</span><span class="tag">범용</span><span class="tag">thin 웨이트 강점</span><span class="tag">무료</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="selected-indicator" id="indicator"></div>
+
+<script>
+function selectFont(el) {
+  document.querySelectorAll('.font-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const indicator = document.getElementById('indicator');
+  indicator.textContent = el.querySelector('.info h3').textContent + ' selected';
+  indicator.style.display = 'block';
+
+  // Record event
+  const choice = el.getAttribute('data-choice');
+  const text = el.querySelector('.info h3').textContent;
+  fetch('/.events', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({type:'click', choice, text, timestamp: Date.now()})
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>

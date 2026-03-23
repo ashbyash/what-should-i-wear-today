@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icon Style Comparison</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #fff; padding: 20px; font-family: 'Pretendard Variable', -apple-system, sans-serif; }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 12px; font-weight: 600; }
+
+  .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+
+  .mockup-card {
+    border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .glass { background: rgba(255,255,255,0.12); border-radius: 14px; padding: 12px; border: 1px solid rgba(255,255,255,0.18); }
+  .glass-sm { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 8px; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
+
+  .cond-row { display: flex; gap: 6px; }
+  .cond-item { flex: 1; }
+
+  .outfit-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .outfit-row:last-child { border-bottom: none; }
+
+  .hourly-row { display: flex; gap: 6px; overflow-x: auto; }
+  .hourly-item { min-width: 48px; text-align: center; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 4px; }
+
+  .vote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; }
+  .vote-btn {
+    padding: 16px; border-radius: 14px; text-align: center; cursor: pointer;
+    border: 2px solid #333; background: #141414; transition: all 0.2s;
+  }
+  .vote-btn:hover { border-color: #555; }
+  .vote-btn.selected { border-color: #4ade80; background: rgba(74,222,128,0.08); }
+  .vote-btn h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .vote-btn p { font-size: 12px; color: #888; }
+
+  .note { font-size: 11px; color: #555; margin-top: 6px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<h2>Emoji vs Line Icons</h2>
+<p class="subtitle">실제 UI에 적용한 모습을 비교해보세요</p>
+
+<!-- HERO CARD -->
+<div class="section-label">Hero Card</div>
+<div class="compare-row">
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">EMOJI</div>
+    <div class="mockup-card" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 40px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+          <div style="font-size: 12px; color: rgba(255,255,255,0.5);">☀️ 맑음 · 체감 21°</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px;">🤩</div>
+          <div style="font-size: 24px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">LINE ICONS</div>
+    <div class="mockup-card" style="background: linear-gradient(135deg, #56ccf2, #2f80ed);">
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px;">서울</div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 40px; font-weight: 200; letter-spacing: -2px; color: rgba(255,255,255,0.95);">23°</div>
+          <div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: rgba(255,255,255,0.5);"><i data-lucide="sun" style="width:14px;height:14px;"></i> 맑음 · 체감 21°</div>
+        </div>
+        <div style="text-align: center;">
+          <i data-lucide="trending-up" style="width:20px;height:20px;color:rgba(255,255,255,0.6);"></i>
+          <div style="font-size: 24px; font-weight: 600; color: rgba(255,255,255,0.95);">87</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONDITIONS ROW -->
+<div class="section-label">Conditions Row</div>
+<div class="compare-row">
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">EMOJI</div>
+    <div class="cond-row">
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <div style="font-size: 16px;">💨</div>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">PM2.5</div>
+        <div style="font-size: 13px; font-weight: 600; color: #4ade80;">좋음</div>
+      </div>
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <div style="font-size: 16px;">☀️</div>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">자외선</div>
+        <div style="font-size: 13px; font-weight: 600; color: #4ade80;">낮음</div>
+      </div>
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <div style="font-size: 16px;">💧</div>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">습도</div>
+        <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85);">55%</div>
+      </div>
+    </div>
+  </div>
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">LINE ICONS</div>
+    <div class="cond-row">
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <i data-lucide="wind" style="width:16px;height:16px;color:#aaa;"></i>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">PM2.5</div>
+        <div style="font-size: 13px; font-weight: 600; color: #4ade80;">좋음</div>
+      </div>
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <i data-lucide="sun" style="width:16px;height:16px;color:#aaa;"></i>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">자외선</div>
+        <div style="font-size: 13px; font-weight: 600; color: #4ade80;">낮음</div>
+      </div>
+      <div class="glass-sm cond-item" style="background: rgba(86,204,242,0.15); border-color: rgba(86,204,242,0.25);">
+        <i data-lucide="droplets" style="width:16px;height:16px;color:#aaa;"></i>
+        <div style="font-size: 9px; color: #888; margin-top: 2px;">습도</div>
+        <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85);">55%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OUTFIT CARD -->
+<div class="section-label">Outfit Card</div>
+<div class="compare-row">
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">EMOJI</div>
+    <div style="background: rgba(86,204,242,0.1); border-radius: 14px; padding: 14px; border: 1px solid rgba(86,204,242,0.15);">
+      <div style="font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 10px;">Today's Outfit</div>
+      <div class="outfit-row"><span style="font-size: 16px; width: 24px;">🧥</span><span style="font-size: 12px; color: #999; width: 36px;">겉옷</span><span style="font-size: 13px; color: #ddd;">얇은 가디건</span></div>
+      <div class="outfit-row"><span style="font-size: 16px; width: 24px;">👕</span><span style="font-size: 12px; color: #999; width: 36px;">상의</span><span style="font-size: 13px; color: #ddd;">면 반팔 티셔츠</span></div>
+      <div class="outfit-row"><span style="font-size: 16px; width: 24px;">👖</span><span style="font-size: 12px; color: #999; width: 36px;">하의</span><span style="font-size: 13px; color: #ddd;">얇은 면바지</span></div>
+      <div class="outfit-row"><span style="font-size: 16px; width: 24px;">👟</span><span style="font-size: 12px; color: #999; width: 36px;">신발</span><span style="font-size: 13px; color: #ddd;">샌들</span></div>
+    </div>
+  </div>
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">LINE ICONS</div>
+    <div style="background: rgba(86,204,242,0.1); border-radius: 14px; padding: 14px; border: 1px solid rgba(86,204,242,0.15);">
+      <div style="font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 10px;">Today's Outfit</div>
+      <div class="outfit-row"><i data-lucide="shirt" style="width:16px;height:16px;color:#888;flex-shrink:0;"></i><span style="font-size: 12px; color: #999; width: 36px;">겉옷</span><span style="font-size: 13px; color: #ddd;">얇은 가디건</span></div>
+      <div class="outfit-row"><i data-lucide="shirt" style="width:16px;height:16px;color:#888;flex-shrink:0;"></i><span style="font-size: 12px; color: #999; width: 36px;">상의</span><span style="font-size: 13px; color: #ddd;">면 반팔 티셔츠</span></div>
+      <div class="outfit-row"><i data-lucide="scissors" style="width:16px;height:16px;color:#888;flex-shrink:0;"></i><span style="font-size: 12px; color: #999; width: 36px;">하의</span><span style="font-size: 13px; color: #ddd;">얇은 면바지</span></div>
+      <div class="outfit-row"><i data-lucide="footprints" style="width:16px;height:16px;color:#888;flex-shrink:0;"></i><span style="font-size: 12px; color: #999; width: 36px;">신발</span><span style="font-size: 13px; color: #ddd;">샌들</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOURLY -->
+<div class="section-label">Hourly Forecast</div>
+<div class="compare-row">
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">EMOJI</div>
+    <div class="hourly-row">
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">12시</div><div style="font-size: 18px; margin: 4px 0;">☀️</div><div style="font-size: 12px; color: #ccc;">23°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">13시</div><div style="font-size: 18px; margin: 4px 0;">⛅</div><div style="font-size: 12px; color: #ccc;">24°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">14시</div><div style="font-size: 18px; margin: 4px 0;">🌧️</div><div style="font-size: 12px; color: #ccc;">22°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">15시</div><div style="font-size: 18px; margin: 4px 0;">⛈️</div><div style="font-size: 12px; color: #ccc;">20°</div></div>
+    </div>
+  </div>
+  <div style="background: #141414; border-radius: 16px; padding: 12px; border: 1px solid #222;">
+    <div style="font-size: 10px; color: #666; margin-bottom: 8px;">LINE ICONS</div>
+    <div class="hourly-row">
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">12시</div><div style="margin: 4px 0;"><i data-lucide="sun" style="width:18px;height:18px;color:#fbbf24;"></i></div><div style="font-size: 12px; color: #ccc;">23°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">13시</div><div style="margin: 4px 0;"><i data-lucide="cloud-sun" style="width:18px;height:18px;color:#94a3b8;"></i></div><div style="font-size: 12px; color: #ccc;">24°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">14시</div><div style="margin: 4px 0;"><i data-lucide="cloud-rain" style="width:18px;height:18px;color:#60a5fa;"></i></div><div style="font-size: 12px; color: #ccc;">22°</div></div>
+      <div class="hourly-item"><div style="font-size: 10px; color: #888;">15시</div><div style="margin: 4px 0;"><i data-lucide="cloud-lightning" style="width:18px;height:18px;color:#f87171;"></i></div><div style="font-size: 12px; color: #ccc;">20°</div></div>
+    </div>
+  </div>
+</div>
+
+<p class="note" style="margin-top: 4px; margin-bottom: 20px;">
+  ⚠️ 라인 아이콘 한계: 옷 종류(바지, 코트, 장갑 등)를 구분하는 아이콘이 부족. Lucide에는 shirt 하나뿐.<br/>
+  ✅ 이모지 강점: 날씨(☀️⛅🌧️⛈️❄️), 옷(👕👖🧥👟🧤🧣), 공기(💨) 등 표현력이 풍부.
+</p>
+
+<!-- VOTE -->
+<div class="vote-row">
+  <div class="vote-btn" data-choice="emoji" onclick="vote(this)">
+    <h3>Emoji 유지</h3>
+    <p>표현력 풍부 · 친근함 · 개발 비용 없음</p>
+  </div>
+  <div class="vote-btn" data-choice="line" onclick="vote(this)">
+    <h3>Line Icons</h3>
+    <p>깔끔 · 통일감 · 옷 아이콘 한계</p>
+  </div>
+</div>
+
+<script>
+lucide.createIcons();
+function vote(el) {
+  document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const choice = el.getAttribute('data-choice');
+  const text = el.querySelector('h3').textContent;
+  fetch('/.events', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({type:'click', choice, text, timestamp: Date.now()})
+  }).catch(() => {});
+}
+</script>
+</body>
+</html>
