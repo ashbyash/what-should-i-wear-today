@@ -79,7 +79,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
   if (!data || data.length === 0) return null;
 
   return (
-    <GlassCard variant="outer" className="h-full flex flex-col">
+    <GlassCard variant="outer">
       {/* 제목 */}
       <div
         style={{
@@ -93,7 +93,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
         HOURLY FORECAST
       </div>
 
-      <div className="relative flex-1 flex flex-col justify-center" role="region" aria-label="시간별 예보">
+      <div className="relative" role="region" aria-label="시간별 예보">
         {/* 스크롤 컨테이너 */}
         <div
           ref={scrollRef}

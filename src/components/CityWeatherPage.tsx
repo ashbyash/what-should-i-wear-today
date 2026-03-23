@@ -189,7 +189,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
         />
 
         {/* Outfit + Hourly — 1col mobile, 2col desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
           <OutfitCard
             outfit={outfit}
             isLight={theme.isLight}
