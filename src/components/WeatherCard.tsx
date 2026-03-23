@@ -3,14 +3,11 @@
 import { m } from 'framer-motion';
 import { weatherAnimations } from '@/lib/animation-variants';
 import { getWeatherEmoji, getTimeCategoryForHour } from '@/lib/weather-utils';
-import HourlyForecast from './HourlyForecast';
-import type { WeatherData, HourlyForecastItem } from '@/types/weather';
+import type { WeatherData } from '@/types/weather';
 import type { CityData } from '@/lib/cities';
 
 interface WeatherCardProps {
   weather: WeatherData;
-  hourlyForecast?: HourlyForecastItem[] | null;
-  hourlyLoading?: boolean;
   city?: CityData;
 }
 
@@ -40,7 +37,7 @@ function getWeatherLabel(weatherMain: string): string {
   }
 }
 
-export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = false, city }: WeatherCardProps) {
+export default function WeatherCard({ weather, city }: WeatherCardProps) {
   const nowHour = `${String(new Date().getHours()).padStart(2, '0')}:00`;
   const currentTimeCategory = city
     ? getTimeCategoryForHour(nowHour, city.lat, city.lon, city.utcOffset)
@@ -88,12 +85,8 @@ export default function WeatherCard({ weather, hourlyForecast, hourlyLoading = f
           <div>바람 {weather.windSpeed}m/s · 습도 {weather.humidity}%</div>
         </div>
 
-        {/* 시간별 예보 */}
-        {(hourlyLoading || (hourlyForecast && hourlyForecast.length > 0)) && (
-          <div className="border-t border-white/20 pt-3 mt-3 w-full">
-            <HourlyForecast data={hourlyForecast ?? null} loading={hourlyLoading} city={city} />
-          </div>
-        )}
+        {/* 시간별 예보는 별도 카드로 분리됨 */}
+        {null}
       </div>
     </div>
   );

@@ -45,8 +45,6 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     airQualityLoading,
     uv,
     uvLoading,
-    hourlyForecast,
-    hourlyLoading,
     location,
     error: dataError,
     lastUpdated,
@@ -204,7 +202,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
 
           {/* 날씨 */}
           <m.div className="col-span-2 md:col-span-2" variants={cardVariants}>
-            <WeatherCard weather={weatherData} hourlyForecast={hourlyForecast} hourlyLoading={hourlyLoading && !initialData?.hourly} city={city} />
+            <WeatherCard weather={weatherData} city={city} />
           </m.div>
 
           {/* 외출 점수 */}
