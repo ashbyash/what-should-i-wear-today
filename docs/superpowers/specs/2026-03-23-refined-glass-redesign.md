@@ -33,17 +33,17 @@ Visual redesign of the "What Should I Wear Today" weather app. The goal is to mo
 |-------|-------|
 | Outer card background | `rgba(255,255,255,0.15)` |
 | Outer card border | `1px solid rgba(255,255,255,0.2)` |
-| Outer card radius | `18px` |
-| Outer card padding | `20px` |
+| Outer card radius | `rounded-[18px]` |
+| Outer card padding | `p-5` (20px) |
 | Inner element background | `rgba(255,255,255,0.1)` |
 | Inner element border | `1px solid rgba(255,255,255,0.15)` |
-| Inner element radius | `12px` |
+| Inner element radius | `rounded-xl` (12px) |
 | Backdrop blur | `blur(20px)` |
-| Card gap | `16px` |
+| Card gap | `gap-4` (16px) |
 
-### Light Background Adjustment (dawn, morning, evening)
+### Light Background Adjustment
 
-When background is light, increase glass opacity for contrast:
+Light/dark is determined by the existing `isLight` boolean from `ThemeConfig` in `src/lib/theme.ts`. Currently light: dawn, morning, evening. Dark: day, night. When `isLight` is true, increase glass opacity for contrast:
 
 | Token | Light value |
 |-------|-------------|
@@ -67,7 +67,8 @@ When background is light, increase glass opacity for contrast:
 | Type | Spring |
 | Stiffness | 100 |
 | Damping | 20 (was 15) |
-| Stagger delay | 0.1s between cards |
+| Mass | 1 (default) |
+| Stagger delay | 0.1s between cards, top-to-bottom |
 
 ## Layout
 
@@ -103,7 +104,7 @@ When background is light, increase glass opacity for contrast:
 [ Footer                       ]
 ```
 
-Container max-width: `768px`, centered.
+Container: keep existing `max-w-3xl` (768px), centered. Desktop 2-column ratio: 1fr 1fr (equal width).
 
 ## Component Changes
 
@@ -112,12 +113,22 @@ Container max-width: `768px`, centered.
 Merges current LocationHeader + ScoreGauge + part of WeatherCard.
 
 Contents:
-- Location name (top-left)
-- Update time (top-right)
+- Location name (top-left) — tappable to open CitySearchModal
+- Update time (top-right) + refresh button (existing reload logic preserved)
 - Large temperature display (left, font-weight: 200, ~56px)
 - Weather emoji + condition + feels-like (below temp)
-- Score emoji + score number + "SCORE" label (right)
-- AI message in glass-inner box (bottom)
+- Score emoji + score number (font-weight: 600, ~36px) + "SCORE" label (10px, muted, uppercase) (right)
+- AI message in glass-inner box (bottom) — uses existing `useAIMessage` hook, receives same `weatherContext` props (temperature, feelsLike, weatherMain, pm25, humidity, windSpeed, uvIndex)
+
+Interactive elements from LocationHeader preserved:
+- Refresh button (top-right, next to update time)
+- Cache warning banner (amber, shown when using cached/offline data)
+- "Back to current location" button (shown when viewing other city)
+- City search trigger (tap location name)
+
+Score breakdown: tap the score area to expand/collapse the existing breakdown panel (5 sub-scores + wind penalty). Same data, same logic as current ScoreGauge — just without the circular SVG gauge.
+
+Loading state: skeleton with glass-card shape, pulsing opacity. Shows location placeholder + two number placeholders (temp/score).
 
 ### Modified: Outfit Card
 
@@ -139,22 +150,35 @@ Previously embedded inside WeatherCard, now standalone card:
 Replaces separate DustCard and UvCard:
 - 3 compact glass-inner badges in a row
 - Each badge: emoji → label → colored value
-- PM2.5, UV, Humidity
-- Color-coded values (green for good, yellow for moderate, red for bad)
+- PM2.5 (from existing `dustData.pm25`), UV (from existing `uvData`), Humidity (from existing `weather.humidity`)
+- Color-coded values:
+  - Green (`#4ade80`): PM2.5 good (0-15), UV low (0-2), Humidity optimal range
+  - Yellow (`#fbbf24`): PM2.5 moderate (16-35), UV moderate (3-5), Humidity marginal
+  - Red (`#f87171`): PM2.5 bad (36+), UV high (6+), Humidity extreme
+- Loading state: 3 skeleton badges with pulsing opacity
+
+### Modified: WeatherCard → removed
+
+Current WeatherCard renders: weather emoji with animation, current temp, feels-like, min/max, wind, humidity, and hourly forecast. All of this data moves to Hero Card (temp, feels-like, weather emoji) and Hourly Forecast (standalone) and Conditions Row (humidity). WeatherCard component is deleted.
 
 ### Removed Components
 
-- **ScoreGauge** (circular SVG gauge) — score moves into Hero Card as a simple number
+- **ScoreGauge** (circular SVG gauge) — score + breakdown moves into Hero Card
 - **DustCard** (full card) — merged into Conditions Row
 - **UvCard** (full card) — merged into Conditions Row
+- **WeatherCard** — data split across Hero Card, Hourly Forecast, and Conditions Row
+- **AirQualityCard** — currently unused (not imported in page.tsx), can be deleted as cleanup
+- **LocationHeader** — absorbed into Hero Card
+
+### Restyled Components
+
+- **PopularCities** — same functionality, restyled as glass-inner pills with `rounded-[20px]`. May need prop updates to match new glass token system.
+- **Footer** — same content, restyled to match new glass tokens. Currently rendered inside `Providers` wrapper in layout.tsx.
 
 ### Unchanged Components
 
-- **WeatherCard hourly data** — moves to standalone but same data/logic
-- **PopularCities** — same functionality, restyled as glass-inner pills
-- **Footer** — same, restyled to match
 - **CitySearchModal** — no visual changes in this phase
-- **CityWeatherPage** — same redesign applied (uses same components)
+- **CityWeatherPage** — consumes the same new components (Hero, Outfit, Hourly, Conditions). Requires same redesign applied — not a separate effort, just swapping the same components.
 
 ## Pages Affected
 
