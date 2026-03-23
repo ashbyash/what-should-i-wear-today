@@ -97,7 +97,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
         {/* 스크롤 컨테이너 */}
         <div
           ref={scrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth px-1"
+          className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth px-1 flex-1 items-stretch"
         >
           {data.map((item, i) => {
             const isNow = i === 0;
@@ -127,8 +127,8 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
 
                 <GlassInner
                   isLight={isLight}
-                  className={`flex flex-col items-center gap-1 shrink-0 snap-start transition-colors
-                    min-w-[52px] md:min-w-[64px] text-center !py-3 !px-2 md:!py-4 md:!px-3
+                  className={`flex flex-col items-center justify-center gap-1 shrink-0 snap-start transition-colors self-stretch
+                    min-w-[52px] md:min-w-[64px] text-center !py-3 !px-2 md:!px-3
                     ${isNow ? 'shadow-md scale-105' : ''}`}
                 >
                   <span className={`text-xs md:text-sm ${isNow ? `${primaryColor} font-semibold` : mutedColor}`}>
