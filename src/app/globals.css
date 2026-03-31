@@ -72,22 +72,3 @@ body {
     padding-left: var(--safe-area-inset-left);
   }
 }
-
-/* 밝은 배경 시간대 (morning, evening) - text-shadow로 가독성 확보 */
-[data-theme="light"] {
-  --glass-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .text-glass-primary,
-[data-theme="light"] .text-glass-secondary,
-[data-theme="light"] .text-glass-muted {
-  text-shadow: var(--glass-text-shadow);
-}
-
-/* 밝은 배경에서 카드 대비 강화 */
-[data-theme="light"] .card {
-  --tw-bg-opacity: 1;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-}
