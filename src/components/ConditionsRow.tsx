@@ -55,7 +55,7 @@ export default function ConditionsRow({
   isLight = false,
   loading = false,
 }: ConditionsRowProps) {
-  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
+  const mutedColor = 'text-white/55';
 
   if (loading) {
     return (

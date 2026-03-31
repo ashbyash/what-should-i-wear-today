@@ -50,8 +50,8 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const primaryColor = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
-  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
+  const primaryColor = 'text-white/95';
+  const mutedColor = 'text-white/55';
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -142,7 +142,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
                   </span>
 
                   {item.precipitationProbability != null && item.precipitationProbability > 0 && (
-                    <span className={`text-[11px] leading-none ${isLight ? 'text-blue-600/70' : 'text-blue-200/80'}`}>
+                    <span className="text-[11px] leading-none text-blue-200/80">
                       💧{item.precipitationProbability}%
                     </span>
                   )}
