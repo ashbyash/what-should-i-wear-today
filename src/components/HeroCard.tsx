@@ -82,22 +82,7 @@ function getWeatherEmoji(weatherMain: string): string {
   return '🌤️';
 }
 
-function getScoreColor(level: OutingScore['level'], isLight: boolean): string {
-  if (isLight) {
-    switch (level) {
-      case 'perfect':
-      case 'excellent':
-      case 'good':
-      case 'fair':
-        return 'text-[rgba(30,30,50,0.85)]';
-      case 'moderate':
-        return 'text-amber-600';
-      case 'poor':
-        return 'text-orange-500';
-      case 'bad':
-        return 'text-rose-500';
-    }
-  }
+function getScoreColor(level: OutingScore['level']): string {
   switch (level) {
     case 'perfect':
     case 'excellent':
@@ -232,13 +217,13 @@ export default function HeroCard({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const scoreEmoji = getScoreEmoji(score.level);
-  const scoreColorClass = getScoreColor(score.level, isLight);
+  const scoreColorClass = getScoreColor(score.level);
   const weatherEmoji = getWeatherEmoji(weather.weatherMain);
   const weatherLabel = getWeatherLabel(weather.weatherMain);
 
-  const primaryText = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
-  const secondaryText = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const mutedText = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
+  const primaryText = 'text-white/95';
+  const secondaryText = 'text-white/80';
+  const mutedText = 'text-white/55';
 
   const handleRefresh = () => {
     if (onRefresh) {
