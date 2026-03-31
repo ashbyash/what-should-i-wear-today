@@ -17,12 +17,12 @@ export default function GlassCard({
 }: GlassCardProps) {
   const styles = variant === 'outer'
     ? {
-        background: isLight ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)',
-        border: isLight ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.2)',
+        background: isLight ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.15)',
+        border: isLight ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.2)',
       }
     : {
-        background: isLight ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
-        border: isLight ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.15)',
+        background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.1)',
+        border: isLight ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.15)',
       };
 
   const radius = variant === 'outer' ? 'rounded-[18px]' : 'rounded-xl';
