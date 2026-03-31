@@ -48,10 +48,10 @@ export default function OutfitCard({ outfit, isLight = false, weatherContext }: 
     .join('. ');
 
   // isLight 기반 텍스트 색상
-  const colorPrimary = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
-  const colorSecondary = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const colorMuted = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
-  const borderColor = isLight ? 'border-black/10' : 'border-white/20';
+  const colorPrimary = 'text-white/95';
+  const colorSecondary = 'text-white/80';
+  const colorMuted = 'text-white/55';
+  const borderColor = 'border-white/20';
 
   return (
     <GlassCard
@@ -138,9 +138,9 @@ export default function OutfitCard({ outfit, isLight = false, weatherContext }: 
               <span className="text-purple-300" aria-hidden="true">✨</span>
               {isTipLoading ? (
                 <span className="flex items-center gap-1">
-                  <span className={`inline-block w-1.5 h-1.5 ${isLight ? 'bg-black/20' : 'bg-white/30'} rounded-full animate-pulse`} />
-                  <span className={`inline-block w-1.5 h-1.5 ${isLight ? 'bg-black/20' : 'bg-white/30'} rounded-full animate-pulse [animation-delay:0.2s]`} />
-                  <span className={`inline-block w-1.5 h-1.5 ${isLight ? 'bg-black/20' : 'bg-white/30'} rounded-full animate-pulse [animation-delay:0.4s]`} />
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse" />
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse [animation-delay:0.2s]" />
+                  <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse [animation-delay:0.4s]" />
                 </span>
               ) : (
                 <span className="text-sm font-medium">{stylingTip}</span>
