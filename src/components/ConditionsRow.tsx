@@ -55,7 +55,7 @@ export default function ConditionsRow({
   isLight = false,
   loading = false,
 }: ConditionsRowProps) {
-  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.4)]' : 'text-white/45';
+  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
 
   if (loading) {
     return (
@@ -63,7 +63,7 @@ export default function ConditionsRow({
         {[0, 1, 2].map((i) => (
           <GlassInner key={i} isLight={isLight} className="flex-1 flex flex-col items-center gap-1 animate-pulse">
             <div className="text-base">-</div>
-            <div className="text-[9px] opacity-50">-</div>
+            <div className="text-[11px] opacity-50">-</div>
             <div className="h-5 bg-gray-300 rounded w-12 animate-pulse"></div>
           </GlassInner>
         ))}
@@ -76,7 +76,7 @@ export default function ConditionsRow({
       {/* PM2.5 Badge */}
       <GlassInner isLight={isLight} className="flex-1 flex flex-col items-center gap-1">
         <div className="text-base">💨</div>
-        <div className={`text-[9px] ${mutedColor}`}>PM2.5</div>
+        <div className={`text-[11px] ${mutedColor}`}>PM2.5</div>
         {airQuality?.pm25 !== undefined ? (
           <div style={{ color: getPM25Color(airQuality.pm25) }} className="text-[13px] font-semibold">
             {getPM25Level(airQuality.pm25)}
@@ -89,7 +89,7 @@ export default function ConditionsRow({
       {/* UV Badge */}
       <GlassInner isLight={isLight} className="flex-1 flex flex-col items-center gap-1">
         <div className="text-base">☀️</div>
-        <div className={`text-[9px] ${mutedColor}`}>자외선</div>
+        <div className={`text-[11px] ${mutedColor}`}>자외선</div>
         {uvIndex !== undefined ? (
           <div style={{ color: getUVColor(uvIndex) }} className="text-[13px] font-semibold">
             {getUVLevel(uvIndex)}
@@ -102,7 +102,7 @@ export default function ConditionsRow({
       {/* Humidity Badge */}
       <GlassInner isLight={isLight} className="flex-1 flex flex-col items-center gap-1">
         <div className="text-base">💧</div>
-        <div className={`text-[9px] ${mutedColor}`}>습도</div>
+        <div className={`text-[11px] ${mutedColor}`}>습도</div>
         {humidity !== undefined ? (
           <div style={{ color: getHumidityColor(humidity) }} className="text-[13px] font-semibold">
             {humidity}%

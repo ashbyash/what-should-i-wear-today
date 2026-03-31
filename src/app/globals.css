@@ -73,9 +73,10 @@ body {
   }
 }
 
-/* 밝은 배경 시간대 (morning, evening) - 흰색 텍스트 + text-shadow로 가독성 확보 */
+/* 밝은 배경 시간대 (morning, evening) - text-shadow로 가독성 확보 */
 [data-theme="light"] {
   --glass-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] .text-glass-primary,

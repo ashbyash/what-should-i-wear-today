@@ -238,7 +238,7 @@ export default function HeroCard({
 
   const primaryText = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
   const secondaryText = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const mutedText = isLight ? 'text-[rgba(30,30,50,0.4)]' : 'text-white/45';
+  const mutedText = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
 
   const handleRefresh = () => {
     if (onRefresh) {
@@ -425,7 +425,7 @@ export default function HeroCard({
           <div className="flex items-end gap-2">
             <span
               className={primaryText}
-              style={{ fontSize: '56px', lineHeight: 1, fontWeight: 200 }}
+              style={{ fontSize: '56px', lineHeight: 1, fontWeight: 300 }}
             >
               {weather.temperature}°
             </span>
@@ -457,7 +457,7 @@ export default function HeroCard({
             {score.total}
           </span>
           <div className="flex items-center gap-0.5">
-            <span className={`text-[10px] uppercase tracking-widest ${mutedText}`}>SCORE</span>
+            <span className={`text-xs uppercase tracking-widest ${mutedText}`}>SCORE</span>
             <m.svg
               className={`w-3 h-3 ${mutedText}`}
               fill="none"

@@ -10,10 +10,10 @@ const DEFAULT_COORDS = { lat: 37.5665, lon: 126.978 };
 
 // 시간대별 그라데이션
 export const TIME_GRADIENTS: Record<TimeOfDay, { from: string; to: string }> = {
-  dawn: { from: '#a1c4fd', to: '#ffecd2' },
-  morning: { from: '#fcb69f', to: '#ffecd2' },
+  dawn: { from: '#a1c4fd', to: '#f0dcc0' },
+  morning: { from: '#f0a48c', to: '#f0dcc0' },
   day: { from: '#56ccf2', to: '#2f80ed' },
-  evening: { from: '#ee9ca7', to: '#ffdde1' },
+  evening: { from: '#e08a96', to: '#f0cdd2' },
   night: { from: '#0f0c29', to: '#302b63' },
 };
 

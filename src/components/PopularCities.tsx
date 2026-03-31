@@ -12,7 +12,7 @@ export default function PopularCities({ currentCitySlug, isLight }: PopularCitie
   const cities = getPopularCities(currentCitySlug);
 
   const secondaryText = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const mutedText = isLight ? 'text-[rgba(30,30,50,0.4)]' : 'text-white/45';
+  const mutedText = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
 
   const glassOuter = isLight
     ? 'bg-white/25 border border-white/35'

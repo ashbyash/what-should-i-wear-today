@@ -50,7 +50,7 @@ export default function OutfitCard({ outfit, isLight = false, weatherContext }: 
   // isLight 기반 텍스트 색상
   const colorPrimary = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
   const colorSecondary = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const colorMuted = isLight ? 'text-[rgba(30,30,50,0.4)]' : 'text-white/45';
+  const colorMuted = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
   const borderColor = isLight ? 'border-black/10' : 'border-white/20';
 
   return (
@@ -82,7 +82,7 @@ export default function OutfitCard({ outfit, isLight = false, weatherContext }: 
           </svg>
           <span
             className={`${colorMuted} uppercase font-medium`}
-            style={{ fontSize: '10px', letterSpacing: '0.5px' }}
+            style={{ fontSize: '12px', letterSpacing: '0.5px' }}
           >
             TODAY&apos;S OUTFIT
           </span>
@@ -107,7 +107,7 @@ export default function OutfitCard({ outfit, isLight = false, weatherContext }: 
                 </span>
                 <span
                   className={`${colorMuted} shrink-0 uppercase`}
-                  style={{ fontSize: '11px', width: '32px' }}
+                  style={{ fontSize: '12px', width: '36px' }}
                 >
                   {label}
                 </span>

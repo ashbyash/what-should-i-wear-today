@@ -51,7 +51,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const primaryColor = isLight ? 'text-[rgba(30,30,50,0.85)]' : 'text-white/95';
-  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.4)]' : 'text-white/45';
+  const mutedColor = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -83,7 +83,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
       {/* 제목 */}
       <div
         style={{
-          fontSize: '10px',
+          fontSize: '12px',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
           marginBottom: '12px',
@@ -142,7 +142,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
                   </span>
 
                   {item.precipitationProbability != null && item.precipitationProbability > 0 && (
-                    <span className="text-[10px] leading-none text-blue-200/80">
+                    <span className={`text-[11px] leading-none ${isLight ? 'text-blue-600/70' : 'text-blue-200/80'}`}>
                       💧{item.precipitationProbability}%
                     </span>
                   )}

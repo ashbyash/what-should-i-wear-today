@@ -17,11 +17,11 @@ export default function GlassCard({
 }: GlassCardProps) {
   const styles = variant === 'outer'
     ? {
-        background: isLight ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)',
-        border: isLight ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.2)',
+        background: isLight ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)',
+        border: isLight ? '1px solid rgba(255,255,255,0.4)' : '1px solid rgba(255,255,255,0.2)',
       }
     : {
-        background: isLight ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+        background: isLight ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
         border: isLight ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.15)',
       };
 
