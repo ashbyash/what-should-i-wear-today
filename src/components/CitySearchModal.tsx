@@ -88,12 +88,11 @@ export default function CitySearchModal({
 
   // 테마 기반 스타일 계산
   const gradient = theme?.gradient ?? DEFAULT_GRADIENT;
-  const isLight = theme?.isLight ?? false;
   const backgroundStyle = {
     background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})`,
   };
 
-  const colors = getThemeColors(isLight);
+  const colors = getThemeColors();
 
   return (
     <AnimatePresence>

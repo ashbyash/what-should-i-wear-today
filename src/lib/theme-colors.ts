@@ -11,7 +11,7 @@ export interface ThemeColors {
   focusRing: string;
 }
 
-export function getThemeColors(_isLight?: boolean): ThemeColors {
+export function getThemeColors(): ThemeColors {
   return {
     primary: 'text-glass-primary',
     secondary: 'text-glass-secondary',
