@@ -11,15 +11,15 @@ interface PopularCitiesProps {
 export default function PopularCities({ currentCitySlug, isLight }: PopularCitiesProps) {
   const cities = getPopularCities(currentCitySlug);
 
-  const secondaryText = isLight ? 'text-[rgba(30,30,50,0.7)]' : 'text-white/80';
-  const mutedText = isLight ? 'text-[rgba(30,30,50,0.55)]' : 'text-white/55';
+  const secondaryText = 'text-white/80';
+  const mutedText = 'text-white/55';
 
   const glassOuter = isLight
-    ? 'bg-white/25 border border-white/35'
+    ? 'bg-black/20 border border-white/10'
     : 'bg-white/15 border border-white/20';
 
   const glassInner = isLight
-    ? 'bg-white/20 border border-white/15'
+    ? 'bg-black/15 border border-white/10'
     : 'bg-white/10 border border-white/15';
 
   return (
@@ -34,7 +34,7 @@ export default function PopularCities({ currentCitySlug, isLight }: PopularCitie
               key={city.slug}
               href={`/${city.slug}`}
               className={`${glassInner} backdrop-blur rounded-[20px] px-4 py-2 text-sm ${secondaryText}
-                         transition-colors hover:bg-white/25 active:bg-white/30`}
+                         transition-colors ${isLight ? 'hover:bg-black/25 active:bg-black/30' : 'hover:bg-white/25 active:bg-white/30'}`}
             >
               {city.name}
             </Link>
