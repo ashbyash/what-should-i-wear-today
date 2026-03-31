@@ -108,7 +108,7 @@ export default function CitySearchModal({
         >
           {/* 검색 가독성을 위한 오버레이 */}
           <div
-            className={`absolute inset-0 ${isLight ? 'bg-black/5' : 'bg-black/20'}`}
+            className="absolute inset-0 bg-black/20"
           />
           {/* 헤더 */}
           <m.header
@@ -169,7 +169,7 @@ export default function CitySearchModal({
                 placeholder="도시, 동네 검색..."
                 className={`w-full pl-10 pr-12 py-3 rounded-xl ${colors.bg} border ${colors.borderStrong}
                            ${colors.primary}
-                           ${isLight ? 'placeholder:text-slate-500' : 'placeholder:text-white/60'}
+                           placeholder:text-white/60
                            focus:outline-none focus:ring-2 ${colors.focusRing} focus:border-transparent
                            transition-all`}
                 autoFocus
@@ -356,7 +356,7 @@ export default function CitySearchModal({
                             )}
                             {result.type === 'openmeteo' && result.country && (
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full
-                                               ${isLight ? 'bg-sky-500/10 border-sky-500/20 text-sky-700' : 'bg-sky-400/15 border-sky-400/20 text-sky-300'}
+                                               bg-sky-400/15 border-sky-400/20 text-sky-300
                                                border`}>
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <circle cx="12" cy="12" r="10" strokeWidth="1.5" />

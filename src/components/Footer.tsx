@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { getTimeOfDay, TIME_GRADIENTS, TIME_TEXT_COLORS } from '@/lib/theme';
+import { getTimeOfDay, TIME_GRADIENTS } from '@/lib/theme';
 import { useClientHour } from '@/lib/useClientHour';
 
 export default function Footer() {
@@ -10,13 +10,10 @@ export default function Footer() {
   const { gradientStyle, textClass } = useMemo(() => {
     const timeOfDay = getTimeOfDay(clientHour);
     const gradient = TIME_GRADIENTS[timeOfDay];
-    const isLight = TIME_TEXT_COLORS[timeOfDay].isLight;
 
     return {
       gradientStyle: { background: `linear-gradient(to bottom, ${gradient.to}, ${gradient.to})` },
-      textClass: isLight
-        ? 'text-[rgba(30,30,50,0.5)] hover:text-[rgba(30,30,50,0.8)]'
-        : 'text-white/45 hover:text-white/95',
+      textClass: 'text-white/45 hover:text-white/95',
     };
   }, [clientHour]);
 
