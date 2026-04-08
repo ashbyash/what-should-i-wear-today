@@ -66,3 +66,9 @@ Level: perfect(90+) / excellent(80+) / good(70+) / fair(60+) / moderate(45+) / p
 /lib          → Utils, API calls
 /types        → Type definitions
 ```
+
+## Doc Paths
+- 현재 상태: docs/status.md
+- 구현 계획: docs/plans/ (not docs/superpowers/plans/)
+- 설계 명세: docs/specs/ (not docs/superpowers/specs/)
+- 로드맵: product/roadmap.md
