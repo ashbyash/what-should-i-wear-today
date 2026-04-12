@@ -1,6 +1,7 @@
 'use client';
 
 import { m } from 'framer-motion';
+import { DURATION, EASING } from '@/lib/design-tokens';
 
 // 기본 스켈레톤 컴포넌트
 function SkeletonBox({ className = '' }: { className?: string }) {
@@ -8,7 +9,7 @@ function SkeletonBox({ className = '' }: { className?: string }) {
     <m.div
       className={`bg-white/20 rounded-lg ${className}`}
       animate={{ opacity: [0.5, 0.8, 0.5] }}
-      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: DURATION.pulse, repeat: Infinity, ease: EASING.inOut }}
     />
   );
 }
@@ -25,7 +26,7 @@ function SkeletonCircle({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
     <m.div
       className={`bg-white/20 rounded-full ${sizeClasses[size]}`}
       animate={{ opacity: [0.5, 0.8, 0.5] }}
-      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: DURATION.pulse, repeat: Infinity, ease: EASING.inOut }}
     />
   );
 }
@@ -63,7 +64,7 @@ function SkeletonScoreGauge() {
         <m.div
           className="w-40 h-40 rounded-full bg-white/10 border-8 border-white/20"
           animate={{ opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: DURATION.pulse, repeat: Infinity, ease: EASING.inOut }}
         />
         <SkeletonBox className="h-4 w-40 mt-4" />
       </div>

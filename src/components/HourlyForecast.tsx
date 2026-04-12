@@ -10,7 +10,6 @@ interface HourlyForecastProps {
   data: HourlyForecastItem[] | null;
   loading: boolean;
   city?: CityData;
-  isLight?: boolean;
 }
 
 function getDateLabel(dateStr: string): string {
@@ -45,13 +44,13 @@ function HourlySkeleton() {
   );
 }
 
-export default function HourlyForecast({ data, loading, city, isLight = false }: HourlyForecastProps) {
+export default function HourlyForecast({ data, loading, city }: HourlyForecastProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const primaryColor = 'text-white/95';
-  const mutedColor = 'text-white/55';
+  const primaryColor = 'text-skin-primary';
+  const mutedColor = 'text-skin-muted';
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -81,15 +80,7 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
   return (
     <GlassCard variant="outer">
       {/* 제목 */}
-      <div
-        style={{
-          fontSize: '12px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          marginBottom: '12px',
-        }}
-        className={mutedColor}
-      >
+      <div className={`${mutedColor} text-label uppercase tracking-wide mb-3`}>
         HOURLY FORECAST
       </div>
 
@@ -126,7 +117,6 @@ export default function HourlyForecast({ data, loading, city, isLight = false }:
                 )}
 
                 <GlassInner
-                  isLight={isLight}
                   className={`flex flex-col items-center justify-center gap-1 shrink-0 snap-start transition-colors self-stretch
                     min-w-[52px] md:min-w-[64px] text-center !py-3 !px-2 md:!px-3
                     ${isNow ? 'shadow-md scale-105' : ''}`}

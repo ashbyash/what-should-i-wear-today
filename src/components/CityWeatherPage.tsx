@@ -235,7 +235,6 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:items-start">
           <OutfitCard
             outfit={outfit}
-            isLight={theme.isLight}
             weatherContext={{
               temperature: weatherData.temperature,
               feelsLike: weatherData.feelsLike,
@@ -246,7 +245,6 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
           <HourlyForecast
             data={hourlyForecast}
             loading={hourlyLoading}
-            isLight={theme.isLight}
           />
         </div>
 
