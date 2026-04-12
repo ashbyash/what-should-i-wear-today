@@ -7,10 +7,52 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Glass UI 색상 변수 (어두운 배경용 - 기본값) */
+
+  /* Text hierarchy */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.80);
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-disabled: rgba(255, 255, 255, 0.30);
+
+  /* Status colors */
+  --status-good: #4ade80;
+  --status-moderate: #fbbf24;
+  --status-bad: #f87171;
+
+  /* Glass UI (legacy — kept for existing glass.primary/secondary/muted refs) */
   --glass-primary: rgba(255, 255, 255, 1);
   --glass-secondary: rgba(255, 255, 255, 0.9);
   --glass-muted: rgba(255, 255, 255, 0.7);
+
+  /* Glass surface — dark background defaults */
+  --glass-bg-outer: rgba(255, 255, 255, 0.12);
+  --glass-bg-inner: rgba(255, 255, 255, 0.07);
+  --glass-border-outer: rgba(255, 255, 255, 0.18);
+  --glass-border-inner: rgba(255, 255, 255, 0.10);
+  --glass-blur: 24px;
+  --glass-radius-outer: 20px;
+  --glass-radius-inner: 14px;
+  --glass-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+  --glass-glow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* Layout */
+  --layout-max-width: 48rem;
+  --layout-page-padding: 16px;
+  --layout-card-gap: 16px;
+  --layout-card-padding-outer: 20px;
+  --layout-card-padding-inner: 12px;
+  --grid-module-columns: 2;
+  --grid-module-gap: 12px;
+
+  /* Motion */
+  --motion-fast: 150ms;
+  --motion-normal: 300ms;
+  --motion-slow: 500ms;
+  --motion-pulse: 1.5s;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --stagger-step: 80ms;
+
   /* Safe area insets for iOS notch/home indicator */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
@@ -23,6 +65,16 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Glass tokens for light backgrounds (dawn, morning, evening) */
+[data-theme-mode="light"] {
+  --glass-bg-outer: rgba(0, 0, 0, 0.18);
+  --glass-bg-inner: rgba(0, 0, 0, 0.12);
+  --glass-border-outer: rgba(255, 255, 255, 0.15);
+  --glass-border-inner: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  --glass-glow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 body {
