@@ -81,7 +81,6 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
     weather,
     weatherLoading,
     airQuality,
-    airQualityLoading,
     uv,
     location,
     error: dataError,
