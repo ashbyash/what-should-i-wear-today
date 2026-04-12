@@ -12,7 +12,7 @@ export default function Footer() {
     const gradient = TIME_GRADIENTS[timeOfDay];
 
     return {
-      gradientStyle: { background: `linear-gradient(to bottom, ${gradient.to}, ${gradient.to})` },
+      gradientStyle: { background: `linear-gradient(to bottom, ${gradient.to}, ${gradient.to})` }, // Footer uses solid color from gradient end
       textClass: 'text-white/45 hover:text-white/95',
     };
   }, [clientHour]);

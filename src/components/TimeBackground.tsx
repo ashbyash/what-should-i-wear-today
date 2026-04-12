@@ -14,7 +14,7 @@ export default function TimeBackground({ children, className = '' }: TimeBackgro
   const gradientStyle = useMemo(() => {
     const timeOfDay = getTimeOfDay(clientHour);
     const gradient = TIME_GRADIENTS[timeOfDay];
-    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
+    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.via}, ${gradient.to})` };
   }, [clientHour]);
 
   return (

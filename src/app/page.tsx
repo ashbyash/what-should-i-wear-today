@@ -73,7 +73,7 @@ function HomeContent() {
   const timeOfDay = useMemo(() => getTimeOfDay(clientHour, coordinates ?? undefined), [clientHour, coordinates]);
   const defaultGradientStyle = useMemo(() => {
     const gradient = TIME_GRADIENTS[timeOfDay];
-    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
+    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.via}, ${gradient.to})` };
   }, [timeOfDay]);
 
   // 기본 테마 (위치 에러 시 CitySearchModal에 전달)

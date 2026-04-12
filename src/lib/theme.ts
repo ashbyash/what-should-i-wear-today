@@ -8,13 +8,13 @@ export type WeatherType = 'clear' | 'clouds' | 'rain' | 'snow' | 'mist';
 // 서울 기본 좌표 (좌표 없을 때 fallback)
 const DEFAULT_COORDS = { lat: 37.5665, lon: 126.978 };
 
-// 시간대별 그라데이션
-export const TIME_GRADIENTS: Record<TimeOfDay, { from: string; to: string }> = {
-  dawn: { from: '#a1c4fd', to: '#f0dcc0' },
-  morning: { from: '#f0a48c', to: '#f0dcc0' },
-  day: { from: '#56ccf2', to: '#2f80ed' },
-  evening: { from: '#e08a96', to: '#f0cdd2' },
-  night: { from: '#0f0c29', to: '#302b63' },
+// 시간대별 그라데이션 (3-stop for natural sky)
+export const TIME_GRADIENTS: Record<TimeOfDay, { from: string; via: string; to: string }> = {
+  dawn: { from: '#8fb8de', via: '#dac5a0', to: '#c4a882' },
+  morning: { from: '#e8967e', via: '#f0d5b0', to: '#8ec5e0' },
+  day: { from: '#4ab8e0', via: '#5a9fe8', to: '#3478c6' },
+  evening: { from: '#c87a8a', via: '#d4a0aa', to: '#5a4a72' },
+  night: { from: '#0c0a1e', via: '#1a1545', to: '#2a2060' },
 };
 
 // 계절별 액센트 색상
@@ -138,7 +138,7 @@ export function getWeatherType(weatherMain: string): WeatherType {
 }
 
 export interface ThemeConfig {
-  gradient: { from: string; to: string };
+  gradient: { from: string; via: string; to: string };
   overlay: string;
   isLight: boolean;
   seasonAccent: string;
@@ -171,9 +171,9 @@ export function getThemeConfig(
 /**
  * 테마에 맞는 CSS 스타일 문자열 생성
  */
-export function getGradientStyle(gradient: { from: string; to: string }): React.CSSProperties {
+export function getGradientStyle(gradient: { from: string; via: string; to: string }): React.CSSProperties {
   return {
-    background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})`,
+    background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.via}, ${gradient.to})`,
   };
 }
 

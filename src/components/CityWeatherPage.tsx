@@ -52,7 +52,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
   // 기본 그라데이션 (로딩/에러 상태용)
   const defaultGradientStyle = useMemo(() => {
     const gradient = TIME_GRADIENTS[getTimeOfDay(clientHour, { lat: city.lat, lon: city.lon })];
-    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.to})` };
+    return { background: `linear-gradient(to bottom, ${gradient.from}, ${gradient.via}, ${gradient.to})` };
   }, [clientHour, city.lat, city.lon]);
 
   // initialData가 있으면 SWR hydration 완료까지 대기하지 않고 바로 사용
