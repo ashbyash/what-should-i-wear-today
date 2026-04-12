@@ -3,8 +3,6 @@
 interface GlassCardProps {
   children: React.ReactNode;
   variant?: 'outer' | 'inner';
-  /** @deprecated CSS variables handle light/dark via data-theme-mode */
-  isLight?: boolean;
   className?: string;
   onClick?: () => void;
 }
@@ -12,8 +10,6 @@ interface GlassCardProps {
 export default function GlassCard({
   children,
   variant = 'outer',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isLight,
   className = '',
   onClick,
 }: GlassCardProps) {
@@ -40,8 +36,6 @@ export default function GlassCard({
 
 export function GlassInner({
   children,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isLight,
   className = '',
 }: Omit<GlassCardProps, 'variant'>) {
   return (

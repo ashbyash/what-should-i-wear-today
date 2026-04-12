@@ -307,7 +307,7 @@ function HomeContent() {
         </WeatherModuleGrid>
 
         {/* Popular Cities — full width */}
-        <PopularCities isLight={theme.isLight} />
+        <PopularCities />
       </div>
 
       {/* 도시 검색 모달 */}

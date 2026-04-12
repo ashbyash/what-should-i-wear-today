@@ -280,7 +280,7 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
         </WeatherModuleGrid>
 
         {/* Popular Cities — full width */}
-        <PopularCities currentCitySlug={city.slug} isLight={theme.isLight} />
+        <PopularCities currentCitySlug={city.slug} />
       </div>
 
       {/* 도시 검색 모달 */}
