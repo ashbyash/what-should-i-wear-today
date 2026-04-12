@@ -11,24 +11,41 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Glass UI 색상 토큰 (CSS 변수로 동적 색상 지원)
         glass: {
           primary: "var(--glass-primary)",
           secondary: "var(--glass-secondary)",
           muted: "var(--glass-muted)",
+        },
+        status: {
+          good: "var(--status-good)",
+          moderate: "var(--status-moderate)",
+          bad: "var(--status-bad)",
+        },
+      },
+      textColor: {
+        skin: {
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
+          disabled: "var(--text-disabled)",
         },
       },
       fontFamily: {
         sans: ['Pretendard Variable', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
       },
       fontSize: {
-        // 타이포그래피 스케일 토큰
-        'display': ['40px', { lineHeight: '48px', fontWeight: '700' }],
-        'heading-1': ['24px', { lineHeight: '32px', fontWeight: '600' }],
-        'heading-2': ['16px', { lineHeight: '24px', fontWeight: '500' }],
-        'body': ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        'caption': ['12px', { lineHeight: '16px', fontWeight: '400' }],
-        'label': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'temperature': ['64px', { lineHeight: '1', fontWeight: '200', letterSpacing: '-2px' }],
+        'score': ['40px', { lineHeight: '1.1', fontWeight: '600' }],
+        'title': ['20px', { lineHeight: '1.4', fontWeight: '600' }],
+        'headline': ['16px', { lineHeight: '1.5', fontWeight: '500' }],
+        'body': ['14px', { lineHeight: '1.4', fontWeight: '400' }],
+        'caption': ['12px', { lineHeight: '1.3', fontWeight: '400' }],
+        'label': ['12px', { lineHeight: '1.3', fontWeight: '500' }],
+        'module-label': ['13px', { lineHeight: '1.3', fontWeight: '500' }],
+      },
+      borderRadius: {
+        'glass-outer': 'var(--glass-radius-outer)',
+        'glass-inner': 'var(--glass-radius-inner)',
       },
     },
   },
