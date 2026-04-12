@@ -239,7 +239,6 @@ function HomeContent() {
           locationName={weatherData.locationName}
           weather={weatherData}
           score={score}
-          isLight={theme.isLight}
           lastUpdated={lastUpdated}
           onRefresh={refetch}
           isRefreshing={isRefetching}

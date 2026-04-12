@@ -214,7 +214,6 @@ export default function CityWeatherPage({ city, initialData }: CityWeatherPagePr
           locationName={locationName}
           weather={weatherData}
           score={score}
-          isLight={theme.isLight}
           lastUpdated={lastUpdated}
           onRefresh={refetch}
           isRefreshing={isRefetching}

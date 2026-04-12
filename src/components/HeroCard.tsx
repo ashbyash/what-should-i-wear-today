@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import GlassCard, { GlassInner } from './GlassCard';
+import { getScoreGradient, DURATION, EASING, STAGGER_STEP } from '@/lib/design-tokens';
 import { useAIMessage } from '@/lib/useAIMessage';
 import type { WeatherData } from '@/types/weather';
 import type { OutingScore } from '@/types/score';
@@ -11,7 +12,6 @@ interface HeroCardProps {
   locationName: string;
   weather: WeatherData;
   score: OutingScore;
-  isLight: boolean;
   lastUpdated?: Date | null;
   onRefresh?: () => void;
   isRefreshing?: boolean;
@@ -149,23 +149,17 @@ function BreakdownBar({
       className="flex items-center gap-2"
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.3 }}
+      transition={{ delay, duration: DURATION.normal }}
     >
       <span className="text-sm" aria-hidden="true">{icon}</span>
       <span className="text-caption text-glass-muted w-16 shrink-0">{label}</span>
       <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
         <m.div
           className="h-full rounded-full"
-          style={{
-            background: percentage >= 70
-              ? 'linear-gradient(90deg, #34d399, #4ade80)'
-              : percentage >= 40
-                ? 'linear-gradient(90deg, #fbbf24, #facc15)'
-                : 'linear-gradient(90deg, #fb923c, #f87171)',
-          }}
+          style={{ background: getScoreGradient(percentage) }}
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          transition={{ delay: delay + 0.1, duration: 0.5, ease: 'easeOut' }}
+          transition={{ delay: delay + STAGGER_STEP, duration: DURATION.slow, ease: EASING.out }}
         />
       </div>
       <span className="text-caption text-glass-secondary w-12 text-right">
@@ -203,7 +197,6 @@ export default function HeroCard({
   locationName,
   weather,
   score,
-  isLight,
   lastUpdated,
   onRefresh,
   isRefreshing,
@@ -221,9 +214,9 @@ export default function HeroCard({
   const weatherEmoji = getWeatherEmoji(weather.weatherMain);
   const weatherLabel = getWeatherLabel(weather.weatherMain);
 
-  const primaryText = 'text-white/95';
-  const secondaryText = 'text-white/80';
-  const mutedText = 'text-white/55';
+  const primaryText = 'text-skin-primary';
+  const secondaryText = 'text-skin-secondary';
+  const mutedText = 'text-skin-muted';
 
   const handleRefresh = () => {
     if (onRefresh) {
@@ -261,7 +254,7 @@ export default function HeroCard({
   const isMessageLoading = weatherContext && aiLoading && !aiMessage;
 
   return (
-    <GlassCard isLight={isLight} className="flex flex-col gap-3">
+    <GlassCard className="flex flex-col gap-3">
 
       {/* 1. Cache banner */}
       {isFromCache && cacheReason && (
@@ -408,10 +401,7 @@ export default function HeroCard({
         {/* Left: temperature + weather info */}
         <div className="flex flex-col gap-1">
           <div className="flex items-end gap-2">
-            <span
-              className={primaryText}
-              style={{ fontSize: '56px', lineHeight: 1, fontWeight: 300 }}
-            >
+            <span className={`${primaryText} text-temperature`}>
               {weather.temperature}°
             </span>
             <m.span
@@ -435,10 +425,7 @@ export default function HeroCard({
           aria-label={`외출 점수 ${score.total}점. 탭하여 상세 보기`}
         >
           <span className="text-2xl" aria-hidden="true">{scoreEmoji}</span>
-          <span
-            className={`font-semibold leading-none ${scoreColorClass}`}
-            style={{ fontSize: '36px' }}
-          >
+          <span className={`text-score ${scoreColorClass}`}>
             {score.total}
           </span>
           <div className="flex items-center gap-0.5">
@@ -465,10 +452,10 @@ export default function HeroCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: DURATION.normal, ease: EASING.inOut }}
             className="overflow-hidden"
           >
-            <GlassInner isLight={isLight} className="space-y-3">
+            <GlassInner className="space-y-3">
               <p className={`text-xs ${mutedText} text-center`}>점수 상세</p>
               {Object.entries(BREAKDOWN_LABELS).map(([key, { label, max, icon }], index) => (
                 <BreakdownBar
@@ -515,7 +502,7 @@ export default function HeroCard({
       </AnimatePresence>
 
       {/* 6. AI message */}
-      <GlassInner isLight={isLight}>
+      <GlassInner>
         <div className={`text-sm text-center min-h-[1.5rem] ${secondaryText}`}>
           {isMessageLoading ? (
             <MessageSkeleton />
