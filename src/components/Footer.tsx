@@ -13,13 +13,13 @@ export default function Footer() {
 
     return {
       gradientStyle: { background: `linear-gradient(to bottom, ${gradient.to}, ${gradient.to})` }, // Footer uses solid color from gradient end
-      textClass: 'text-white/45 hover:text-white/95',
+      textClass: 'text-skin-disabled hover:text-skin-primary',
     };
   }, [clientHour]);
 
   return (
     <footer
-      className="w-full py-4 text-center text-sm"
+      className="w-full py-4 text-center text-body"
       style={gradientStyle}
     >
       <a

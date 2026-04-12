@@ -68,15 +68,15 @@ export default function CitiesPage() {
       <div className="max-w-3xl mx-auto px-4 pb-8">
         {/* 뒤로가기 */}
         <div className="pt-6 pb-4">
-          <Link href="/" className="text-sm text-white/70 hover:text-white transition-colors">
+          <Link href="/" className="text-body text-skin-muted hover:text-skin-primary transition-colors">
             ← 홈으로
           </Link>
         </div>
 
         {/* 페이지 타이틀 */}
         <div className="mb-6">
-          <h1 className="text-heading-1 text-white font-semibold">전체 도시 날씨</h1>
-          <p className="text-sm text-white/70 mt-1">국내 {domesticCount}개 · 해외 {overseasCount}개</p>
+          <h1 className="text-title text-skin-primary">전체 도시 날씨</h1>
+          <p className="text-body text-skin-muted mt-1">국내 {domesticCount}개 · 해외 {overseasCount}개</p>
         </div>
 
         <CitiesTabs

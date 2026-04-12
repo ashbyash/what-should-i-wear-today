@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { CityData } from '@/lib/cities';
+import GlassCard from './GlassCard';
 
 interface CitiesTabsProps {
   domesticRegions: [string, CityData[]][];
@@ -22,20 +23,20 @@ export default function CitiesTabs({
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setTab('domestic')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+          className={`px-4 py-2 rounded-full text-body font-medium transition-colors
             ${tab === 'domestic'
-              ? 'bg-white/25 text-white shadow-md'
-              : 'bg-white/10 text-white/60 hover:bg-white/15'
+              ? 'bg-interactive-active text-skin-primary shadow-md'
+              : 'bg-interactive-hover text-skin-muted hover:bg-interactive-active'
             }`}
         >
           국내 {domesticCount}
         </button>
         <button
           onClick={() => setTab('overseas')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+          className={`px-4 py-2 rounded-full text-body font-medium transition-colors
             ${tab === 'overseas'
-              ? 'bg-white/25 text-white shadow-md'
-              : 'bg-white/10 text-white/60 hover:bg-white/15'
+              ? 'bg-interactive-active text-skin-primary shadow-md'
+              : 'bg-interactive-hover text-skin-muted hover:bg-interactive-active'
             }`}
         >
           해외 {overseasCount}
@@ -46,22 +47,20 @@ export default function CitiesTabs({
       <section className={tab === 'domestic' ? '' : 'hidden'}>
         <div className="space-y-3">
           {domesticRegions.map(([region, cities]) => (
-            <div key={region} className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg">
-              <div className="card-body p-4">
-                <h3 className="text-xs font-medium text-white/70 mb-2">{region}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {cities.map((city) => (
-                    <Link
-                      key={city.slug}
-                      href={`/${city.slug}`}
-                      className="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-sm text-white/90 hover:bg-white/20 active:bg-white/25 transition-colors"
-                    >
-                      {city.name}
-                    </Link>
-                  ))}
-                </div>
+            <GlassCard key={region}>
+              <h3 className="text-label text-skin-muted mb-2">{region}</h3>
+              <div className="flex flex-wrap gap-2">
+                {cities.map((city) => (
+                  <Link
+                    key={city.slug}
+                    href={`/${city.slug}`}
+                    className="px-3 py-1.5 rounded-full bg-interactive-hover border border-interactive text-body text-skin-secondary hover:bg-interactive-active active:bg-interactive-active transition-colors"
+                  >
+                    {city.name}
+                  </Link>
+                ))}
               </div>
-            </div>
+            </GlassCard>
           ))}
         </div>
       </section>
@@ -70,22 +69,20 @@ export default function CitiesTabs({
       <section className={tab === 'overseas' ? '' : 'hidden'}>
         <div className="space-y-3">
           {overseasRegions.map(([region, cities]) => (
-            <div key={region} className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg">
-              <div className="card-body p-4">
-                <h3 className="text-xs font-medium text-white/70 mb-2">{region}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {cities.map((city) => (
-                    <Link
-                      key={city.slug}
-                      href={`/${city.slug}`}
-                      className="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-sm text-white/90 hover:bg-white/20 active:bg-white/25 transition-colors"
-                    >
-                      {city.name}
-                    </Link>
-                  ))}
-                </div>
+            <GlassCard key={region}>
+              <h3 className="text-label text-skin-muted mb-2">{region}</h3>
+              <div className="flex flex-wrap gap-2">
+                {cities.map((city) => (
+                  <Link
+                    key={city.slug}
+                    href={`/${city.slug}`}
+                    className="px-3 py-1.5 rounded-full bg-interactive-hover border border-interactive text-body text-skin-secondary hover:bg-interactive-active active:bg-interactive-active transition-colors"
+                  >
+                    {city.name}
+                  </Link>
+                ))}
               </div>
-            </div>
+            </GlassCard>
           ))}
         </div>
       </section>

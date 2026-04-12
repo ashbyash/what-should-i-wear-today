@@ -8,7 +8,7 @@ export default function LoadingState({ message }: LoadingStateProps) {
   return (
     <>
       <PageSkeleton />
-      <p className="text-center text-white/80 font-light text-sm mt-4">
+      <p className="text-center text-skin-secondary font-light text-body mt-4">
         {message}
       </p>
     </>

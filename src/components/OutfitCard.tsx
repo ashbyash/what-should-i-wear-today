@@ -49,7 +49,7 @@ export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) 
   const colorPrimary = 'text-skin-primary';
   const colorSecondary = 'text-skin-secondary';
   const colorMuted = 'text-skin-muted';
-  const borderColor = 'border-white/20';
+  const borderColor = 'border-interactive-strong';
 
   return (
     <GlassCard
@@ -93,19 +93,17 @@ export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) 
             return (
               <div key={key} className="flex items-center gap-2">
                 <span
-                  className="shrink-0 text-center"
-                  style={{ fontSize: '18px', width: '24px' }}
+                  className="shrink-0 text-center text-lg w-6"
                   aria-hidden="true"
                 >
                   {emoji}
                 </span>
                 <span
-                  className={`${colorMuted} shrink-0 uppercase`}
-                  style={{ fontSize: '12px', width: '36px' }}
+                  className={`${colorMuted} shrink-0 uppercase text-caption w-9`}
                 >
                   {label}
                 </span>
-                <span className={`${colorSecondary}`} style={{ fontSize: '13px' }}>
+                <span className={`${colorSecondary} text-module-label`}>
                   {items.join(', ')}
                 </span>
               </div>
@@ -119,7 +117,7 @@ export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) 
             {alerts.map((alert) => (
               <div key={alert} className={`flex items-center justify-center gap-1.5 ${colorPrimary}`}>
                 <span className="text-amber-300" aria-hidden="true">⚠️</span>
-                <span className="text-sm font-medium">{alert}</span>
+                <span className="text-body font-medium">{alert}</span>
               </div>
             ))}
           </div>
@@ -137,7 +135,7 @@ export default function OutfitCard({ outfit, weatherContext }: OutfitCardProps) 
                   <span className="inline-block w-1.5 h-1.5 bg-white/30 rounded-full animate-pulse [animation-delay:0.4s]" />
                 </span>
               ) : (
-                <span className="text-sm font-medium">{stylingTip}</span>
+                <span className="text-body font-medium">{stylingTip}</span>
               )}
             </div>
           </div>

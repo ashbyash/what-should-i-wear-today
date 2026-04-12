@@ -34,7 +34,17 @@ function SkeletonCircle({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
 // 카드 형태 스켈레톤
 function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg ${className}`}>
+    <div
+      className={`card ${className}`}
+      style={{
+        background: 'var(--glass-bg-outer)',
+        border: '1px solid var(--glass-border-outer)',
+        borderRadius: 'var(--glass-radius-outer)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        boxShadow: 'var(--glass-shadow), var(--glass-glow)',
+      }}
+    >
       <div className="card-body p-4 items-center">
         <SkeletonCircle size="lg" />
         <SkeletonBox className="h-4 w-16 mt-2" />
@@ -58,11 +68,21 @@ function SkeletonLocationHeader() {
 // 점수 게이지 스켈레톤
 function SkeletonScoreGauge() {
   return (
-    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
+    <div
+      className="card h-full"
+      style={{
+        background: 'var(--glass-bg-outer)',
+        border: '1px solid var(--glass-border-outer)',
+        borderRadius: 'var(--glass-radius-outer)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        boxShadow: 'var(--glass-shadow), var(--glass-glow)',
+      }}
+    >
       <div className="card-body p-4 flex flex-col items-center justify-center">
         <SkeletonBox className="h-5 w-32 mb-3" />
         <m.div
-          className="w-40 h-40 rounded-full bg-white/10 border-8 border-white/20"
+          className="w-40 h-40 rounded-full bg-interactive-hover border-8 border-interactive-strong"
           animate={{ opacity: [0.5, 0.8, 0.5] }}
           transition={{ duration: DURATION.pulse, repeat: Infinity, ease: EASING.inOut }}
         />
@@ -75,7 +95,17 @@ function SkeletonScoreGauge() {
 // 옷차림 카드 스켈레톤
 function SkeletonOutfitCard() {
   return (
-    <div className="card bg-white/15 backdrop-blur-md border border-white/20 shadow-lg h-full">
+    <div
+      className="card h-full"
+      style={{
+        background: 'var(--glass-bg-outer)',
+        border: '1px solid var(--glass-border-outer)',
+        borderRadius: 'var(--glass-radius-outer)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        boxShadow: 'var(--glass-shadow), var(--glass-glow)',
+      }}
+    >
       <div className="card-body p-4">
         <SkeletonBox className="h-5 w-28 mx-auto mb-4" />
         <div className="space-y-3">

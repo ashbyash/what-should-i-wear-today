@@ -152,8 +152,8 @@ function BreakdownBar({
       transition={{ delay, duration: DURATION.normal }}
     >
       <span className="text-sm" aria-hidden="true">{icon}</span>
-      <span className="text-caption text-glass-muted w-16 shrink-0">{label}</span>
-      <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+      <span className="text-caption text-skin-muted w-16 shrink-0">{label}</span>
+      <div className="flex-1 h-2 bg-interactive-hover rounded-full overflow-hidden">
         <m.div
           className="h-full rounded-full"
           style={{ background: getScoreGradient(percentage) }}
@@ -162,7 +162,7 @@ function BreakdownBar({
           transition={{ delay: delay + STAGGER_STEP, duration: DURATION.slow, ease: EASING.out }}
         />
       </div>
-      <span className="text-caption text-glass-secondary w-12 text-right">
+      <span className="text-caption text-skin-secondary w-12 text-right">
         {value ?? 0}/{max}
       </span>
     </m.div>
@@ -273,12 +273,12 @@ export default function HeroCard({
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <span className="text-xs text-amber-200 flex-1">
+          <span className="text-caption text-status-moderate flex-1">
             이전 위치 표시 중 ({cacheReason})
           </span>
           <button
             onClick={handleLocationReset}
-            className="px-2 py-0.5 text-xs text-amber-100 bg-amber-500/30
+            className="px-2 py-0.5 text-caption text-skin-secondary bg-amber-500/30
                        hover:bg-amber-500/50 rounded transition-colors"
           >
             위치 재설정
@@ -292,7 +292,7 @@ export default function HeroCard({
         {onSearchClick ? (
           <button
             onClick={onSearchClick}
-            className="flex items-center gap-1 font-semibold text-base transition-opacity active:opacity-70"
+            className="flex items-center gap-1 text-headline transition-opacity active:opacity-70"
             aria-label="다른 도시 검색"
           >
             <svg
@@ -319,7 +319,7 @@ export default function HeroCard({
             </svg>
           </button>
         ) : (
-          <div className={`flex items-center gap-1 font-semibold text-base ${primaryText}`}>
+          <div className={`flex items-center gap-1 text-headline ${primaryText}`}>
             <svg
               className={`w-4 h-4 ${mutedText}`}
               fill="currentColor"
@@ -342,12 +342,12 @@ export default function HeroCard({
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-1.5 px-2 py-1 rounded-full
-                       hover:bg-white/10 active:bg-white/15
+                       hover:bg-interactive-hover active:bg-interactive-active
                        disabled:opacity-50 disabled:cursor-not-allowed
                        transition-colors touch-manipulation"
             aria-label={isRefreshing ? '새로고침 중' : '새로고침'}
           >
-            <span className={`text-xs ${mutedText}`}>
+            <span className={`text-caption ${mutedText}`}>
               {isRefreshing ? '업데이트 중...' : getRelativeTime(lastUpdated)}
             </span>
             <svg
@@ -372,8 +372,8 @@ export default function HeroCard({
       {isViewingOtherLocation && onReturnToCurrentLocation && (
         <button
           onClick={onReturnToCurrentLocation}
-          className={`self-start flex items-center gap-1 px-3 py-1 rounded-full text-xs
-                     ${secondaryText} hover:bg-white/10 active:bg-white/15
+          className={`self-start flex items-center gap-1 px-3 py-1 rounded-full text-caption
+                     ${secondaryText} hover:bg-interactive-hover active:bg-interactive-active
                      transition-colors touch-manipulation`}
           aria-label="현재 위치로 돌아가기"
         >
@@ -413,8 +413,8 @@ export default function HeroCard({
               {weatherEmoji}
             </m.span>
           </div>
-          <span className={`text-base font-medium ${secondaryText}`}>{weatherLabel}</span>
-          <span className={`text-sm ${mutedText}`}>체감 {weather.feelsLike}°</span>
+          <span className={`text-headline ${secondaryText}`}>{weatherLabel}</span>
+          <span className={`text-body ${mutedText}`}>체감 {weather.feelsLike}°</span>
         </div>
 
         {/* Right: score (tappable to expand) */}
@@ -429,7 +429,7 @@ export default function HeroCard({
             {score.total}
           </span>
           <div className="flex items-center gap-0.5">
-            <span className={`text-xs uppercase tracking-widest ${mutedText}`}>SCORE</span>
+            <span className={`text-label uppercase tracking-widest ${mutedText}`}>SCORE</span>
             <m.svg
               className={`w-3 h-3 ${mutedText}`}
               fill="none"
@@ -437,7 +437,7 @@ export default function HeroCard({
               viewBox="0 0 24 24"
               aria-hidden="true"
               animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: DURATION.fast }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </m.svg>
@@ -456,7 +456,7 @@ export default function HeroCard({
             className="overflow-hidden"
           >
             <GlassInner className="space-y-3">
-              <p className={`text-xs ${mutedText} text-center`}>점수 상세</p>
+              <p className={`text-caption ${mutedText} text-center`}>점수 상세</p>
               {Object.entries(BREAKDOWN_LABELS).map(([key, { label, max, icon }], index) => (
                 <BreakdownBar
                   key={key}
@@ -474,12 +474,12 @@ export default function HeroCard({
                   className="flex items-center gap-2"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5, duration: 0.3 }}
+                  transition={{ delay: 0.5, duration: DURATION.normal }}
                 >
                   <span className="text-sm" aria-hidden="true">💨</span>
-                  <span className="text-caption text-glass-muted w-16 shrink-0">풍속</span>
+                  <span className="text-caption text-skin-muted w-16 shrink-0">풍속</span>
                   <div className="flex-1" />
-                  <span className="text-caption text-orange-300">
+                  <span className="text-caption text-status-bad">
                     {score.breakdown.windPenalty}점
                   </span>
                 </m.div>
@@ -488,7 +488,7 @@ export default function HeroCard({
               {/* Tips */}
               {score.tips.length > 0 && (
                 <m.div
-                  className={`pt-3 border-t border-white/10 text-xs text-center ${mutedText}`}
+                  className={`pt-3 border-t border-interactive text-caption text-center ${mutedText}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -503,7 +503,7 @@ export default function HeroCard({
 
       {/* 6. AI message */}
       <GlassInner>
-        <div className={`text-sm text-center min-h-[1.5rem] ${secondaryText}`}>
+        <div className={`text-body text-center min-h-[1.5rem] ${secondaryText}`}>
           {isMessageLoading ? (
             <MessageSkeleton />
           ) : (

@@ -12,8 +12,8 @@ export default function ErrorState({
   return (
     <div className="text-center px-4">
       <div className="text-4xl mb-4">{emoji}</div>
-      <p className="text-white font-medium">{message}</p>
-      <p className="mt-2 text-white/70 text-sm font-light">{description}</p>
+      <p className="text-skin-primary font-medium">{message}</p>
+      <p className="mt-2 text-skin-muted text-body font-light">{description}</p>
     </div>
   );
 }

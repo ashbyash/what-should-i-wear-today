@@ -30,7 +30,7 @@ function HourlySkeleton() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col items-center gap-0.5 w-14 shrink-0 py-2 px-1 bg-white/10 rounded-lg animate-pulse"
+            className="flex flex-col items-center gap-0.5 w-14 shrink-0 py-2 px-1 bg-interactive-hover rounded-lg animate-pulse"
             style={{ animationDelay: `${i * 100}ms` }}
           >
             <div className="w-8 h-2.5 bg-white/20 rounded" />
@@ -109,7 +109,7 @@ export default function HourlyForecast({ data, loading, city }: HourlyForecastPr
                     role="separator"
                   >
                     <div className="h-5 w-px bg-white/30" />
-                    <span className={`text-xs font-medium bg-white/20 px-2 py-0.5 rounded-full whitespace-nowrap ${primaryColor}`}>
+                    <span className={`text-xs font-medium bg-interactive-active px-2 py-0.5 rounded-full whitespace-nowrap ${primaryColor}`}>
                       {getDateLabel(item.date!)}
                     </span>
                     <div className="h-5 w-px bg-white/30" />
@@ -121,13 +121,13 @@ export default function HourlyForecast({ data, loading, city }: HourlyForecastPr
                     min-w-[52px] md:min-w-[64px] text-center !py-3 !px-2 md:!px-3
                     ${isNow ? 'shadow-md scale-105' : ''}`}
                 >
-                  <span className={`text-xs md:text-sm ${isNow ? `${primaryColor} font-semibold` : mutedColor}`}>
+                  <span className={`text-caption md:text-body ${isNow ? `${primaryColor} font-semibold` : mutedColor}`}>
                     {isNow && i === 0 ? '지금' : item.time}
                   </span>
 
                   <span className="text-xl md:text-2xl" aria-hidden="true">{emoji}</span>
 
-                  <span className={`text-sm md:text-base ${isNow ? `${primaryColor} font-semibold` : primaryColor}`}>
+                  <span className={`text-body md:text-headline ${isNow ? `${primaryColor} font-semibold` : primaryColor}`}>
                     {item.temperature}°
                   </span>
 
@@ -147,8 +147,8 @@ export default function HourlyForecast({ data, loading, city }: HourlyForecastPr
           onClick={() => scroll('left')}
           className={`hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-10
             w-8 h-8 items-center justify-center rounded-full
-            bg-black/30 hover:bg-black/40 border border-white/20
-            text-white transition-all duration-200
+            bg-black/30 hover:bg-black/40 border border-interactive-strong
+            text-skin-primary transition-all duration-200
             ${canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           aria-label="이전 시간"
         >
@@ -160,8 +160,8 @@ export default function HourlyForecast({ data, loading, city }: HourlyForecastPr
           onClick={() => scroll('right')}
           className={`hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-10
             w-8 h-8 items-center justify-center rounded-full
-            bg-black/30 hover:bg-black/40 border border-white/20
-            text-white transition-all duration-200
+            bg-black/30 hover:bg-black/40 border border-interactive-strong
+            text-skin-primary transition-all duration-200
             ${canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           aria-label="다음 시간"
         >
