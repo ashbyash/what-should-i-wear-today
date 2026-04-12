@@ -11,11 +11,6 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        glass: {
-          primary: "var(--glass-primary)",
-          secondary: "var(--glass-secondary)",
-          muted: "var(--glass-muted)",
-        },
         status: {
           good: "var(--status-good)",
           moderate: "var(--status-moderate)",
