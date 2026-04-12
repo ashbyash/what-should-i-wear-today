@@ -188,6 +188,7 @@ function HomeContent() {
       className={`min-h-screen pt-safe pb-safe transition-colors duration-500 ${theme.overlay}`}
       style={gradientStyle}
       data-theme={theme.isLight ? 'light' : 'dark'}
+      data-theme-mode={theme.isLight ? 'light' : 'dark'}
     >
       <div className="flex flex-col gap-4 max-w-3xl mx-auto px-4 pb-8 pt-4">
         {/* Hero Card — full width */}

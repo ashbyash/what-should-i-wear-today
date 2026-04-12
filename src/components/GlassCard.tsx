@@ -3,6 +3,7 @@
 interface GlassCardProps {
   children: React.ReactNode;
   variant?: 'outer' | 'inner';
+  /** @deprecated CSS variables handle light/dark via data-theme-mode */
   isLight?: boolean;
   className?: string;
   onClick?: () => void;
@@ -11,30 +12,27 @@ interface GlassCardProps {
 export default function GlassCard({
   children,
   variant = 'outer',
-  isLight = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isLight,
   className = '',
   onClick,
 }: GlassCardProps) {
-  const styles = variant === 'outer'
-    ? {
-        background: isLight ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.15)',
-        border: isLight ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.2)',
-      }
-    : {
-        background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.1)',
-        border: isLight ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.15)',
-      };
+  const isOuter = variant === 'outer';
 
-  const radius = variant === 'outer' ? 'rounded-[18px]' : 'rounded-xl';
-  const padding = variant === 'outer' ? 'p-5' : 'p-3';
-  const blur = variant === 'outer' ? 'backdrop-blur-[20px]' : '';
+  const styles: React.CSSProperties = {
+    background: isOuter ? 'var(--glass-bg-outer)' : 'var(--glass-bg-inner)',
+    border: `1px solid ${isOuter ? 'var(--glass-border-outer)' : 'var(--glass-border-inner)'}`,
+    borderRadius: isOuter ? 'var(--glass-radius-outer)' : 'var(--glass-radius-inner)',
+    padding: isOuter ? 'var(--layout-card-padding-outer)' : 'var(--layout-card-padding-inner)',
+    ...(isOuter ? {
+      backdropFilter: 'blur(var(--glass-blur))',
+      WebkitBackdropFilter: 'blur(var(--glass-blur))',
+      boxShadow: 'var(--glass-shadow), var(--glass-glow)',
+    } : {}),
+  };
 
   return (
-    <div
-      className={`${radius} ${padding} ${blur} ${className}`}
-      style={styles}
-      onClick={onClick}
-    >
+    <div className={className} style={styles} onClick={onClick}>
       {children}
     </div>
   );
@@ -42,11 +40,12 @@ export default function GlassCard({
 
 export function GlassInner({
   children,
-  isLight = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isLight,
   className = '',
 }: Omit<GlassCardProps, 'variant'>) {
   return (
-    <GlassCard variant="inner" isLight={isLight} className={className}>
+    <GlassCard variant="inner" className={className}>
       {children}
     </GlassCard>
   );
