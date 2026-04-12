@@ -53,6 +53,12 @@
   --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
   --stagger-step: 80ms;
 
+  /* Interactive states */
+  --interactive-hover: rgba(255, 255, 255, 0.10);
+  --interactive-active: rgba(255, 255, 255, 0.15);
+  --interactive-border: rgba(255, 255, 255, 0.10);
+  --interactive-border-strong: rgba(255, 255, 255, 0.20);
+
   /* Safe area insets for iOS notch/home indicator */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
@@ -75,6 +81,12 @@
   --glass-border-inner: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
   --glass-glow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Light mode text — boost contrast on bright backgrounds */
+  --text-primary: rgba(255, 255, 255, 1);
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --text-muted: rgba(255, 255, 255, 0.65);
+  --text-disabled: rgba(255, 255, 255, 0.40);
 }
 
 body {

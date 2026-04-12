@@ -30,6 +30,18 @@ const config: Config = {
           disabled: "var(--text-disabled)",
         },
       },
+      backgroundColor: {
+        interactive: {
+          hover: "var(--interactive-hover)",
+          active: "var(--interactive-active)",
+        },
+      },
+      borderColor: {
+        interactive: {
+          DEFAULT: "var(--interactive-border)",
+          strong: "var(--interactive-border-strong)",
+        },
+      },
       fontFamily: {
         sans: ['Pretendard Variable', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
       },
