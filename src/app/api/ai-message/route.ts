@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { generateScoreMessage } from '@/lib/ai-message';
+import { rateLimit } from '@/lib/rate-limit';
 import type { ScoreMessageInput } from '@/lib/prompts/score-message';
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const rl = rateLimit(ip, { limit: 5, windowMs: 60_000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } }
+      );
+    }
+
     const body = await request.json();
 
     // 필수 필드 검증
