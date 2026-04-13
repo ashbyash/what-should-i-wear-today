@@ -2,7 +2,7 @@
 
 아침마다 날씨 확인하고 옷 고르기 귀찮은 사람을 위한 서비스. 현재 위치의 날씨·미세먼지·자외선을 분석해서 외출 점수와 옷 추천을 한 화면에 보여줍니다.
 
-**[Live Demo](https://what-should-i-wear-today-ochre.vercel.app)**
+**https://what-should-i-wear-today-ochre.vercel.app**
 
 ## Screenshots
 
@@ -49,51 +49,6 @@
 | AI | OpenAI GPT |
 | 배포 | Vercel (ISR 10분) |
 | 테스트 | Vitest + Testing Library |
-
-## Getting Started
-
-### 사전 요구사항
-
-- Node.js 18+
-- npm
-
-### 설치
-
-```bash
-git clone https://github.com/ashbyash/what-should-i-wear-today.git
-cd what-should-i-wear-today
-npm install
-```
-
-### 환경 변수
-
-`.env.local` 파일을 생성하고 아래 키를 설정합니다.
-
-```env
-# 기상청 API (https://www.data.go.kr)
-KMA_API_KEY=your_key
-KMA_APIHUB_AUTH_KEY=your_key
-
-# 에어코리아 API (https://www.data.go.kr)
-AIRKOREA_API_KEY=your_key
-
-# 카카오 REST API (https://developers.kakao.com)
-KAKAO_REST_API_KEY=your_key
-
-# OpenAI API (https://platform.openai.com) — AI 한줄평용, 선택사항
-OPENAI_API_KEY=your_key
-
-# Google Analytics — 선택사항
-NEXT_PUBLIC_GA_ID=your_ga_id
-```
-
-### 실행
-
-```bash
-npm run dev        # 개발 서버 (http://localhost:3000)
-npm run build      # 프로덕션 빌드
-npm run test:run   # 테스트 실행
-```
 
 ## Project Structure
 
