@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * AI 메시지 품질 Eval 테스트
  *
